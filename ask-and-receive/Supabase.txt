@@ -1,3 +1,6 @@
 Allyourbase1!
 
 Projecturl - https://pmdnchbbvxqrwkszfbxg.supabase.co
+
+Publishablekey -
+sb_publishable_AtS0Y2Nd8yULmmrAXwSrjQ_Ir-kdc8X
