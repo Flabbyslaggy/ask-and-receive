@@ -30,6 +30,9 @@ export default function App() {
   const [status, setStatus] = useState("")
   const [myHelpOffers, setMyHelpOffers] = useState([])
   const [offersForMyAsks, setOffersForMyAsks] = useState([])
+  const [myAsks, setMyAsks] = useState([])
+  const [messages, setMessages] = useState([])
+  const [messageInputs, setMessageInputs] = useState({})
   const [askForm, setAskForm] = useState({
     askerName: "",
     title: "",
@@ -55,7 +58,7 @@ useEffect(() => {
   async function fetchAsks() {
     const { data, error } = await supabase
       .from("asks")
-      .select("*")
+      .select("id, user_id, asker_name, title, category, body, created_at").select("*")
       .order("created_at", { ascending: false })
 
     if (error) {
@@ -70,6 +73,7 @@ useEffect(() => {
       title: ask.title,
       category: ask.category,
       body: ask.body,
+      created_at: ask.created_at,
     }))
 
     setAsks(formatted)
@@ -126,6 +130,37 @@ useEffect(() => {
   }
 
   fetchOffersForMyAsks()
+}, [session, asks])
+
+useEffect(() => {
+  async function fetchMessages() {
+    if (!session) return
+
+    const { data, error } = await supabase
+      .from("messages")
+      .select("*")
+      .order("created_at", { ascending: true })
+
+    if (error) {
+      console.error("Error fetching messages:", error)
+      return
+    }
+
+    setMessages(data)
+    console.log("MESSAGES", data)
+  }
+
+  fetchMessages()
+}, [session])
+
+useEffect(() => {
+  if (!session) {
+    setMyAsks([])
+    return
+  }
+
+  const mine = asks.filter((ask) => ask.user_id === session.user.id)
+  setMyAsks(mine)
 }, [session, asks])
 
   const [helpForm, setHelpForm] = useState({
@@ -237,24 +272,100 @@ async function handleHelpSubmit(event) {
   setStatus("Your offer to help was submitted.")
 }
 
-async function handleAcceptOffer(offerId) {
-  const { error } = await supabase
+async function handleAcceptOffer(offerId, askId) {
+  const { error: acceptError } = await supabase
     .from("help_offers")
     .update({ status: "accepted" })
     .eq("id", offerId)
 
+  if (acceptError) {
+    console.error("Error accepting offer:", acceptError)
+    return
+  }
+
+  const { error: declineError } = await supabase
+    .from("help_offers")
+    .update({ status: "declined" })
+    .eq("ask_id", askId)
+    .neq("id", offerId)
+    .eq("status", "pending")
+
+  if (declineError) {
+    console.error("Error declining other offers:", declineError)
+    return
+  }
+
+  setOffersForMyAsks((current) =>
+    current.map((offer) => {
+      if (offer.id === offerId) {
+        return { ...offer, status: "accepted" }
+      }
+
+      if (offer.ask_id === askId && offer.status === "pending") {
+        return { ...offer, status: "declined" }
+      }
+
+      return offer
+    })
+  )
+}
+
+function getMessagesForOffer(offerId) {
+  return messages.filter((msg) => msg.offer_id === offerId)
+}
+
+async function handleDeclineOffer(offerId) {
+  const { error } = await supabase
+    .from("help_offers")
+    .update({ status: "declined" })
+    .eq("id", offerId)
+
   if (error) {
-    console.error("Error accepting offer:", error)
+    console.error("Error declining offer:", error)
     return
   }
 
   setOffersForMyAsks((current) =>
     current.map((offer) =>
       offer.id === offerId
-        ? { ...offer, status: "accepted" }
+        ? { ...offer, status: "declined" }
         : offer
     )
   )
+}
+
+async function handleSendMessage(offerId) {
+  const messageText = messageInputs[offerId]?.trim() || ""
+  if (!messageText) return
+
+  const { error } = await supabase.from("messages").insert([
+    {
+      offer_id: offerId,
+      sender_user_id: session.user.id,
+      message_text: messageText,
+    },
+  ])
+
+  if (error) {
+    console.error("Error sending message:", error)
+    return
+  }
+
+  setMessages((current) => [
+    ...current,
+    {
+      id: Date.now(),
+      offer_id: offerId,
+      sender_user_id: session.user.id,
+      message_text: messageText,
+      created_at: new Date().toISOString(),
+    },
+  ])
+
+  setMessageInputs((current) => ({
+  ...current,
+  [offerId]: "",
+}))
 }
 
 async function handleLogout() {
@@ -271,6 +382,7 @@ const isRecoveryMode = window.location.hash.includes("type=recovery")
 if (!session || isRecoveryMode) {
   return <Auth />
 }
+
   return (
     <div
   className="min-h-screen text-white bg-cover bg-center bg-fixed"
@@ -307,9 +419,83 @@ if (!session || isRecoveryMode) {
       />
 
       <AskList
-        asks={asks}
+        asks={asks.map((ask) => ({
+          ...ask,
+          isFulfilled: offersForMyAsks.some(
+            (offer) => offer.ask_id === ask.id && offer.status === "accepted"
+          ),
+        }))}
         onHelpClick={handleHelpClick}
       />
+
+{myAsks.length > 0 ? (
+  <section className="mx-auto mt-10 max-w-4xl px-6">
+    <div className="rounded-3xl border border-stone-800 bg-stone-900/60 p-6 backdrop-blur">
+      <h2 className="text-2xl font-semibold text-white">My Asks</h2>
+
+      <div className="mt-4 grid gap-4">
+        {myAsks.map((ask) => {
+           const isFulfilled = offersForMyAsks.some(
+            (offer) => offer.ask_id === ask.id && offer.status === "accepted"
+           )
+
+          return (
+            <div
+            key={ask.id}
+            className="rounded-3xl border border-stone-800 bg-stone-900/60 backdrop-blur p-6 shadow-lg"
+          >
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-4">
+                <div>
+                  <div className="text-sm text-stone-400">Ask</div>
+                  <div className="text-xl font-semibold text-white">
+                    {ask.title}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-sm text-stone-400">Category</div>
+                  <div className="text-base text-stone-200">
+                    {ask.category}
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="text-sm text-stone-400">Asked on</div>
+                  <div className="text-base text-stone-200">
+                    {new Date(ask.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+                <div>
+                  {isFulfilled ? (
+                    <div className="inline-block rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-200">
+                      Fulfilled
+                    </div>
+                  ) : (
+                    <div className="inline-block rounded-2xl border border-stone-700 px-3 py-1 text-sm text-stone-300">
+                      Open
+                    </div>
+                  )}
+                </div>
+
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <div className="text-sm text-stone-400">Request</div>
+                  <div className="text-base text-stone-200">
+                    {ask.body}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+      )
+    })}
+      </div>
+    </div>
+  </section>
+) : null}
 
 {myHelpOffers.length > 0 ? (
   <section className="mx-auto mt-10 max-w-4xl px-6">
@@ -370,8 +556,55 @@ if (!session || isRecoveryMode) {
                     {offer.helper_message}
                   </div>
                 </div>
-              </div>
+                <div>
+                  <div className="text-sm text-stone-400 mt-4">Messages</div>
 
+                  <div className="mt-2 space-y-2">
+                    {getMessagesForOffer(offer.id).map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`flex ${
+                          msg.sender_user_id === session.user.id
+                            ? "justify-end"
+                            : "justify-start"
+                        }`}
+                      >
+                        <div
+                          className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
+                            msg.sender_user_id === session.user.id
+                              ? "bg-emerald-300 text-stone-950"
+                              : "bg-stone-800/60 text-stone-200"
+                          }`}
+                        >
+                          {msg.message_text}
+                        </div>
+                      </div>
+                    ))}
+
+                    {getMessagesForOffer(offer.id).length === 0 && (
+                      <div className="text-sm text-stone-500">No messages yet</div>
+                    )}
+                  </div>
+                </div>
+                <input
+                  type="text"
+                  value={messageInputs[offer.id] || ""}
+                  onChange={(e) =>
+                    setMessageInputs((current) => ({
+                      ...current,
+                      [offer.id]: e.target.value,
+                    }))
+                  }
+                  placeholder="Type a message..."
+                  className="w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-100 outline-none"
+                />
+                <button
+                  onClick={() => handleSendMessage(offer.id)}
+                  className="mt-2 rounded-xl bg-emerald-300 px-4 py-2 text-sm font-medium text-stone-950 hover:bg-emerald-200 transition"
+                >
+                  Send
+                </button>
+              </div>
             </div>
           </div>
         ))}
@@ -423,13 +656,23 @@ if (!session || isRecoveryMode) {
                   </div>
 
                   {offer.status === "pending" && (
-                    <button
-                      onClick={() => handleAcceptOffer(offer.id)}
-                      className="mt-2 rounded-xl bg-green-500 px-3 py-1 text-sm font-semibold text-black hover:bg-green-400 transition"
-                    >
-                      Accept
-                    </button>
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        onClick={() => handleAcceptOffer(offer.id, offer.ask_id)}
+                        className="rounded-xl bg-green-500 px-3 py-1 text-sm font-semibold text-black hover:bg-green-400 transition"
+                      >
+                        Accept
+                      </button>
+
+                      <button
+                        onClick={() => handleDeclineOffer(offer.id)}
+                        className="rounded-xl bg-red-500 px-3 py-1 text-sm font-semibold text-black hover:bg-red-400 transition"
+                      >
+                        Decline
+                      </button>
+                    </div>
                   )}
+
                 </div>
               </div>
 
@@ -448,8 +691,56 @@ if (!session || isRecoveryMode) {
                     {offer.helper_message}
                   </div>
                 </div>
-              </div>
+              <div>
+                <div className="text-sm text-stone-400 mt-4">Messages</div>
 
+                <div className="mt-2 space-y-2">
+                 {getMessagesForOffer(offer.id).map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex ${
+                      msg.sender_user_id === session.user.id
+                        ? "justify-end"
+                        : "justify-start"
+                    }`}
+                  >
+                    <div
+                      className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
+                        msg.sender_user_id === session.user.id
+                          ? "bg-emerald-300 text-stone-950"
+                          : "bg-stone-800/60 text-stone-200"
+                      }`}
+                    >
+                      {msg.message_text}
+                    </div>
+                  </div>
+                ))}
+
+                  {getMessagesForOffer(offer.id).length === 0 && (
+                    <div className="text-sm text-stone-500">No messages yet</div>
+                  )}
+                </div>
+                <input
+                  type="text"
+                  value={messageInputs[offer.id] || ""}
+                  onChange={(e) =>
+                    setMessageInputs((current) => ({
+                      ...current,
+                      [offer.id]: e.target.value,
+                    }))
+                  }
+                  placeholder="Type a message..."
+                  className="w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-100 outline-none"
+                />
+                
+                <button
+                  onClick={() => handleSendMessage(offer.id)}
+                  className="mt-2 rounded-xl bg-emerald-300 px-4 py-2 text-sm font-medium text-stone-950 hover:bg-emerald-200 transition"
+                >
+                  Send
+                </button>
+              </div>
+              </div>
             </div>
           </div>
         ))}

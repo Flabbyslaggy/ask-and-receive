@@ -36,12 +36,18 @@ export default function AskList({ asks, onHelpClick }) {
               <h3 className="mt-4 text-xl font-medium">{ask.title}</h3>
               <p className="mt-3 text-stone-300 leading-7">{ask.body}</p>
 
-              <button
-                onClick={() => onHelpClick(ask)}
-                className="mt-4 bg-emerald-300 text-black px-4 py-2 rounded-lg hover:bg-emerald-200 transition"
-              >
-                I Can Help
-              </button>
+              {ask.isFulfilled ? (
+                <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-200">
+                  Fulfilled
+                </div>
+              ) : (
+                <button
+                  onClick={() => onHelpClick(ask)}
+                  className="rounded-2xl bg-emerald-300 px-4 py-2 font-medium text-stone-950 hover:bg-emerald-200 transition"
+                >
+                  I Can Help
+                </button>
+              )}
             </div>
           ))}
         </div>
