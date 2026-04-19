@@ -29,143 +29,225 @@ export default function App() {
   const [asks, setAsks] = useState([])
   const [status, setStatus] = useState("")
   const [myHelpOffers, setMyHelpOffers] = useState([])
+  const [expandedHelpOfferId, setExpandedHelpOfferId] = useState(null)
+  const [expandedAskId, setExpandedAskId] = useState(null)
+  const [expandedMessagesOfferId, setExpandedMessagesOfferId] = useState(null)
+  const [helpStatus, setHelpStatus] = useState("")
   const [offersForMyAsks, setOffersForMyAsks] = useState([])
   const [myAsks, setMyAsks] = useState([])
   const [messages, setMessages] = useState([])
   const [messageInputs, setMessageInputs] = useState({})
+  const [activeView, setActiveView] = useState("home")
+  const [profile, setProfile] = useState(null)
+  const [profileStatus, setProfileStatus] = useState("")
+  const [askStatus, setAskStatus] = useState("")
   const [askForm, setAskForm] = useState({
-    askerName: "",
     title: "",
     category: "Simple Joy",
     body: "",
   })
 
-useEffect(() => {
-  supabase.auth.getSession().then(({ data }) => {
-    setSession(data.session)
-  })
+  useEffect(() => {
+    async function handleSession(session) {
+      setSession(session)
 
-  const {
-    data: { subscription },
-  } = supabase.auth.onAuthStateChange((_event, session) => {
-    setSession(session)
-  })
+      if (!session) return
 
-  return () => subscription.unsubscribe()
-}, [])
+      const userId = session.user.id
 
-useEffect(() => {
-  async function fetchAsks() {
-    const { data, error } = await supabase
-      .from("asks")
-      .select("id, user_id, asker_name, title, category, body, created_at").select("*")
-      .order("created_at", { ascending: false })
+      // check if profile exists
+      const { data } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", userId)
+        .single()
 
-    if (error) {
-      console.error("Error fetching asks:", error)
-      return
+      if (!data) {
+        // create profile if missing
+        await supabase.from("profiles").insert([
+          {
+            id: userId,
+            nickname: "Anonymous",
+          },
+        ])
+      }
     }
 
-    const formatted = data.map((ask) => ({
-      id: ask.id,
-      user_id: ask.user_id,
-      asker: ask.asker_name,
-      title: ask.title,
-      category: ask.category,
-      body: ask.body,
-      created_at: ask.created_at,
-    }))
+    supabase.auth.getSession().then(({ data }) => {
+      handleSession(data.session)
+    })
 
-    setAsks(formatted)
-  }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      handleSession(session)
+    })
 
-  fetchAsks()
-}, [])
+    return () => subscription.unsubscribe()
+  }, [])
 
-useEffect(() => {
-  async function fetchMyHelpOffers() {
+  useEffect(() => {
+    async function fetchAsks() {
+      const { data, error } = await supabase
+        .from("asks")
+        .select("id, user_id, asker_name, title, category, body, created_at").select("*")
+        .order("created_at", { ascending: false })
+
+      if (error) {
+        console.error("Error fetching asks:", error)
+        return
+      }
+
+      const formatted = data.map((ask) => ({
+        id: ask.id,
+        user_id: ask.user_id,
+        asker: ask.asker_name,
+        title: ask.title,
+        category: ask.category,
+        body: ask.body,
+        created_at: ask.created_at,
+      }))
+
+      setAsks(formatted)
+    }
+
+    fetchAsks()
+  }, [])
+
+  useEffect(() => {
+    async function fetchMyHelpOffers() {
+      if (!session) return
+
+      const { data, error } = await supabase
+        .from("help_offers")
+        .select("*")
+        .eq("user_id", session.user.id)
+        .order("created_at", { ascending: false })
+
+      if (error) {
+        console.error("Error fetching help offers:", error)
+        return
+      }
+
+      setMyHelpOffers(data)
+    }
+
+    fetchMyHelpOffers()
+  }, [session])
+
+  useEffect(() => {
+    async function fetchOffersForMyAsks() {
+      if (!session || asks.length === 0) return
+
+      const myAskIds = asks
+        .filter((ask) => ask.user_id === session.user.id)
+        .map((ask) => ask.id)
+
+      if (myAskIds.length === 0) {
+        setOffersForMyAsks([])
+        return
+      }
+
+      const { data, error } = await supabase
+        .from("help_offers")
+        .select("*")
+        .in("ask_id", myAskIds)
+        .order("created_at", { ascending: false })
+
+      if (error) {
+        console.error("Error fetching offers for my asks:", error)
+        return
+      }
+
+      setOffersForMyAsks(data)
+    }
+
+    fetchOffersForMyAsks()
+  }, [session, asks])
+
+  useEffect(() => {
+    async function fetchMessages() {
+      if (!session) return
+
+      const { data, error } = await supabase
+        .from("messages")
+        .select("*")
+        .order("created_at", { ascending: true })
+
+      if (error) {
+        console.error("Error fetching messages:", error)
+        return
+      }
+
+      setMessages(data)
+      console.log("MESSAGES", data)
+    }
+
+    fetchMessages()
+  }, [session])
+
+  useEffect(() => {
     if (!session) return
 
-    const { data, error } = await supabase
-      .from("help_offers")
-      .select("*")
-      .order("created_at", { ascending: false })
+    const channel = supabase
+      .channel("messages-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+        },
+        (payload) => {
+          setMessages((current) => {
+            const alreadyExists = current.some((msg) => msg.id === payload.new.id)
+            if (alreadyExists) return current
+            return [...current, payload.new]
+          })
+        }
+      )
+      .subscribe()
 
-    if (error) {
-      console.error("Error fetching help offers:", error)
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [session])
+
+  useEffect(() => {
+    async function fetchProfile() {
+      if (!session) {
+        setProfile(null)
+        return
+      }
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single()
+
+      if (error) {
+        console.error("Error fetching profile:", error)
+        return
+      }
+
+      setProfile(data)
+    }
+
+    fetchProfile()
+  }, [session])
+
+  useEffect(() => {
+    if (!session) {
+      setMyAsks([])
       return
     }
 
-    setMyHelpOffers(data)
-  }
-
-  fetchMyHelpOffers()
-}, [session])
-
-useEffect(() => {
-  async function fetchOffersForMyAsks() {
-    if (!session || asks.length === 0) return
-
-    const myAskIds = asks
-      .filter((ask) => ask.user_id === session.user.id)
-      .map((ask) => ask.id)
-
-    if (myAskIds.length === 0) {
-      setOffersForMyAsks([])
-      return
-    }
-
-    const { data, error } = await supabase
-      .from("help_offers")
-      .select("*")
-      .in("ask_id", myAskIds)
-      .order("created_at", { ascending: false })
-
-    if (error) {
-      console.error("Error fetching offers for my asks:", error)
-      return
-    }
-
-    setOffersForMyAsks(data)
-  }
-
-  fetchOffersForMyAsks()
-}, [session, asks])
-
-useEffect(() => {
-  async function fetchMessages() {
-    if (!session) return
-
-    const { data, error } = await supabase
-      .from("messages")
-      .select("*")
-      .order("created_at", { ascending: true })
-
-    if (error) {
-      console.error("Error fetching messages:", error)
-      return
-    }
-
-    setMessages(data)
-    console.log("MESSAGES", data)
-  }
-
-  fetchMessages()
-}, [session])
-
-useEffect(() => {
-  if (!session) {
-    setMyAsks([])
-    return
-  }
-
-  const mine = asks.filter((ask) => ask.user_id === session.user.id)
-  setMyAsks(mine)
-}, [session, asks])
+    const mine = asks.filter((ask) => ask.user_id === session.user.id)
+    setMyAsks(mine)
+  }, [session, asks])
 
   const [helpForm, setHelpForm] = useState({
-    helperName: "",
-    helperEmail: "",
     helperMessage: "",
   })
 
@@ -199,555 +281,749 @@ useEffect(() => {
     }
   }, [asks])
 
-async function handleAskSubmit(event) {
-  event.preventDefault()
-  console.log("SUBMIT CLICKED")
+  async function handleAskSubmit(event) {
+    event.preventDefault()
+    console.log("SUBMIT CLICKED")
 
-  if (!askForm.title.trim() || !askForm.body.trim()) {
-    setStatus("Please add a title and tell people what you want.")
-    return
+    const trimmedTitle = askForm.title.trim()
+    const trimmedBody = askForm.body.trim()
+
+    if (!trimmedTitle || !trimmedBody) {
+      setAskStatus("Please add a title and tell people what you want.")
+      return
+    }
+
+    if (trimmedTitle.length > 80) {
+      setAskStatus("Ask title must be 80 characters or fewer.")
+      return
+    }
+
+    if (trimmedBody.length > 500) {
+      setAskStatus("Ask description must be 500 characters or fewer.")
+      return
+    }
+
+    const { error } = await supabase.from("asks").insert([
+      {
+        user_id: session.user.id,
+        title: trimmedTitle,
+        body: trimmedBody,
+        category: askForm.category,
+        asker_name: profile?.nickname || "Anonymous",
+      },
+    ])
+
+    if (error) {
+      setAskStatus(`Could not save ask: ${error.message}`)
+      return
+    }
+
+    setAskForm({
+      title: "",
+      category: "Simple Joy",
+      body: "",
+    })
+
+    setAskStatus("Your ask was added.")
   }
-
-  const { error } = await supabase.from("asks").insert([
-    {
-      user_id: session.user.id,
-      title: askForm.title.trim(),
-      body: askForm.body.trim(),
-      category: askForm.category,
-      asker_name: askForm.askerName.trim() || "Anonymous",
-    },
-  ])
-
-  if (error) {
-    setStatus(`Could not save ask: ${error.message}`)
-    return
-  }
-
-  setAskForm({
-    askerName: "",
-    title: "",
-    category: "Simple Joy",
-    body: "",
-  })
-
-  setStatus("Your ask was added.")
-}
 
   function handleHelpClick(ask) {
     setSelectedAsk(ask)
     setIsHelpOpen(true)
   }
 
-async function handleHelpSubmit(event) {
-  event.preventDefault()
+  async function handleHelpSubmit(event) {
+    event.preventDefault()
 
-  if (!helpForm.helperEmail.trim() || !helpForm.helperMessage.trim()) {
-    setStatus("Please add your email and how you want to help.")
-    return
+    const trimmedMessage = (helpForm.helperMessage || "").trim()
+
+    if (!trimmedMessage) {
+      setHelpStatus("Please say how you want to help.")
+      return
+    }
+
+    if (trimmedMessage.length > 500) {
+      setHelpStatus("Help message must be 500 characters or fewer.")
+      return
+    }
+
+    const { error } = await supabase.from("help_offers").insert([
+      {
+        ask_id: selectedAsk.id,
+        user_id: session.user.id,
+        helper_name: profile?.nickname || "Anonymous",
+        helper_message: trimmedMessage,
+      },
+    ])
+
+    if (error) {
+      setHelpStatus("Could not send help offer.")
+      return
+    }
+
+    setHelpForm({ helperMessage: "" })
+    setHelpStatus("Offer sent!")
+
+    setIsHelpOpen(false)
+    setSelectedAsk(null)
   }
 
-  const { error } = await supabase.from("help_offers").insert([
-    {
-      ask_id: selectedAsk.id,
-      user_id: session.user.id,
-      helper_name: helpForm.helperName.trim() || "Anonymous",
-      helper_email: helpForm.helperEmail.trim(),
-      helper_message: helpForm.helperMessage.trim(),
-    },
-  ])
+  async function handleAcceptOffer(offerId, askId) {
+    const { error: acceptError } = await supabase
+      .from("help_offers")
+      .update({ status: "accepted" })
+      .eq("id", offerId)
 
-  if (error) {
-    setStatus(`Could not send help offer: ${error.message}`)
-    return
-  }
+    if (acceptError) {
+      console.error("Error accepting offer:", acceptError)
+      return
+    }
 
-  setHelpForm({
-    helperName: "",
-    helperEmail: "",
-    helperMessage: "",
-  })
+    const { error: declineError } = await supabase
+      .from("help_offers")
+      .update({ status: "declined" })
+      .eq("ask_id", askId)
+      .neq("id", offerId)
+      .eq("status", "pending")
 
-  setIsHelpOpen(false)
-  setSelectedAsk(null)
-  setStatus("Your offer to help was submitted.")
-}
+    if (declineError) {
+      console.error("Error declining other offers:", declineError)
+      return
+    }
 
-async function handleAcceptOffer(offerId, askId) {
-  const { error: acceptError } = await supabase
-    .from("help_offers")
-    .update({ status: "accepted" })
-    .eq("id", offerId)
+    setOffersForMyAsks((current) =>
+      current.map((offer) => {
+        if (offer.id === offerId) {
+          return { ...offer, status: "accepted" }
+        }
 
-  if (acceptError) {
-    console.error("Error accepting offer:", acceptError)
-    return
-  }
+        if (offer.ask_id === askId && offer.status === "pending") {
+          return { ...offer, status: "declined" }
+        }
 
-  const { error: declineError } = await supabase
-    .from("help_offers")
-    .update({ status: "declined" })
-    .eq("ask_id", askId)
-    .neq("id", offerId)
-    .eq("status", "pending")
-
-  if (declineError) {
-    console.error("Error declining other offers:", declineError)
-    return
-  }
-
-  setOffersForMyAsks((current) =>
-    current.map((offer) => {
-      if (offer.id === offerId) {
-        return { ...offer, status: "accepted" }
-      }
-
-      if (offer.ask_id === askId && offer.status === "pending") {
-        return { ...offer, status: "declined" }
-      }
-
-      return offer
-    })
-  )
-}
-
-function getMessagesForOffer(offerId) {
-  return messages.filter((msg) => msg.offer_id === offerId)
-}
-
-async function handleDeclineOffer(offerId) {
-  const { error } = await supabase
-    .from("help_offers")
-    .update({ status: "declined" })
-    .eq("id", offerId)
-
-  if (error) {
-    console.error("Error declining offer:", error)
-    return
-  }
-
-  setOffersForMyAsks((current) =>
-    current.map((offer) =>
-      offer.id === offerId
-        ? { ...offer, status: "declined" }
-        : offer
+        return offer
+      })
     )
-  )
-}
-
-async function handleSendMessage(offerId) {
-  const messageText = messageInputs[offerId]?.trim() || ""
-  if (!messageText) return
-
-  const { error } = await supabase.from("messages").insert([
-    {
-      offer_id: offerId,
-      sender_user_id: session.user.id,
-      message_text: messageText,
-    },
-  ])
-
-  if (error) {
-    console.error("Error sending message:", error)
-    return
   }
 
-  setMessages((current) => [
-    ...current,
-    {
-      id: Date.now(),
-      offer_id: offerId,
-      sender_user_id: session.user.id,
-      message_text: messageText,
-      created_at: new Date().toISOString(),
-    },
-  ])
+  async function handleDeclineOffer(offerId) {
+    console.log("DECLINE CLICKED", offerId)
 
-  setMessageInputs((current) => ({
-  ...current,
-  [offerId]: "",
-}))
-}
+    const { error } = await supabase
+      .from("help_offers")
+      .update({ status: "declined" })
+      .eq("id", offerId)
 
-async function handleLogout() {
-  await supabase.auth.signOut()
-}
+    if (error) {
+      console.error("Error declining offer:", error)
+      return
+    }
+
+    console.log("DECLINE SUCCESS", offerId)
+
+    setOffersForMyAsks((current) =>
+      current.map((offer) =>
+        offer.id === offerId
+          ? { ...offer, status: "declined" }
+          : offer
+      )
+    )
+  }
+
+  function getMessagesForOffer(offerId) {
+    return messages.filter((msg) => msg.offer_id === offerId)
+  }
+
+  async function handleSendMessage(offerId) {
+    const messageText = (messageInputs[offerId] || "").trim()
+
+    if (!messageText) return
+
+    if (messageText.length > 300) {
+      alert("Message must be 300 characters or fewer.")
+      return
+    }
+
+    const { error } = await supabase.from("messages").insert([
+      {
+        offer_id: offerId,
+        sender_user_id: session.user.id,
+        message_text: messageText,
+      },
+    ])
+
+    if (error) {
+      console.error("Error sending message:", error)
+      return
+    }
+
+    setMessages((current) => [
+      ...current,
+      {
+        id: Date.now(),
+        offer_id: offerId,
+        sender_user_id: session.user.id,
+        message_text: messageText,
+        created_at: new Date().toISOString(),
+      },
+    ])
+
+    setMessageInputs((current) => ({
+      ...current,
+      [offerId]: "",
+    }))
+  }
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+  }
 
   function handleClearSavedData() {
     setAsks([])
     localStorage.removeItem(ASK_STORAGE_KEY)
     setStatus("Saved asks cleared.")
   }
-const isRecoveryMode = window.location.hash.includes("type=recovery")
+  const isRecoveryMode = window.location.hash.includes("type=recovery")
 
-if (!session || isRecoveryMode) {
-  return <Auth />
-}
+  if (!session || isRecoveryMode) {
+    return <Auth />
+  }
 
   return (
     <div
-  className="min-h-screen text-white bg-cover bg-center bg-fixed"
-  style={{
-    backgroundImage: `
+      className="min-h-screen text-white bg-cover bg-center bg-fixed"
+      style={{
+        backgroundImage: `
       linear-gradient(rgba(10,10,10,0.25), rgba(10,10,10,0.45)),
       url(${oceanBg})
     `,
-  }}
->
-      <Header />
-<div className="mx-auto max-w-6xl px-6 pt-4">
-  <div className="flex justify-end">
-    <button
-      onClick={handleLogout}
-      className="rounded-2xl border border-stone-700 px-4 py-2 hover:bg-stone-900/80 transition"
+      }}
     >
-      Log Out
-    </button>
-  </div>
-</div>
-      <Hero
-        status={status}
-        onClearSavedData={handleClearSavedData}
+      <Header
+        activeView={activeView}
+        setActiveView={setActiveView}
+        profile={profile}
       />
-
-      <StoriesSection stories={sampleStories} />
-
-      <AskForm
-        askForm={askForm}
-        setAskForm={setAskForm}
-        categories={categories}
-        handleAskSubmit={handleAskSubmit}
-      />
-
-      <AskList
-        asks={asks.map((ask) => ({
-          ...ask,
-          isFulfilled: offersForMyAsks.some(
-            (offer) => offer.ask_id === ask.id && offer.status === "accepted"
-          ),
-        }))}
-        onHelpClick={handleHelpClick}
-      />
-
-{myAsks.length > 0 ? (
-  <section className="mx-auto mt-10 max-w-4xl px-6">
-    <div className="rounded-3xl border border-stone-800 bg-stone-900/60 p-6 backdrop-blur">
-      <h2 className="text-2xl font-semibold text-white">My Asks</h2>
-
-      <div className="mt-4 grid gap-4">
-        {myAsks.map((ask) => {
-           const isFulfilled = offersForMyAsks.some(
-            (offer) => offer.ask_id === ask.id && offer.status === "accepted"
-           )
-
-          return (
-            <div
-            key={ask.id}
-            className="rounded-3xl border border-stone-800 bg-stone-900/60 backdrop-blur p-6 shadow-lg"
+      <div className="mx-auto max-w-6xl px-6 pt-4">
+        <div className="flex justify-end">
+          <button
+            onClick={handleLogout}
+            className="rounded-2xl border border-stone-700 px-4 py-2 hover:bg-stone-900/80 transition"
           >
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-4">
-                <div>
-                  <div className="text-sm text-stone-400">Ask</div>
-                  <div className="text-xl font-semibold text-white">
-                    {ask.title}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-sm text-stone-400">Category</div>
-                  <div className="text-base text-stone-200">
-                    {ask.category}
-                  </div>
-                </div>
-                
-                <div>
-                  <div className="text-sm text-stone-400">Asked on</div>
-                  <div className="text-base text-stone-200">
-                    {new Date(ask.created_at).toLocaleDateString()}
-                  </div>
-                </div>
-                <div>
-                  {isFulfilled ? (
-                    <div className="inline-block rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-200">
-                      Fulfilled
-                    </div>
-                  ) : (
-                    <div className="inline-block rounded-2xl border border-stone-700 px-3 py-1 text-sm text-stone-300">
-                      Open
-                    </div>
-                  )}
-                </div>
-
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <div className="text-sm text-stone-400">Request</div>
-                  <div className="text-base text-stone-200">
-                    {ask.body}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-      )
-    })}
+            Log Out
+          </button>
+        </div>
       </div>
-    </div>
-  </section>
-) : null}
+      {activeView === "home" && (
+        <>
+          <Hero
+            status={status}
+            onClearSavedData={handleClearSavedData}
+          />
 
-{myHelpOffers.length > 0 ? (
-  <section className="mx-auto mt-10 max-w-4xl px-6">
-    <div className="rounded-3xl border border-stone-800 bg-stone-900/60 p-6 backdrop-blur">
-      <h2 className="text-2xl font-semibold text-white">My Help Offers</h2>
+          <StoriesSection stories={sampleStories} />
 
-      <div className="mt-4 grid gap-4">
-        {myHelpOffers.map((offer) => (
-          <div
-            key={offer.id}
-            className="rounded-3xl border border-stone-800 bg-stone-900/60 backdrop-blur p-6 shadow-lg"
-          >
-            <div className="grid gap-6 md:grid-cols-2">
+          <AskForm
+            askForm={askForm}
+            setAskForm={setAskForm}
+            categories={categories}
+            handleAskSubmit={handleAskSubmit}
+            askStatus={askStatus}
+          />
 
-              {/* LEFT SIDE (2x2 GRID) */}
-              <div className="grid gap-6 sm:grid-cols-2">
-                <div>
-                  <div className="text-sm text-stone-400">Ask</div>
-                  <div className="text-xl font-semibold text-white">
-                    {asks.find((a) => a.id === offer.ask_id)?.title || "Unknown ask"}
-                  </div>
-                </div>
+          <AskList
+            asks={asks.map((ask) => ({
+              ...ask,
+              isFulfilled: offersForMyAsks.some(
+                (offer) => offer.ask_id === ask.id && offer.status === "accepted"
+              ),
+            }))}
+            onHelpClick={handleHelpClick}
+          />
+        </>
+      )}
+      {activeView === "dashboard" && (
+        <>
+          {myAsks.length > 0 ? (
+            <section className="mx-auto mt-10 max-w-4xl px-6">
+              <div className="rounded-3xl border border-stone-800 bg-stone-900/60 p-6 backdrop-blur">
+                <h2 className="text-2xl font-semibold text-white">My Asks</h2>
 
-                <div>
-                  <div className="text-sm text-stone-400">Offered on</div>
-                  <div className="text-base text-stone-200">
-                    {new Date(offer.created_at).toLocaleDateString()}
-                  </div>
-                </div>
+                <div className="mt-4 grid gap-4">
+                  {myAsks.map((ask) => {
+                    const relatedOffers = offersForMyAsks.filter(
+                      (offer) => offer.ask_id === ask.id
+                    )
+                    const isFulfilled = offersForMyAsks.some(
+                      (offer) => offer.ask_id === ask.id && offer.status === "accepted"
+                    )
 
-                <div>
-                  <div className="text-sm text-stone-400">Requested by</div>
-                  <div className="text-base text-stone-200">
-                    {asks.find((a) => a.id === offer.ask_id)?.asker || "Unknown person"}
-                  </div>
-                </div>
+                    return (
+                      <div key={ask.id}>
+                        {expandedAskId !== ask.id ? (
+                          <div
+                            onClick={() =>
+                              setExpandedAskId((current) =>
+                                current === ask.id ? null : ask.id
+                              )
+                            }
+                            className="cursor-pointer rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3 hover:bg-stone-900/80 transition flex justify-between items-center"
+                          >
+                            <div>
+                              <div className="text-sm text-stone-400">My Ask</div>
+                              <div className="text-base text-white font-medium">
+                                {ask.title}
+                              </div>
+                            </div>
 
-                <div>
-                  <div className="text-sm text-stone-400">Status</div>
-                  <div className="text-base text-stone-200">
-                    {offer.status || "pending"}
-                  </div>
-                </div>
-              </div>
+                            <div className="text-sm text-stone-300">
+                              {isFulfilled ? "fulfilled" : "open"}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="rounded-3xl border border-stone-800 bg-stone-900/60 backdrop-blur p-6 shadow-lg">
+                            <div className="mb-4 flex justify-end">
+                              <button
+                                onClick={() => setExpandedAskId(null)}
+                                className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                              >
+                                Collapse
+                              </button>
+                            </div>
+                            <div className="grid gap-6 md:grid-cols-2">
+                              <div className="space-y-4">
+                                <div>
+                                  <div className="text-sm text-stone-400">Ask</div>
+                                  <div className="text-xl font-semibold text-white">
+                                    {ask.title}
+                                  </div>
+                                </div>
 
-              {/* RIGHT SIDE */}
-              <div className="space-y-6">
-                <div>
-                  <div className="text-sm text-stone-400">Original Request</div>
-                  <div className="text-base text-stone-200">
-                    {asks.find((a) => a.id === offer.ask_id)?.body || "No ask text"}
-                  </div>
-                </div>
+                                <div>
+                                  <div className="text-sm text-stone-400">Category</div>
+                                  <div className="text-base text-stone-200">
+                                    {ask.category}
+                                  </div>
+                                </div>
 
-                <div>
-                  <div className="text-sm text-stone-400">Your Offer</div>
-                  <div className="text-base text-stone-200">
-                    {offer.helper_message}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm text-stone-400 mt-4">Messages</div>
+                                <div>
+                                  <div className="text-sm text-stone-400">Asked on</div>
+                                  <div className="text-base text-stone-200">
+                                    {new Date(ask.created_at).toLocaleDateString()}
+                                  </div>
+                                </div>
 
-                  <div className="mt-2 space-y-2">
-                    {getMessagesForOffer(offer.id).map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`flex ${
-                          msg.sender_user_id === session.user.id
-                            ? "justify-end"
-                            : "justify-start"
-                        }`}
-                      >
-                        <div
-                          className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
-                            msg.sender_user_id === session.user.id
-                              ? "bg-emerald-300 text-stone-950"
-                              : "bg-stone-800/60 text-stone-200"
-                          }`}
-                        >
-                          {msg.message_text}
-                        </div>
+                                <div>
+                                  {isFulfilled ? (
+                                    <div className="inline-block rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-200">
+                                      Fulfilled
+                                    </div>
+                                  ) : (
+                                    <div className="inline-block rounded-2xl border border-stone-700 px-3 py-1 text-sm text-stone-300">
+                                      Open
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="space-y-4">
+                                <div>
+                                  <div className="text-sm text-stone-400">Request</div>
+                                  <div className="text-base text-stone-200">
+                                    {ask.body}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {relatedOffers.length > 0 && (
+                              <div className="mt-6">
+                                <div className="text-sm text-stone-400">Offers on this ask</div>
+
+                                <div className="mt-3 space-y-3">
+                                  {relatedOffers.map((offer) => (
+                                    <div
+                                      key={offer.id}
+                                      className="rounded-2xl border border-stone-700 bg-stone-950/40 p-4"
+                                    >
+                                      <div className="grid gap-4 md:grid-cols-2">
+                                        <div className="space-y-3">
+                                          <div>
+                                            <div className="text-sm text-stone-400">Helper</div>
+                                            <div className="text-sm text-stone-300">
+                                              {offer.helper_name || "Someone offered help"}
+                                            </div>
+                                          </div>
+
+                                          <div>
+                                            <div className="text-sm text-stone-400">Status</div>
+                                            <div className="text-sm text-stone-200">
+                                              {offer.status || "pending"}
+                                            </div>
+                                          </div>
+
+                                          {offer.status === "pending" && (
+                                            <div className="flex gap-2">
+                                              <button
+                                                onClick={() => handleAcceptOffer(offer.id, offer.ask_id)}
+                                                className="rounded-xl bg-green-500 px-3 py-1 text-sm font-semibold text-black hover:bg-green-400 transition"
+                                              >
+                                                Accept
+                                              </button>
+
+                                              <button
+                                                onClick={() => handleDeclineOffer(offer.id)}
+                                                className="rounded-xl bg-red-500 px-3 py-1 text-sm font-semibold text-black hover:bg-red-400 transition"
+                                              >
+                                                Decline
+                                              </button>
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        <div className="space-y-4">
+                                          <div>
+                                            <div className="text-sm text-stone-400">Their Offer</div>
+                                            <div className="mt-2 text-sm text-stone-200">
+                                              {offer.helper_message}
+                                            </div>
+                                          </div>
+
+                                          <div className="mt-6 rounded-2xl border border-stone-700 bg-stone-950/30 p-4">
+                                            <div
+                                              onClick={() =>
+                                                setExpandedMessagesOfferId((current) =>
+                                                  current === offer.id ? null : offer.id
+                                                )
+                                              }
+                                              className="text-sm text-stone-400 cursor-pointer hover:text-white transition flex justify-between"
+                                            >
+                                              <span>
+                                                Messages ({getMessagesForOffer(offer.id).length})
+                                              </span>
+                                              <span>
+                                                {expandedMessagesOfferId === offer.id ? "−" : "+"}
+                                              </span>
+                                            </div>
+
+                                            {expandedMessagesOfferId === offer.id && (
+                                              <>
+                                                <div className="mt-3 space-y-2 max-h-80 overflow-y-auto">
+                                                  {getMessagesForOffer(offer.id).map((msg) => (
+                                                    <div
+                                                      key={msg.id}
+                                                      className={`flex w-full ${msg.sender_user_id === session.user.id
+                                                        ? "justify-end"
+                                                        : "justify-start"
+                                                        }`}
+                                                    >
+                                                      <div
+                                                        className={`max-w-[75%] break-words rounded-2xl px-3 py-2 text-sm ${msg.sender_user_id === session.user.id
+                                                          ? "bg-emerald-300 text-stone-950"
+                                                          : "bg-stone-800/60 text-stone-200"
+                                                          }`}
+                                                      >
+                                                        {msg.message_text}
+                                                      </div>
+                                                    </div>
+                                                  ))}
+
+                                                  {getMessagesForOffer(offer.id).length === 0 && (
+                                                    <div className="text-sm text-stone-500">No messages yet</div>
+                                                  )}
+                                                </div>
+
+                                                <div className="mt-4">
+                                                  <input
+                                                    type="text"
+                                                    value={messageInputs[offer.id] || ""}
+                                                    onChange={(e) =>
+                                                      setMessageInputs((current) => ({
+                                                        ...current,
+                                                        [offer.id]: e.target.value,
+                                                      }))
+                                                    }
+                                                    maxLength={300}
+                                                    placeholder="Type a message..."
+                                                    className="w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-100 outline-none"
+                                                  />
+
+                                                  <button
+                                                    onClick={() => handleSendMessage(offer.id)}
+                                                    className="mt-2 rounded-xl bg-emerald-300 px-4 py-2 text-sm font-medium text-stone-950 hover:bg-emerald-200 transition"
+                                                  >
+                                                    Send
+                                                  </button>
+                                                </div>
+                                              </>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    ))}
-
-                    {getMessagesForOffer(offer.id).length === 0 && (
-                      <div className="text-sm text-stone-500">No messages yet</div>
-                    )}
-                  </div>
+                    )
+                  })}
                 </div>
+              </div>
+            </section>
+          ) : null}
+
+          {myHelpOffers.length > 0 ? (
+            <section className="mx-auto mt-10 max-w-4xl px-6">
+              <div className="rounded-3xl border border-stone-800 bg-stone-900/60 p-6 backdrop-blur">
+                <h2 className="text-2xl font-semibold text-white">My Help Offers</h2>
+
+                <div className="mt-4 grid gap-4">
+                  {myHelpOffers.map((offer) => (
+                    <div key={offer.id}>
+                      {expandedHelpOfferId !== offer.id ? (
+                        <div
+                          onClick={() =>
+                            setExpandedHelpOfferId((current) =>
+                              current === offer.id ? null : offer.id
+                            )
+                          }
+                          className="cursor-pointer rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3 hover:bg-stone-900/80 transition flex justify-between items-center"
+                        >
+                          <div>
+                            <div className="text-sm text-stone-400">
+                              {asks.find((a) => a.id === offer.ask_id)?.asker || "Unknown"}
+                            </div>
+                            <div className="text-base text-white font-medium">
+                              {asks.find((a) => a.id === offer.ask_id)?.title || "Unknown ask"}
+                            </div>
+                          </div>
+
+                          <div className="text-sm text-stone-300">
+                            {offer.status || "pending"}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="rounded-3xl border border-stone-800 bg-stone-900/60 backdrop-blur p-6 shadow-lg">
+                          <div className="mb-4 flex justify-end">
+                            <button
+                              onClick={() => setExpandedHelpOfferId(null)}
+                              className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                            >
+                              Collapse
+                            </button>
+                          </div>
+
+                          <div className="grid gap-6 md:grid-cols-2">
+                            {/* LEFT SIDE */}
+                            <div className="grid gap-6 sm:grid-cols-2">
+                              <div>
+                                <div className="text-sm text-stone-400">Ask</div>
+                                <div className="text-xl font-semibold text-white">
+                                  {asks.find((a) => a.id === offer.ask_id)?.title || "Unknown ask"}
+                                </div>
+                              </div>
+
+                              <div>
+                                <div className="text-sm text-stone-400">Offered on</div>
+                                <div className="text-base text-stone-200">
+                                  {new Date(offer.created_at).toLocaleDateString()}
+                                </div>
+                              </div>
+
+                              <div>
+                                <div className="text-sm text-stone-400">Requested by</div>
+                                <div className="text-base text-stone-200">
+                                  {asks.find((a) => a.id === offer.ask_id)?.asker || "Unknown person"}
+                                </div>
+                              </div>
+
+                              <div>
+                                <div className="text-sm text-stone-400">Status</div>
+                                <div className="text-base text-stone-200">
+                                  {offer.status || "pending"}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* RIGHT SIDE */}
+                            <div className="space-y-6">
+                              <div>
+                                <div className="text-sm text-stone-400">Original Request</div>
+                                <div className="text-base text-stone-200">
+                                  {asks.find((a) => a.id === offer.ask_id)?.body || "No ask text"}
+                                </div>
+                              </div>
+
+                              <div>
+                                <div className="text-sm text-stone-400">Your Offer</div>
+                                <div className="text-base text-stone-200">
+                                  {offer.helper_message}
+                                </div>
+                              </div>
+
+                              <div className="mt-6 rounded-2xl border border-stone-700 bg-stone-950/30 p-4">
+                                <div
+                                  onClick={() =>
+                                    setExpandedMessagesOfferId((current) =>
+                                      current === offer.id ? null : offer.id
+                                    )
+                                  }
+                                  className="text-sm text-stone-400 cursor-pointer hover:text-white transition flex justify-between"
+                                >
+                                  <span>
+                                    Messages ({getMessagesForOffer(offer.id).length})
+                                  </span>
+                                  <span>
+                                    {expandedMessagesOfferId === offer.id ? "−" : "+"}
+                                  </span>
+                                </div>
+
+                                {expandedMessagesOfferId === offer.id && (
+                                  <>
+                                    <div className="mt-3 space-y-2 max-h-80 overflow-y-auto">
+                                      {getMessagesForOffer(offer.id).map((msg) => (
+                                        <div
+                                          key={msg.id}
+                                          className={`flex w-full ${msg.sender_user_id === session.user.id
+                                            ? "justify-end"
+                                            : "justify-start"
+                                            }`}
+                                        >
+                                          <div
+                                            className={`max-w-[75%] break-words rounded-2xl px-3 py-2 text-sm ${msg.sender_user_id === session.user.id
+                                              ? "bg-emerald-300 text-stone-950"
+                                              : "bg-stone-800/60 text-stone-200"
+                                              }`}
+                                          >
+                                            {msg.message_text}
+                                          </div>
+                                        </div>
+                                      ))}
+
+                                      {getMessagesForOffer(offer.id).length === 0 && (
+                                        <div className="text-sm text-stone-500">No messages yet</div>
+                                      )}
+                                    </div>
+
+                                    <div className="mt-4">
+                                      <input
+                                        type="text"
+                                        value={messageInputs[offer.id] || ""}
+                                        onChange={(e) =>
+                                          setMessageInputs((current) => ({
+                                            ...current,
+                                            [offer.id]: e.target.value,
+                                          }))
+                                        }
+                                        maxLength={300}
+                                        placeholder="Type a message..."
+                                        className="w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-100 outline-none"
+                                      />
+
+                                      <button
+                                        onClick={() => handleSendMessage(offer.id)}
+                                        className="mt-2 rounded-xl bg-emerald-300 px-4 py-2 text-sm font-medium text-stone-950 hover:bg-emerald-200 transition"
+                                      >
+                                        Send
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          ) : null}
+        </>
+      )
+      }
+
+      {
+        activeView === "profile" && (
+          <section className="mx-auto mt-10 max-w-3xl px-6">
+            <div className="rounded-3xl border border-stone-800 bg-stone-900/60 p-6 backdrop-blur">
+              <h2 className="text-2xl font-semibold text-white">Profile</h2>
+
+              <div className="mt-4">
+                <div className="text-sm text-stone-400">Current nickname</div>
+                <div className="text-lg text-white mb-4">
+                  {profile?.nickname || "Anonymous"}
+                </div>
+
                 <input
                   type="text"
-                  value={messageInputs[offer.id] || ""}
+                  value={profile?.nickname || ""}
                   onChange={(e) =>
-                    setMessageInputs((current) => ({
+                    setProfile((current) => ({
                       ...current,
-                      [offer.id]: e.target.value,
+                      nickname: e.target.value,
                     }))
                   }
-                  placeholder="Type a message..."
-                  className="w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-100 outline-none"
+                  maxLength={30}
+                  placeholder="Enter new nickname"
+                  className="w-full rounded-xl border border-stone-700 bg-stone-900/80 px-4 py-2 text-stone-100 outline-none"
                 />
+
                 <button
-                  onClick={() => handleSendMessage(offer.id)}
-                  className="mt-2 rounded-xl bg-emerald-300 px-4 py-2 text-sm font-medium text-stone-950 hover:bg-emerald-200 transition"
+                  onClick={async () => {
+                    const trimmedNickname = (profile?.nickname || "").trim()
+
+                    if (!trimmedNickname) {
+                      setProfileStatus("Nickname cannot be empty.")
+                      return
+                    }
+
+                    if (trimmedNickname.length > 30) {
+                      setProfileStatus("Nickname must be 30 characters or fewer.")
+                      return
+                    }
+
+                    const { error } = await supabase
+                      .from("profiles")
+                      .update({ nickname: trimmedNickname })
+                      .eq("id", session.user.id)
+
+                    if (error) {
+                      setProfileStatus("Could not update nickname.")
+                      return
+                    }
+
+                    setProfile((current) => ({
+                      ...current,
+                      nickname: trimmedNickname,
+                    }))
+                    setProfileStatus("Nickname updated.")
+                  }}
+                  className="mt-3 rounded-xl bg-emerald-300 px-4 py-2 text-stone-950 hover:bg-emerald-200 transition"
                 >
-                  Send
+                  Save
                 </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-) : null}
 
-{offersForMyAsks.length > 0 ? (
-  <section className="mx-auto mt-10 max-w-4xl px-6">
-    <div className="rounded-3xl border border-stone-800 bg-stone-900/60 p-6 backdrop-blur">
-      <h2 className="text-2xl font-semibold text-white">Offers for My Asks</h2>
-
-      <div className="mt-4 grid gap-4">
-        {offersForMyAsks.map((offer) => (
-          <div
-            key={offer.id}
-            className="rounded-3xl border border-stone-800 bg-stone-900/60 backdrop-blur p-6 shadow-lg"
-          >
-            <div className="grid gap-6 md:grid-cols-2">
-
-              {/* LEFT SIDE */}
-              <div className="grid gap-6 sm:grid-cols-2">
-                <div>
-                  <div className="text-sm text-stone-400">Ask</div>
-                  <div className="text-xl font-semibold text-white">
-                    {asks.find((a) => a.id === offer.ask_id)?.title || "Unknown ask"}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-sm text-stone-400">Offered on</div>
-                  <div className="text-base text-stone-200">
-                    {new Date(offer.created_at).toLocaleDateString()}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-sm text-stone-400">Helper</div>
-                  <div className="text-base text-stone-200">
-                    {offer.helper_name}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-sm text-stone-400">Status</div>
-                  <div className="text-base text-stone-200">
-                    {offer.status || "pending"}
-                  </div>
-
-                  {offer.status === "pending" && (
-                    <div className="mt-2 flex gap-2">
-                      <button
-                        onClick={() => handleAcceptOffer(offer.id, offer.ask_id)}
-                        className="rounded-xl bg-green-500 px-3 py-1 text-sm font-semibold text-black hover:bg-green-400 transition"
-                      >
-                        Accept
-                      </button>
-
-                      <button
-                        onClick={() => handleDeclineOffer(offer.id)}
-                        className="rounded-xl bg-red-500 px-3 py-1 text-sm font-semibold text-black hover:bg-red-400 transition"
-                      >
-                        Decline
-                      </button>
-                    </div>
-                  )}
-
-                </div>
-              </div>
-
-              {/* RIGHT SIDE */}
-              <div className="space-y-6">
-                <div>
-                  <div className="text-sm text-stone-400">Original Request</div>
-                  <div className="text-base text-stone-200">
-                    {asks.find((a) => a.id === offer.ask_id)?.body || "No ask text"}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-sm text-stone-400">Their Offer</div>
-                  <div className="text-base text-stone-200">
-                    {offer.helper_message}
-                  </div>
-                </div>
-              <div>
-                <div className="text-sm text-stone-400 mt-4">Messages</div>
-
-                <div className="mt-2 space-y-2">
-                 {getMessagesForOffer(offer.id).map((msg) => (
+                {profileStatus ? (
                   <div
-                    key={msg.id}
-                    className={`flex ${
-                      msg.sender_user_id === session.user.id
-                        ? "justify-end"
-                        : "justify-start"
-                    }`}
-                  >
-                    <div
-                      className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
-                        msg.sender_user_id === session.user.id
-                          ? "bg-emerald-300 text-stone-950"
-                          : "bg-stone-800/60 text-stone-200"
+                    className={`mt-3 rounded-2xl px-4 py-3 text-sm ${profileStatus.includes("Could not")
+                      ? "border border-red-400/30 bg-red-400/10 text-red-200"
+                      : "border border-emerald-400/30 bg-emerald-400/10 text-emerald-100"
                       }`}
-                    >
-                      {msg.message_text}
-                    </div>
+                  >
+                    {profileStatus}
                   </div>
-                ))}
+                ) : null}
 
-                  {getMessagesForOffer(offer.id).length === 0 && (
-                    <div className="text-sm text-stone-500">No messages yet</div>
-                  )}
-                </div>
-                <input
-                  type="text"
-                  value={messageInputs[offer.id] || ""}
-                  onChange={(e) =>
-                    setMessageInputs((current) => ({
-                      ...current,
-                      [offer.id]: e.target.value,
-                    }))
-                  }
-                  placeholder="Type a message..."
-                  className="w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-100 outline-none"
-                />
-                
-                <button
-                  onClick={() => handleSendMessage(offer.id)}
-                  className="mt-2 rounded-xl bg-emerald-300 px-4 py-2 text-sm font-medium text-stone-950 hover:bg-emerald-200 transition"
-                >
-                  Send
-                </button>
-              </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-) : null}
+          </section>
+        )
+      }
 
       <HelpModal
         isOpen={isHelpOpen}
@@ -755,11 +1031,12 @@ if (!session || isRecoveryMode) {
         helpForm={helpForm}
         setHelpForm={setHelpForm}
         handleHelpSubmit={handleHelpSubmit}
+        helpStatus={helpStatus}
         onClose={() => {
           setIsHelpOpen(false)
           setSelectedAsk(null)
         }}
       />
-    </div>
+    </div >
   )
 }

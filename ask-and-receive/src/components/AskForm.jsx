@@ -3,6 +3,7 @@ export default function AskForm({
   setAskForm,
   categories,
   handleAskSubmit,
+  askStatus,
 }) {
   return (
     <section id="post-ask" className="mx-auto max-w-4xl px-6 py-12">
@@ -25,21 +26,6 @@ export default function AskForm({
 
         <form onSubmit={handleAskSubmit} className="mt-8 grid gap-4">
           <div className="grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2 text-sm">
-              <span className="text-stone-300">Your name or username</span>
-              <input
-                type="text"
-                value={askForm.askerName}
-                onChange={(event) =>
-                  setAskForm((current) => ({
-                    ...current,
-                    askerName: event.target.value,
-                  }))
-                }
-                placeholder="Optional"
-                className="rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none placeholder:text-stone-500 focus:border-emerald-300/60"
-              />
-            </label>
 
             <label className="grid gap-2 text-sm">
               <span className="text-stone-300">Category</span>
@@ -95,6 +81,20 @@ export default function AskForm({
           </label>
 
           <div className="flex flex-wrap gap-3 pt-2">
+
+            {askStatus ? (
+              <div
+                className={`mb-3 rounded-2xl px-4 py-3 text-sm ${askStatus.includes("Could not") ||
+                    askStatus.includes("must") ||
+                    askStatus.includes("Please")
+                    ? "border border-red-400/30 bg-red-400/10 text-red-200"
+                    : "border border-emerald-400/30 bg-emerald-400/10 text-emerald-100"
+                  }`}
+              >
+                {askStatus}
+              </div>
+            ) : null}
+
             <button
               type="submit"
               className="rounded-2xl bg-emerald-300 text-stone-950 px-5 py-3 font-medium hover:bg-emerald-200 transition"

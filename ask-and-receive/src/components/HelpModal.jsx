@@ -4,6 +4,7 @@ export default function HelpModal({
   helpForm,
   setHelpForm,
   handleHelpSubmit,
+  helpStatus,
   onClose,
 }) {
   if (!isOpen || !selectedAsk) return null
@@ -23,6 +24,20 @@ export default function HelpModal({
               <span className="font-medium text-white">{selectedAsk.title}</span>
             </p>
           </div>
+
+          {helpStatus ? (
+            <div
+              className={`rounded-2xl px-4 py-3 text-sm ${helpStatus.includes("Could not") ||
+                  helpStatus.includes("must") ||
+                  helpStatus.includes("Please")
+                  ? "border border-red-400/30 bg-red-400/10 text-red-200"
+                  : "border border-emerald-400/30 bg-emerald-400/10 text-emerald-100"
+                }`}
+            >
+              {helpStatus}
+            </div>
+          ) : null}
+
           <button
             type="button"
             onClick={onClose}
@@ -34,39 +49,7 @@ export default function HelpModal({
 
         <form onSubmit={handleHelpSubmit} className="mt-8 grid gap-4">
           <div className="grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2 text-sm">
-              <span className="text-stone-300">Your name or username</span>
-              <input
-                type="text"
-                value={helpForm.helperName}
-                onChange={(event) =>
-                  setHelpForm((current) => ({
-                    ...current,
-                    helperName: event.target.value,
-                  }))
-                }
-                placeholder="Optional"
-                className="rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none placeholder:text-stone-500 focus:border-emerald-300/60"
-              />
-            </label>
-
-            <label className="grid gap-2 text-sm">
-              <span className="text-stone-300">Email</span>
-              <input
-                type="email"
-                value={helpForm.helperEmail}
-                onChange={(event) =>
-                  setHelpForm((current) => ({
-                    ...current,
-                    helperEmail: event.target.value,
-                  }))
-                }
-                placeholder="you@example.com"
-                className="rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none placeholder:text-stone-500 focus:border-emerald-300/60"
-              />
-            </label>
           </div>
-
           <label className="grid gap-2 text-sm">
             <span className="text-stone-300">How do you want to help?</span>
             <textarea

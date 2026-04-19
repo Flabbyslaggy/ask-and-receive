@@ -1,0 +1,17 @@
+Ask and Receive Project - Session Summary
+
+User: Tavio Ortiz Date: 2026-04-04 20:48:01.906487
+
+Summary: - Built React app using Vite - Implemented Ask + Help system -
+Added localStorage persistence - Created modal for “I Can Help” -
+Refactored toward component structure - Encountered and resolved: -
+filename casing issues (AskForm.jsx) - Vite cache problems - JSX
+structure errors - multi-component export mistake
+
+Current Status: - App is running - Components mostly created - Refactor
+in progress - Next step: finalize component separation and wiring
+
+Notes: - Header and Hero must be in separate files - Only one default
+export per file - Restart Vite after file renames
+
+End of summary.
