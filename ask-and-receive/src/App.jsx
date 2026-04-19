@@ -456,18 +456,7 @@ export default function App() {
       console.error("Error sending message:", error)
       return
     }
-
-    setMessages((current) => [
-      ...current,
-      {
-        id: Date.now(),
-        offer_id: offerId,
-        sender_user_id: session.user.id,
-        message_text: messageText,
-        created_at: new Date().toISOString(),
-      },
-    ])
-
+   
     setMessageInputs((current) => ({
       ...current,
       [offerId]: "",
