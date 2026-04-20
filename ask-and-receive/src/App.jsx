@@ -430,6 +430,38 @@ export default function App() {
     )
   }
 
+  async function handleFulfillOffer(offerId) {
+    const { error } = await supabase
+      .from("help_offers")
+      .update({ status: "fulfilled" })
+      .eq("id", offerId)
+
+    if (error) {
+      console.error("Error fulfilling offer:", error)
+      return
+    }
+
+    const { error: declineError } = await supabase
+      .from("help_offers")
+      .update({ status: "declined" })
+      .eq("ask_id", (
+        offersForMyAsks.find((o) => o.id === offerId)?.ask_id
+      ))
+      .neq("id", offerId)
+
+    if (declineError) {
+      console.error("Error declining other offers:", declineError)
+    }
+
+    setOffersForMyAsks((current) =>
+      current.map((offer) =>
+        offer.id === offerId
+          ? { ...offer, status: "fulfilled" }
+          : offer
+      )
+    )
+  }
+
   function getMessagesForOffer(offerId) {
     return messages.filter((msg) => msg.offer_id === offerId)
   }
@@ -456,7 +488,7 @@ export default function App() {
       console.error("Error sending message:", error)
       return
     }
-   
+
     setMessageInputs((current) => ({
       ...current,
       [offerId]: "",
@@ -524,7 +556,7 @@ export default function App() {
             asks={asks.map((ask) => ({
               ...ask,
               isFulfilled: offersForMyAsks.some(
-                (offer) => offer.ask_id === ask.id && offer.status === "accepted"
+                (offer) => offer.ask_id === ask.id && (offer.status === "fulfilled" || offer.status === "accepted")
               ),
             }))}
             onHelpClick={handleHelpClick}
@@ -544,7 +576,7 @@ export default function App() {
                       (offer) => offer.ask_id === ask.id
                     )
                     const isFulfilled = offersForMyAsks.some(
-                      (offer) => offer.ask_id === ask.id && offer.status === "accepted"
+                      (offer) => offer.ask_id === ask.id && (offer.status === "fulfilled" || offer.status === "accepted")
                     )
 
                     return (
@@ -668,6 +700,18 @@ export default function App() {
                                               </button>
                                             </div>
                                           )}
+
+                                          {offer.status === "accepted" && (
+                                            <div className="flex gap-2">
+                                              <button
+                                                onClick={() => handleFulfillOffer(offer.id)}
+                                                className="rounded-xl bg-emerald-300 px-3 py-1 text-sm font-semibold text-stone-950 hover:bg-emerald-200 transition"
+                                              >
+                                                Fulfilled
+                                              </button>
+                                            </div>
+                                          )}
+
                                         </div>
 
                                         <div className="space-y-4">
