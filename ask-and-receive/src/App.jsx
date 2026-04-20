@@ -556,7 +556,7 @@ export default function App() {
             asks={asks.map((ask) => ({
               ...ask,
               isFulfilled: offersForMyAsks.some(
-                (offer) => offer.ask_id === ask.id && (offer.status === "fulfilled" || offer.status === "accepted")
+                (offer) => offer.ask_id === ask.id && (offer.status === "fulfilled")
               ),
             }))}
             onHelpClick={handleHelpClick}
@@ -576,7 +576,7 @@ export default function App() {
                       (offer) => offer.ask_id === ask.id
                     )
                     const isFulfilled = offersForMyAsks.some(
-                      (offer) => offer.ask_id === ask.id && (offer.status === "fulfilled" || offer.status === "accepted")
+                      (offer) => offer.ask_id === ask.id && (offer.status === "fulfilled")
                     )
 
                     return (
