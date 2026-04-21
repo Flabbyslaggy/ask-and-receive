@@ -38,12 +38,19 @@ export default function App() {
   const [messages, setMessages] = useState([])
   const [messageInputs, setMessageInputs] = useState({})
   const [activeView, setActiveView] = useState("home")
+  const [stories, setStories] = useState([])
+  const [isGratitudeOpen, setIsGratitudeOpen] = useState(false)
+  const [gratitudeAskId, setGratitudeAskId] = useState(null)
   const [profile, setProfile] = useState(null)
   const [profileStatus, setProfileStatus] = useState("")
   const [askStatus, setAskStatus] = useState("")
   const [askForm, setAskForm] = useState({
     title: "",
     category: "Simple Joy",
+    body: "",
+  })
+  const [gratitudeForm, setGratitudeForm] = useState({
+    title: "",
     body: "",
   })
 
@@ -185,6 +192,24 @@ export default function App() {
 
     fetchMessages()
   }, [session])
+
+  useEffect(() => {
+    async function fetchStories() {
+      const { data, error } = await supabase
+        .from("stories")
+        .select("*")
+        .order("created_at", { ascending: false })
+
+      if (error) {
+        console.error("Error fetching stories:", error)
+        return
+      }
+
+      setStories(data)
+    }
+
+    fetchStories()
+  }, [])
 
   useEffect(() => {
     if (!session) return
@@ -495,6 +520,55 @@ export default function App() {
     }))
   }
 
+  async function handleGratitudeSubmit(event) {
+    event.preventDefault()
+
+    const trimmedTitle = gratitudeForm.title.trim()
+    const trimmedBody = gratitudeForm.body.trim()
+
+    if (!trimmedTitle || !trimmedBody) {
+      return
+    }
+
+    const helper = offersForMyAsks.find(
+      (o) => o.ask_id === gratitudeAskId && o.status === "fulfilled"
+    )
+
+    const { error } = await supabase.from("stories").insert([
+      {
+        ask_id: gratitudeAskId,
+        user_id: session.user.id,
+        title: trimmedTitle,
+        body: trimmedBody,
+        helper_name: helper?.helper_name || "Someone",
+      },
+    ])
+
+    if (error) {
+      console.error("Error saving gratitude:", error)
+      return
+    }
+
+    setStories((current) => [
+      {
+        id: Date.now(),
+        ask_id: gratitudeAskId,
+        user_id: session.user.id,
+        title: trimmedTitle,
+        body: trimmedBody,
+        created_at: new Date().toISOString(),
+      },
+      ...current,
+    ])
+
+    setGratitudeForm({
+      title: "",
+      body: "",
+    })
+    setIsGratitudeOpen(false)
+    setGratitudeAskId(null)
+  }
+
   async function handleLogout() {
     await supabase.auth.signOut()
   }
@@ -542,7 +616,7 @@ export default function App() {
             onClearSavedData={handleClearSavedData}
           />
 
-          <StoriesSection stories={sampleStories} />
+          <StoriesSection stories={stories} />
 
           <AskForm
             askForm={askForm}
@@ -682,6 +756,21 @@ export default function App() {
                                               {offer.status || "pending"}
                                             </div>
                                           </div>
+
+                                          {offer.status === "fulfilled" &&
+                                            !stories.some((s) => s.ask_id === offer.ask_id) && (
+                                              <div className="flex gap-2">
+                                                <button
+                                                  onClick={() => {
+                                                    setGratitudeAskId(offer.ask_id)
+                                                    setIsGratitudeOpen(true)
+                                                  }}
+                                                  className="rounded-xl bg-emerald-300 px-3 py-1 text-sm font-semibold text-stone-950 hover:bg-emerald-200 transition"
+                                                >
+                                                  Share Gratitude
+                                                </button>
+                                              </div>
+                                            )}
 
                                           {offer.status === "pending" && (
                                             <div className="flex gap-2">
@@ -1056,6 +1145,92 @@ export default function App() {
             </div>
           </section>
         )
+      }
+
+      {isGratitudeOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => {
+              setIsGratitudeOpen(false)
+              setGratitudeAskId(null)
+            }}
+          />
+
+          <div className="relative z-10 w-full max-w-2xl rounded-3xl border border-stone-800 bg-stone-900/90 p-6 shadow-2xl backdrop-blur md:p-8">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-3xl font-semibold">Share Gratitude</h2>
+                <p className="mt-3 text-stone-300 leading-7">
+                  Share what happened and what it meant.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsGratitudeOpen(false)
+                  setGratitudeAskId(null)
+                }}
+                className="rounded-full border border-stone-700 px-3 py-1 text-sm hover:bg-stone-800 transition"
+              >
+                Close
+              </button>
+            </div>
+
+            <form onSubmit={handleGratitudeSubmit} className="mt-8 grid gap-4">
+              <label className="grid gap-2 text-sm">
+                <span className="text-stone-300">Title</span>
+                <input
+                  type="text"
+                  value={gratitudeForm.title}
+                  onChange={(event) =>
+                    setGratitudeForm((current) => ({
+                      ...current,
+                      title: event.target.value,
+                    }))
+                  }
+                  className="rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none"
+                />
+              </label>
+
+              <label className="grid gap-2 text-sm">
+                <span className="text-stone-300">Gratitude</span>
+                <textarea
+                  rows={5}
+                  value={gratitudeForm.body}
+                  onChange={(event) =>
+                    setGratitudeForm((current) => ({
+                      ...current,
+                      body: event.target.value,
+                    }))
+                  }
+                  className="rounded-3xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none"
+                />
+              </label>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  className="rounded-2xl bg-emerald-300 px-5 py-3 font-medium text-stone-950 hover:bg-emerald-200 transition"
+                >
+                  Share Gratitude
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsGratitudeOpen(false)
+                    setGratitudeAskId(null)
+                  }}
+                  className="rounded-2xl border border-stone-700 px-5 py-3 hover:bg-stone-900/80 transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )
       }
 
       <HelpModal

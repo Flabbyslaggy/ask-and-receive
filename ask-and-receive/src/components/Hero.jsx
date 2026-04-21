@@ -26,13 +26,6 @@ export default function Hero({ status, onClearSavedData }) {
             Browse Asks
           </a>
 
-          <button
-            type="button"
-            onClick={onClearSavedData}
-            className="rounded-2xl border border-stone-700 px-5 py-3 hover:bg-stone-900/80 transition"
-          >
-            Clear Saved Data
-          </button>
         </div>
 
         {status ? (
