@@ -578,7 +578,9 @@ export default function App() {
     localStorage.removeItem(ASK_STORAGE_KEY)
     setStatus("Saved asks cleared.")
   }
-  const isRecoveryMode = window.location.hash.includes("type=recovery")
+  const isRecoveryMode =
+    window.location.hash.includes("type=recovery") ||
+    window.location.search.includes("type=recovery")
 
   if (!session || isRecoveryMode) {
     return <Auth />
