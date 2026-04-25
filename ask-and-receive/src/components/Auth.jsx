@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../supabaseClient"
+import logo from "../assets/logo.png"
 
-export default function Auth() {
+export default function Auth({ forceRecoveryMode = false }) {
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -89,18 +90,41 @@ export default function Auth() {
     const search = window.location.search
 
     if (
+      forceRecoveryMode ||
       hash.includes("type=recovery") ||
       search.includes("type=recovery")
     ) {
       setIsRecoveryMode(true)
       setMessage("Enter your new password below.")
     }
-  }, [])
+  }, [forceRecoveryMode])
 
   return (
     <section className="mx-auto max-w-md px-6 py-12">
-      <div className="rounded-3xl border border-stone-800 bg-stone-900/60 backdrop-blur p-6">
-        <h2 className="text-3xl font-semibold">
+      <div className="rounded-3xl border border-stone-900 bg-stone-900/80 backdrop-blur p-6">
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-3 flex h-30 w-30 items-center justify-center rounded-full bg-stone-950/70 ring-2 ring-emerald-300/40 shadow-[0_0_25px_rgba(16,185,129,0.25)]">
+            <img
+              src={logo}
+              alt="Ask & Receive logo"
+              className="h-29 w-29 rounded-full object-cover"
+            />
+          </div>
+
+          <p className="mt-2 text-sm font-medium bg-gradient-to-r from-emerald-300 to-emerald-500 opacity 80 bg-clip-text text-transparent">
+            You have not, because you ask not.
+          </p>
+        </div>
+
+        <div className="mb-4 text-lg font-medium text-white">
+          {isRecoveryMode
+            ? "Set New Password"
+            : isLogin
+              ? "Log In"
+              : "Sign Up"}
+        </div>
+
+        <h2 className="sr-only">
           {isRecoveryMode
             ? "Set New Password"
             : isLogin
@@ -124,6 +148,7 @@ export default function Auth() {
             <span className="text-stone-300">
               {isRecoveryMode ? "New Password" : "Password"}
             </span>
+
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -142,7 +167,7 @@ export default function Auth() {
                 onClick={() => setShowPassword((prev) => !prev)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-white"
               >
-                {showPassword ? "🙈" : "👁"}
+                {showPassword ? "◉" : "○"}
               </button>
             </div>
           </label>
@@ -150,7 +175,7 @@ export default function Auth() {
           <button
             type="submit"
             disabled={loading}
-            className="rounded-2xl bg-emerald-300 px-5 py-3 font-medium text-stone-950 hover:bg-emerald-200"
+            className="rounded-2xl bg-gradient-to-r from-emerald-400 to-lime-300 px-5 py-3 font-medium text-stone-950 hover:from-emerald-300 hover:to-lime-200 transition"
           >
             {loading ? "Please wait..." : isLogin ? "Log In" : "Sign Up"}
           </button>
@@ -169,6 +194,7 @@ export default function Auth() {
             {message}
           </div>
         ) : null}
+
         {showReset ? (
           <div className="mt-4 rounded-2xl border border-stone-700 bg-stone-950/70 p-4 transition-all duration-300 ease-out opacity-100 translate-y-0">
             <h3 className="text-lg font-medium text-stone-100">Reset password</h3>
@@ -203,10 +229,11 @@ export default function Auth() {
             </div>
           </div>
         ) : null}
+
         <button
           type="button"
           onClick={() => setIsLogin((current) => !current)}
-          className="mt-4 text-sm text-stone-300 underline underline-offset-4"
+          className="mt-4 text-sm text-stone-300 underline underline-offset-4 transition hover:text-emerald-300 active:scale-95"
         >
           {isLogin ? "Need an account? Sign up" : "Already have an account? Log in"}
         </button>

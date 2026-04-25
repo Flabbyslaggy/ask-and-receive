@@ -26,6 +26,7 @@ const sampleStories = [
 
 export default function App() {
   const [session, setSession] = useState(null)
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false)
   const [asks, setAsks] = useState([])
   const [status, setStatus] = useState("")
   const [myHelpOffers, setMyHelpOffers] = useState([])
@@ -86,7 +87,11 @@ export default function App() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setIsPasswordRecovery(true)
+      }
+
       handleSession(session)
     })
 
@@ -582,8 +587,8 @@ export default function App() {
     window.location.hash.includes("type=recovery") ||
     window.location.search.includes("type=recovery")
 
-  if (!session || isRecoveryMode) {
-    return <Auth />
+  if (!session || isRecoveryMode || isPasswordRecovery) {
+    return <Auth forceRecoveryMode={isPasswordRecovery || isRecoveryMode} />
   }
 
   return (
