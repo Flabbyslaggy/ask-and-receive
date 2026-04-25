@@ -53,6 +53,7 @@ export default function AskForm({
             <input
               type="text"
               value={askForm.title}
+              maxLength={80}
               onChange={(event) =>
                 setAskForm((current) => ({
                   ...current,
@@ -62,6 +63,14 @@ export default function AskForm({
               placeholder="Example: Ride on a Boat at Sunrise"
               className="rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none placeholder:text-stone-500 focus:border-emerald-300/60"
             />
+            <div
+              className={`text-right text-xs ${80 - askForm.title.length <= 10
+                ? "text-red-400"
+                : "text-stone-400"
+                }`}
+            >
+              {80 - askForm.title.length} characters left
+            </div>
           </label>
 
           <label className="grid gap-2 text-sm">
@@ -69,6 +78,7 @@ export default function AskForm({
             <textarea
               rows={5}
               value={askForm.body}
+              maxLength={500}
               onChange={(event) =>
                 setAskForm((current) => ({
                   ...current,
@@ -78,6 +88,12 @@ export default function AskForm({
               placeholder="Say it plainly. No sob story needed."
               className="rounded-3xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none placeholder:text-stone-500 focus:border-emerald-300/60"
             />
+            <div
+              className={`text-right text-xs ${500 - askForm.body.length <= 10 ? "text-red-400" : "text-stone-400"
+                }`}
+            >
+              {500 - askForm.body.length} characters left
+            </div>
           </label>
 
           <div className="flex flex-wrap gap-3 pt-2">
@@ -85,10 +101,10 @@ export default function AskForm({
             {askStatus ? (
               <div
                 className={`mb-3 rounded-2xl px-4 py-3 text-sm ${askStatus.includes("Could not") ||
-                    askStatus.includes("must") ||
-                    askStatus.includes("Please")
-                    ? "border border-red-400/30 bg-red-400/10 text-red-200"
-                    : "border border-emerald-400/30 bg-emerald-400/10 text-emerald-100"
+                  askStatus.includes("must") ||
+                  askStatus.includes("Please")
+                  ? "border border-red-400/30 bg-red-400/10 text-red-200"
+                  : "border border-emerald-400/30 bg-emerald-400/10 text-emerald-100"
                   }`}
               >
                 {askStatus}

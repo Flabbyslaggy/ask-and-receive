@@ -177,7 +177,7 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
           <button
             type="submit"
             disabled={loading}
-            className="rounded-2xl bg-gradient-to-r from-emerald-400 to-lime-300 px-5 py-3 font-medium text-stone-950 hover:from-emerald-300 hover:to-lime-200 transition"
+            className="rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-200 px-5 py-3 font-medium text-stone-950 hover:from-emerald-300 hover:to-yellow-100 transition"
           >
             {loading ? "Please wait..." : isLogin ? "Log In" : "Sign Up"}
           </button>

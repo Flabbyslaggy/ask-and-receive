@@ -24,8 +24,37 @@ const sampleStories = [
   },
 ]
 
+const themes = {
+  emerald: {
+    button: "from-emerald-400 to-lime-300 hover:from-emerald-300 hover:to-lime-200",
+    accentText: "text-emerald-300",
+    accentBorder: "ring-emerald-300/40",
+  },
+  ocean: {
+    button: "from-cyan-400 to-blue-400 hover:from-cyan-300 hover:to-blue-300",
+    accentText: "text-cyan-300",
+    accentBorder: "ring-cyan-300/40",
+  },
+  purple: {
+    button: "from-violet-400 to-fuchsia-400 hover:from-violet-300 hover:to-fuchsia-300",
+    accentText: "text-violet-300",
+    accentBorder: "ring-violet-300/40",
+  },
+  rose: {
+    button: "from-rose-400 to-pink-300 hover:from-rose-300 hover:to-pink-200",
+    accentText: "text-rose-300",
+    accentBorder: "ring-rose-300/40",
+  },
+  amber: {
+    button: "from-amber-300 to-orange-400 hover:from-amber-200 hover:to-orange-300",
+    accentText: "text-amber-300",
+    accentBorder: "ring-amber-300/40",
+  },
+}
+
 export default function App() {
   const [session, setSession] = useState(null)
+  const [isAppLoading, setIsAppLoading] = useState(true)
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false)
   const [asks, setAsks] = useState([])
   const [status, setStatus] = useState("")
@@ -44,6 +73,7 @@ export default function App() {
   const [gratitudeAskId, setGratitudeAskId] = useState(null)
   const [profile, setProfile] = useState(null)
   const [profileStatus, setProfileStatus] = useState("")
+  const activeTheme = themes[profile?.theme || "emerald"] || themes.emerald
   const [askStatus, setAskStatus] = useState("")
   const [askForm, setAskForm] = useState({
     title: "",
@@ -107,6 +137,7 @@ export default function App() {
 
       if (error) {
         console.error("Error fetching asks:", error)
+        setIsAppLoading(false)
         return
       }
 
@@ -121,6 +152,7 @@ export default function App() {
       }))
 
       setAsks(formatted)
+      setIsAppLoading(false)
     }
 
     fetchAsks()
@@ -330,6 +362,11 @@ export default function App() {
 
     if (trimmedBody.length > 500) {
       setAskStatus("Ask description must be 500 characters or fewer.")
+      return
+    }
+
+    if (!session?.user?.id) {
+      setAskStatus("You must be logged in to post an ask.")
       return
     }
 
@@ -593,6 +630,14 @@ export default function App() {
         forceRecoveryMode={isPasswordRecovery || isRecoveryMode}
         onRecoveryComplete={() => setIsPasswordRecovery(false)}
       />
+    )
+  }
+
+  if (isAppLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white">
+        Loading Ask & Receive...
+      </div>
     )
   }
 
@@ -871,16 +916,24 @@ export default function App() {
                                                   <input
                                                     type="text"
                                                     value={messageInputs[offer.id] || ""}
+                                                    maxLength={300}
                                                     onChange={(e) =>
                                                       setMessageInputs((current) => ({
                                                         ...current,
                                                         [offer.id]: e.target.value,
                                                       }))
                                                     }
-                                                    maxLength={300}
                                                     placeholder="Type a message..."
                                                     className="w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-100 outline-none"
                                                   />
+                                                  <div
+                                                    className={`mt-1 text-right text-xs ${300 - (messageInputs[offer.id] || "").length <= 10
+                                                      ? "text-red-400"
+                                                      : "text-stone-500"
+                                                      }`}
+                                                  >
+                                                    {300 - (messageInputs[offer.id] || "").length} characters left
+                                                  </div>
 
                                                   <button
                                                     onClick={() => handleSendMessage(offer.id)}
@@ -1056,7 +1109,14 @@ export default function App() {
                                         placeholder="Type a message..."
                                         className="w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-100 outline-none"
                                       />
-
+                                      <div
+                                        className={`mt-1 text-right text-xs ${300 - (messageInputs[offer.id] || "").length <= 10
+                                          ? "text-red-400"
+                                          : "text-stone-500"
+                                          }`}
+                                      >
+                                        {300 - (messageInputs[offer.id] || "").length} characters left
+                                      </div>
                                       <button
                                         onClick={() => handleSendMessage(offer.id)}
                                         className="mt-2 rounded-xl bg-emerald-300 px-4 py-2 text-sm font-medium text-stone-950 hover:bg-emerald-200 transition"
@@ -1106,6 +1166,14 @@ export default function App() {
                   placeholder="Enter new nickname"
                   className="w-full rounded-xl border border-stone-700 bg-stone-900/80 px-4 py-2 text-stone-100 outline-none"
                 />
+                <div
+                  className={`mt-1 text-right text-xs ${30 - (profile?.nickname || "").length <= 10
+                    ? "text-red-400"
+                    : "text-stone-500"
+                    }`}
+                >
+                  {30 - (profile?.nickname || "").length} characters left
+                </div>
 
                 <button
                   onClick={async () => {
@@ -1196,6 +1264,7 @@ export default function App() {
                 <input
                   type="text"
                   value={gratitudeForm.title}
+                  maxLength={80}
                   onChange={(event) =>
                     setGratitudeForm((current) => ({
                       ...current,
@@ -1204,6 +1273,12 @@ export default function App() {
                   }
                   className="rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none"
                 />
+                <div
+                  className={`text-right text-xs ${80 - gratitudeForm.title.length <= 10 ? "text-red-400" : "text-stone-500"
+                    }`}
+                >
+                  {80 - gratitudeForm.title.length} characters left
+                </div>
               </label>
 
               <label className="grid gap-2 text-sm">
@@ -1211,6 +1286,7 @@ export default function App() {
                 <textarea
                   rows={5}
                   value={gratitudeForm.body}
+                  maxLength={500}
                   onChange={(event) =>
                     setGratitudeForm((current) => ({
                       ...current,
@@ -1219,6 +1295,12 @@ export default function App() {
                   }
                   className="rounded-3xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none"
                 />
+                <div
+                  className={`text-right text-xs ${500 - gratitudeForm.body.length <= 10 ? "text-red-400" : "text-stone-500"
+                    }`}
+                >
+                  {500 - gratitudeForm.body.length} characters left
+                </div>
               </label>
               <div className="flex gap-3 pt-2">
                 <button
