@@ -588,7 +588,12 @@ export default function App() {
     window.location.search.includes("type=recovery")
 
   if (!session || isRecoveryMode || isPasswordRecovery) {
-    return <Auth forceRecoveryMode={isPasswordRecovery || isRecoveryMode} />
+    return (
+      <Auth
+        forceRecoveryMode={isPasswordRecovery || isRecoveryMode}
+        onRecoveryComplete={() => setIsPasswordRecovery(false)}
+      />
+    )
   }
 
   return (

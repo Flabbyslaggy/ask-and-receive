@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { supabase } from "../supabaseClient"
 import logo from "../assets/logo.png"
 
-export default function Auth({ forceRecoveryMode = false }) {
+export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) {
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -30,6 +30,8 @@ export default function Auth({ forceRecoveryMode = false }) {
         } else {
           setMessage("Password updated. You can log in now.")
           setIsRecoveryMode(false)
+          onRecoveryComplete?.()
+          window.history.replaceState({}, document.title, window.location.pathname)
           setNewPassword("")
           setPassword("")
           setShowReset(false)
