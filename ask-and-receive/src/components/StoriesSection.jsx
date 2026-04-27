@@ -1,6 +1,9 @@
 import { useState } from "react"
+import { useTheme } from "../ThemeContext"
 
 export default function StoriesSection({ stories }) {
+  const activeTheme = useTheme()
+  
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0)
   return (
     <section id="stories" className="mx-auto max-w-4xl px-6 py-12">
@@ -28,7 +31,7 @@ export default function StoriesSection({ stories }) {
               {stories[currentStoryIndex].body}
             </div>
 
-            <div className="mt-auto pt-4 text-sm text-emerald-300 font-medium text-right">
+            <div className={`mt-auto pt-4 text-sm font-medium text-right ${activeTheme.accentText}`}>
               Kudos to: {stories[currentStoryIndex].helper_name || "Someone"}
             </div>
           </div>

@@ -1,3 +1,5 @@
+import { useTheme } from "../ThemeContext"
+
 export default function AskForm({
   askForm,
   setAskForm,
@@ -5,6 +7,8 @@ export default function AskForm({
   handleAskSubmit,
   askStatus,
 }) {
+  const activeTheme = useTheme()
+  
   return (
     <section id="post-ask" className="mx-auto max-w-4xl px-6 py-12">
       <div className="rounded-3xl border border-stone-800 bg-stone-900/60 backdrop-blur p-6 md:p-8">
@@ -37,7 +41,7 @@ export default function AskForm({
                     category: event.target.value,
                   }))
                 }
-                className="rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none focus:border-emerald-300/60"
+                className={`rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none focus:ring-2 ${activeTheme.ring}`}
               >
                 {categories.map((category) => (
                   <option key={category} value={category}>
@@ -61,7 +65,7 @@ export default function AskForm({
                 }))
               }
               placeholder="Example: Ride on a Boat at Sunrise"
-              className="rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none placeholder:text-stone-500 focus:border-emerald-300/60"
+              className={`rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none focus:ring-2 ${activeTheme.ring}`}
             />
             <div
               className={`text-right text-xs ${80 - askForm.title.length <= 10
@@ -86,7 +90,7 @@ export default function AskForm({
                 }))
               }
               placeholder="Say it plainly. No sob story needed."
-              className="rounded-3xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none placeholder:text-stone-500 focus:border-emerald-300/60"
+              className={`rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none focus:ring-2 ${activeTheme.ring}`}
             />
             <div
               className={`text-right text-xs ${500 - askForm.body.length <= 10 ? "text-red-400" : "text-stone-400"
@@ -101,10 +105,10 @@ export default function AskForm({
             {askStatus ? (
               <div
                 className={`mb-3 rounded-2xl px-4 py-3 text-sm ${askStatus.includes("Could not") ||
-                  askStatus.includes("must") ||
-                  askStatus.includes("Please")
-                  ? "border border-red-400/30 bg-red-400/10 text-red-200"
-                  : "border border-emerald-400/30 bg-emerald-400/10 text-emerald-100"
+                    askStatus.includes("must") ||
+                    askStatus.includes("Please")
+                    ? "border border-red-400/30 bg-red-400/10 text-red-200"
+                    : `${activeTheme.accentBorder} ${activeTheme.accentBg} ${activeTheme.accentText}`
                   }`}
               >
                 {askStatus}
@@ -113,7 +117,7 @@ export default function AskForm({
 
             <button
               type="submit"
-              className="rounded-2xl bg-emerald-300 text-stone-950 px-5 py-3 font-medium hover:bg-emerald-200 transition"
+              className={`rounded-2xl ${activeTheme.solidButton} text-stone-950 px-5 py-3 font-medium transition`}
             >
               Add This Ask
             </button>

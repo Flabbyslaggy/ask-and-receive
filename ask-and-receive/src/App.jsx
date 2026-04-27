@@ -4,6 +4,7 @@ import Auth from "./components/Auth"
 import oceanBg from "./assets/ocean-bg.jpg"
 import Header from "./components/Header"
 import Hero from "./components/Hero"
+import { ThemeProvider } from "./ThemeContext"
 import StoriesSection from "./components/StoriesSection"
 import AskForm from "./components/AskForm"
 import AskList from "./components/AskList"
@@ -26,29 +27,59 @@ const sampleStories = [
 
 const themes = {
   emerald: {
-    button: "from-emerald-400 to-lime-300 hover:from-emerald-300 hover:to-lime-200",
+    button: "from-emerald-300 to-green-200 hover:from-emerald-200 hover:to-lime-100",
+    solidButton: "bg-emerald-300 hover:bg-emerald-200",
     accentText: "text-emerald-300",
-    accentBorder: "ring-emerald-300/40",
+    accentBorder: "border-emerald-400/30",
+    accentBg: "bg-emerald-400/10",
+    badge: "border-emerald-500/30 bg-emerald-500/10 text-emerald-200",
+    ring: "ring-emerald-300/40",
+    logoGradientFrom: "#6ee7b7",
+    logoGradientTo: "#22c55e",
   },
   ocean: {
     button: "from-cyan-400 to-blue-400 hover:from-cyan-300 hover:to-blue-300",
+    solidButton: "bg-cyan-300 hover:bg-cyan-200",
     accentText: "text-cyan-300",
-    accentBorder: "ring-cyan-300/40",
+    accentBorder: "border-cyan-400/30",
+    accentBg: "bg-cyan-400/10",
+    badge: "border-cyan-500/30 bg-cyan-500/10 text-cyan-200",
+    ring: "ring-cyan-300/40",
+    logoGradientFrom: "#67e8f9",
+    logoGradientTo: "#3b82f6",
   },
   purple: {
     button: "from-violet-400 to-fuchsia-400 hover:from-violet-300 hover:to-fuchsia-300",
+    solidButton: "bg-violet-300 hover:bg-violet-200",
     accentText: "text-violet-300",
-    accentBorder: "ring-violet-300/40",
+    accentBorder: "border-violet-400/30",
+    accentBg: "bg-violet-400/10",
+    badge: "border-violet-500/30 bg-violet-500/10 text-violet-200",
+    ring: "ring-violet-300/40",
+    logoGradientFrom: "#c4b5fd",
+    logoGradientTo: "#d946ef",
   },
   rose: {
     button: "from-rose-400 to-pink-300 hover:from-rose-300 hover:to-pink-200",
+    solidButton: "bg-rose-300 hover:bg-rose-200",
     accentText: "text-rose-300",
-    accentBorder: "ring-rose-300/40",
+    accentBorder: "border-rose-400/30",
+    accentBg: "bg-rose-400/10",
+    badge: "border-rose-500/30 bg-rose-500/10 text-rose-200",
+    ring: "ring-rose-300/40",
+    logoGradientFrom: "#fda4af",
+    logoGradientTo: "#ec4899",
   },
   amber: {
     button: "from-amber-300 to-orange-400 hover:from-amber-200 hover:to-orange-300",
+    solidButton: "bg-amber-300 hover:bg-amber-200",
     accentText: "text-amber-300",
-    accentBorder: "ring-amber-300/40",
+    accentBorder: "border-amber-400/30",
+    accentBg: "bg-amber-400/10",
+    badge: "border-amber-500/30 bg-amber-500/10 text-amber-200",
+    ring: "ring-amber-300/40",
+    logoGradientFrom: "#fde047",
+    logoGradientTo: "#fb923c",
   },
 }
 
@@ -73,7 +104,9 @@ export default function App() {
   const [gratitudeAskId, setGratitudeAskId] = useState(null)
   const [profile, setProfile] = useState(null)
   const [profileStatus, setProfileStatus] = useState("")
-  const activeTheme = themes[profile?.theme || "emerald"] || themes.emerald
+  const savedTheme = localStorage.getItem("ask-and-receive-theme")
+  const activeTheme =
+    themes[profile?.theme || savedTheme || "emerald"] || themes.emerald
   const [askStatus, setAskStatus] = useState("")
   const [askForm, setAskForm] = useState({
     title: "",
@@ -626,10 +659,12 @@ export default function App() {
 
   if (!session || isRecoveryMode || isPasswordRecovery) {
     return (
-      <Auth
-        forceRecoveryMode={isPasswordRecovery || isRecoveryMode}
-        onRecoveryComplete={() => setIsPasswordRecovery(false)}
-      />
+      <ThemeProvider activeTheme={activeTheme}>
+        <Auth
+          forceRecoveryMode={isPasswordRecovery || isRecoveryMode}
+          onRecoveryComplete={() => setIsPasswordRecovery(false)}
+        />
+      </ThemeProvider>
     )
   }
 
@@ -642,673 +677,617 @@ export default function App() {
   }
 
   return (
-    <div
-      className="min-h-screen text-white bg-cover bg-center bg-fixed"
-      style={{
-        backgroundImage: `
+    <ThemeProvider activeTheme={activeTheme}>
+      <div
+        className="min-h-screen text-white bg-cover bg-center bg-fixed"
+        style={{
+          backgroundImage: `
       linear-gradient(rgba(10,10,10,0.25), rgba(10,10,10,0.45)),
       url(${oceanBg})
     `,
-      }}
-    >
-      <Header
-        activeView={activeView}
-        setActiveView={setActiveView}
-        profile={profile}
-      />
-      <div className="mx-auto max-w-6xl px-6 pt-4">
-        <div className="flex justify-end">
-          <button
-            onClick={handleLogout}
-            className="rounded-2xl border border-stone-700 px-4 py-2 hover:bg-stone-900/80 transition"
-          >
-            Log Out
-          </button>
+        }}
+      >
+        <Header
+          activeView={activeView}
+          setActiveView={setActiveView}
+          profile={profile}
+        />
+        <div className="mx-auto max-w-6xl px-6 pt-4">
+          <div className="flex justify-end">
+            <button
+              onClick={handleLogout}
+              className="rounded-2xl border border-stone-700 px-4 py-2 hover:bg-stone-900/80 transition"
+            >
+              Log Out
+            </button>
+          </div>
         </div>
-      </div>
-      {activeView === "home" && (
-        <>
-          <Hero
-            status={status}
-            onClearSavedData={handleClearSavedData}
-          />
+        {activeView === "home" && (
+          <>
+            <Hero
+              status={status}
+              onClearSavedData={handleClearSavedData}
+            />
 
-          <StoriesSection stories={stories} />
+            <StoriesSection stories={stories} />
 
-          <AskForm
-            askForm={askForm}
-            setAskForm={setAskForm}
-            categories={categories}
-            handleAskSubmit={handleAskSubmit}
-            askStatus={askStatus}
-          />
+            <AskForm
+              askForm={askForm}
+              setAskForm={setAskForm}
+              categories={categories}
+              handleAskSubmit={handleAskSubmit}
+              askStatus={askStatus}
+            />
 
-          <AskList
-            asks={asks.map((ask) => ({
-              ...ask,
-              isFulfilled: offersForMyAsks.some(
-                (offer) => offer.ask_id === ask.id && (offer.status === "fulfilled")
-              ),
-            }))}
-            onHelpClick={handleHelpClick}
-          />
-        </>
-      )}
-      {activeView === "dashboard" && (
-        <>
-          {myAsks.length > 0 ? (
-            <section className="mx-auto mt-10 max-w-4xl px-6">
-              <div className="rounded-3xl border border-stone-800 bg-stone-900/60 p-6 backdrop-blur">
-                <h2 className="text-2xl font-semibold text-white">My Asks</h2>
+            <AskList
+              asks={asks.map((ask) => ({
+                ...ask,
+                isFulfilled: offersForMyAsks.some(
+                  (offer) => offer.ask_id === ask.id && (offer.status === "fulfilled")
+                ),
+              }))}
+              onHelpClick={handleHelpClick}
+            />
+          </>
+        )}
+        {activeView === "dashboard" && (
+          <>
+            {myAsks.length > 0 ? (
+              <section className="mx-auto mt-10 max-w-4xl px-6">
+                <div className="rounded-3xl border border-stone-800 bg-stone-900/60 p-6 backdrop-blur">
+                  <h2 className="text-2xl font-semibold text-white">My Asks</h2>
 
-                <div className="mt-4 grid gap-4">
-                  {myAsks.map((ask) => {
-                    const relatedOffers = offersForMyAsks.filter(
-                      (offer) => offer.ask_id === ask.id
-                    )
-                    const isFulfilled = offersForMyAsks.some(
-                      (offer) => offer.ask_id === ask.id && (offer.status === "fulfilled")
-                    )
+                  <div className="mt-4 grid gap-4">
+                    {myAsks.map((ask) => {
+                      const relatedOffers = offersForMyAsks.filter(
+                        (offer) => offer.ask_id === ask.id
+                      )
+                      const isFulfilled = offersForMyAsks.some(
+                        (offer) => offer.ask_id === ask.id && (offer.status === "fulfilled")
+                      )
 
-                    return (
-                      <div key={ask.id}>
-                        {expandedAskId !== ask.id ? (
+                      return (
+                        <div key={ask.id}>
+                          {expandedAskId !== ask.id ? (
+                            <div
+                              onClick={() =>
+                                setExpandedAskId((current) =>
+                                  current === ask.id ? null : ask.id
+                                )
+                              }
+                              className="cursor-pointer rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3 hover:bg-stone-900/80 transition flex justify-between items-center"
+                            >
+                              <div>
+                                <div className="text-sm text-stone-400">My Ask</div>
+                                <div className="text-base text-white font-medium">
+                                  {ask.title}
+                                </div>
+                              </div>
+
+                              <div className="text-sm text-stone-300">
+                                {isFulfilled ? "fulfilled" : "open"}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="rounded-3xl border border-stone-800 bg-stone-900/60 backdrop-blur p-6 shadow-lg">
+                              <div className="mb-4 flex justify-end">
+                                <button
+                                  onClick={() => setExpandedAskId(null)}
+                                  className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                                >
+                                  Collapse
+                                </button>
+                              </div>
+                              <div className="grid gap-6 md:grid-cols-2">
+                                <div className="space-y-4">
+                                  <div>
+                                    <div className="text-sm text-stone-400">Ask</div>
+                                    <div className="text-xl font-semibold text-white">
+                                      {ask.title}
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    <div className="text-sm text-stone-400">Category</div>
+                                    <div className="text-base text-stone-200">
+                                      {ask.category}
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    <div className="text-sm text-stone-400">Asked on</div>
+                                    <div className="text-base text-stone-200">
+                                      {new Date(ask.created_at).toLocaleDateString()}
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    {isFulfilled ? (
+                                      <div className={`inline-block rounded-2xl border px-3 py-1 text-sm font-medium ${activeTheme.badge}`}>
+                                        Fulfilled
+                                      </div>
+                                    ) : (
+                                      <div className="inline-block rounded-2xl border border-stone-700 px-3 py-1 text-sm text-stone-300">
+                                        Open
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                  <div>
+                                    <div className="text-sm text-stone-400">Request</div>
+                                    <div className="text-base text-stone-200">
+                                      {ask.body}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {relatedOffers.length > 0 && (
+                                <div className="mt-6">
+                                  <div className="text-sm text-stone-400">Offers on this ask</div>
+
+                                  <div className="mt-3 space-y-3">
+                                    {relatedOffers.map((offer) => (
+                                      <div
+                                        key={offer.id}
+                                        className="rounded-2xl border border-stone-700 bg-stone-950/40 p-4"
+                                      >
+                                        <div className="grid gap-4 md:grid-cols-2">
+                                          <div className="space-y-3">
+                                            <div>
+                                              <div className="text-sm text-stone-400">Helper</div>
+                                              <div className="text-sm text-stone-300">
+                                                {offer.helper_name || "Someone offered help"}
+                                              </div>
+                                            </div>
+
+                                            <div>
+                                              <div className="text-sm text-stone-400">Status</div>
+                                              <div className="text-sm text-stone-200">
+                                                {offer.status || "pending"}
+                                              </div>
+                                            </div>
+
+                                            {offer.status === "fulfilled" &&
+                                              !stories.some((s) => s.ask_id === offer.ask_id) && (
+                                                <div className="flex gap-2">
+                                                  <button
+                                                    onClick={() => {
+                                                      setGratitudeAskId(offer.ask_id)
+                                                      setIsGratitudeOpen(true)
+                                                    }}
+                                                    className={`rounded-xl bg-gradient-to-r ${activeTheme.button} px-3 py-1 text-sm font-semibold text-stone-950 transition`}
+                                                  >
+                                                    Share Gratitude
+                                                  </button>
+                                                </div>
+                                              )}
+
+                                            {offer.status === "pending" && (
+                                              <div className="flex gap-2">
+                                                <button
+                                                  onClick={() => handleAcceptOffer(offer.id, offer.ask_id)}
+                                                  className="rounded-xl bg-green-500 px-3 py-1 text-sm font-semibold text-black hover:bg-green-400 transition"
+                                                >
+                                                  Accept
+                                                </button>
+
+                                                <button
+                                                  onClick={() => handleDeclineOffer(offer.id)}
+                                                  className="rounded-xl bg-red-500 px-3 py-1 text-sm font-semibold text-black hover:bg-red-400 transition"
+                                                >
+                                                  Decline
+                                                </button>
+                                              </div>
+                                            )}
+
+                                            {offer.status === "accepted" && (
+                                              <div className="flex gap-2">
+                                                <button
+                                                  onClick={() => handleFulfillOffer(offer.id)}
+                                                  className={`rounded-xl bg-gradient-to-r ${activeTheme.button} px-3 py-1 text-sm font-semibold text-stone-950 transition`}
+                                                >
+                                                  Fulfilled
+                                                </button>
+                                              </div>
+                                            )}
+
+                                          </div>
+
+                                          <div className="space-y-4">
+                                            <div>
+                                              <div className="text-sm text-stone-400">Their Offer</div>
+                                              <div className="mt-2 text-sm text-stone-200">
+                                                {offer.helper_message}
+                                              </div>
+                                            </div>
+
+                                            <div className="mt-6 rounded-2xl border border-stone-700 bg-stone-950/30 p-4">
+                                              <div
+                                                onClick={() =>
+                                                  setExpandedMessagesOfferId((current) =>
+                                                    current === offer.id ? null : offer.id
+                                                  )
+                                                }
+                                                className="text-sm text-stone-400 cursor-pointer hover:text-white transition flex justify-between"
+                                              >
+                                                <span>
+                                                  Messages ({getMessagesForOffer(offer.id).length})
+                                                </span>
+                                                <span>
+                                                  {expandedMessagesOfferId === offer.id ? "−" : "+"}
+                                                </span>
+                                              </div>
+
+                                              {expandedMessagesOfferId === offer.id && (
+                                                <>
+                                                  <div className="mt-3 space-y-2 max-h-80 overflow-y-auto">
+                                                    {getMessagesForOffer(offer.id).map((msg) => (
+                                                      <div
+                                                        key={msg.id}
+                                                        className={`flex w-full ${msg.sender_user_id === session.user.id
+                                                          ? "justify-end"
+                                                          : "justify-start"
+                                                          }`}
+                                                      >
+                                                        <div
+                                                          className={`max-w-[75%] break-words rounded-2xl px-3 py-2 text-sm ${msg.sender_user_id === session.user.id
+                                                            ? `${activeTheme.solidButton} text-stone-950`
+                                                            : "bg-stone-800/60 text-stone-200"
+                                                            }`}
+                                                        >
+                                                          {msg.message_text}
+                                                        </div>
+                                                      </div>
+                                                    ))}
+
+                                                    {getMessagesForOffer(offer.id).length === 0 && (
+                                                      <div className="text-sm text-stone-500">No messages yet</div>
+                                                    )}
+                                                  </div>
+
+                                                  <div className="mt-4">
+                                                    <input
+                                                      type="text"
+                                                      value={messageInputs[offer.id] || ""}
+                                                      maxLength={300}
+                                                      onChange={(e) =>
+                                                        setMessageInputs((current) => ({
+                                                          ...current,
+                                                          [offer.id]: e.target.value,
+                                                        }))
+                                                      }
+                                                      placeholder="Type a message..."
+                                                      className="w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-100 outline-none"
+                                                    />
+                                                    <div
+                                                      className={`mt-1 text-right text-xs ${300 - (messageInputs[offer.id] || "").length <= 10
+                                                        ? "text-red-400"
+                                                        : "text-stone-500"
+                                                        }`}
+                                                    >
+                                                      {300 - (messageInputs[offer.id] || "").length} characters left
+                                                    </div>
+
+                                                    <button
+                                                      onClick={() => handleSendMessage(offer.id)}
+                                                      className={`mt-2 rounded-xl bg-gradient-to-r ${activeTheme.button} px-4 py-2 text-sm font-medium text-stone-950 transition`}
+                                                    >
+                                                      Send
+                                                    </button>
+                                                  </div>
+                                                </>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </section>
+            ) : null}
+
+            {myHelpOffers.length > 0 ? (
+              <section className="mx-auto mt-10 max-w-4xl px-6">
+                <div className="rounded-3xl border border-stone-800 bg-stone-900/60 p-6 backdrop-blur">
+                  <h2 className="text-2xl font-semibold text-white">My Help Offers</h2>
+
+                  <div className="mt-4 grid gap-4">
+                    {myHelpOffers.map((offer) => (
+                      <div key={offer.id}>
+                        {expandedHelpOfferId !== offer.id ? (
                           <div
                             onClick={() =>
-                              setExpandedAskId((current) =>
-                                current === ask.id ? null : ask.id
+                              setExpandedHelpOfferId((current) =>
+                                current === offer.id ? null : offer.id
                               )
                             }
                             className="cursor-pointer rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3 hover:bg-stone-900/80 transition flex justify-between items-center"
                           >
                             <div>
-                              <div className="text-sm text-stone-400">My Ask</div>
+                              <div className="text-sm text-stone-400">
+                                {asks.find((a) => a.id === offer.ask_id)?.asker || "Unknown"}
+                              </div>
                               <div className="text-base text-white font-medium">
-                                {ask.title}
+                                {asks.find((a) => a.id === offer.ask_id)?.title || "Unknown ask"}
                               </div>
                             </div>
 
                             <div className="text-sm text-stone-300">
-                              {isFulfilled ? "fulfilled" : "open"}
+                              {offer.status || "pending"}
                             </div>
                           </div>
                         ) : (
                           <div className="rounded-3xl border border-stone-800 bg-stone-900/60 backdrop-blur p-6 shadow-lg">
                             <div className="mb-4 flex justify-end">
                               <button
-                                onClick={() => setExpandedAskId(null)}
+                                onClick={() => setExpandedHelpOfferId(null)}
                                 className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
                               >
                                 Collapse
                               </button>
                             </div>
+
                             <div className="grid gap-6 md:grid-cols-2">
-                              <div className="space-y-4">
+                              {/* LEFT SIDE */}
+                              <div className="grid gap-6 sm:grid-cols-2">
                                 <div>
                                   <div className="text-sm text-stone-400">Ask</div>
                                   <div className="text-xl font-semibold text-white">
-                                    {ask.title}
+                                    {asks.find((a) => a.id === offer.ask_id)?.title || "Unknown ask"}
                                   </div>
                                 </div>
 
                                 <div>
-                                  <div className="text-sm text-stone-400">Category</div>
+                                  <div className="text-sm text-stone-400">Offered on</div>
                                   <div className="text-base text-stone-200">
-                                    {ask.category}
+                                    {new Date(offer.created_at).toLocaleDateString()}
                                   </div>
                                 </div>
 
                                 <div>
-                                  <div className="text-sm text-stone-400">Asked on</div>
+                                  <div className="text-sm text-stone-400">Requested by</div>
                                   <div className="text-base text-stone-200">
-                                    {new Date(ask.created_at).toLocaleDateString()}
+                                    {asks.find((a) => a.id === offer.ask_id)?.asker || "Unknown person"}
                                   </div>
                                 </div>
 
                                 <div>
-                                  {isFulfilled ? (
-                                    <div className="inline-block rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-200">
-                                      Fulfilled
-                                    </div>
-                                  ) : (
-                                    <div className="inline-block rounded-2xl border border-stone-700 px-3 py-1 text-sm text-stone-300">
-                                      Open
-                                    </div>
+                                  <div className="text-sm text-stone-400">Status</div>
+                                  <div className="text-base text-stone-200">
+                                    {offer.status || "pending"}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* RIGHT SIDE */}
+                              <div className="space-y-6">
+                                <div>
+                                  <div className="text-sm text-stone-400">Original Request</div>
+                                  <div className="text-base text-stone-200">
+                                    {asks.find((a) => a.id === offer.ask_id)?.body || "No ask text"}
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <div className="text-sm text-stone-400">Your Offer</div>
+                                  <div className="text-base text-stone-200">
+                                    {offer.helper_message}
+                                  </div>
+                                </div>
+
+                                <div className="mt-6 rounded-2xl border border-stone-700 bg-stone-950/30 p-4">
+                                  <div
+                                    onClick={() =>
+                                      setExpandedMessagesOfferId((current) =>
+                                        current === offer.id ? null : offer.id
+                                      )
+                                    }
+                                    className="text-sm text-stone-400 cursor-pointer hover:text-white transition flex justify-between"
+                                  >
+                                    <span>
+                                      Messages ({getMessagesForOffer(offer.id).length})
+                                    </span>
+                                    <span>
+                                      {expandedMessagesOfferId === offer.id ? "−" : "+"}
+                                    </span>
+                                  </div>
+
+                                  {expandedMessagesOfferId === offer.id && (
+                                    <>
+                                      <div className="mt-3 space-y-2 max-h-80 overflow-y-auto">
+                                        {getMessagesForOffer(offer.id).map((msg) => (
+                                          <div
+                                            key={msg.id}
+                                            className={`flex w-full ${msg.sender_user_id === session.user.id
+                                              ? "justify-end"
+                                              : "justify-start"
+                                              }`}
+                                          >
+                                            <div
+                                              className={`max-w-[75%] break-words rounded-2xl px-3 py-2 text-sm ${msg.sender_user_id === session.user.id
+                                                ? `${activeTheme.solidButton} text-stone-950`
+                                                : "bg-stone-800/60 text-stone-200"
+                                                }`}
+                                            >
+                                              {msg.message_text}
+                                            </div>
+                                          </div>
+                                        ))}
+
+                                        {getMessagesForOffer(offer.id).length === 0 && (
+                                          <div className="text-sm text-stone-500">No messages yet</div>
+                                        )}
+                                      </div>
+
+                                      <div className="mt-4">
+                                        <input
+                                          type="text"
+                                          value={messageInputs[offer.id] || ""}
+                                          onChange={(e) =>
+                                            setMessageInputs((current) => ({
+                                              ...current,
+                                              [offer.id]: e.target.value,
+                                            }))
+                                          }
+                                          maxLength={300}
+                                          placeholder="Type a message..."
+                                          className="w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-100 outline-none"
+                                        />
+                                        <div
+                                          className={`mt-1 text-right text-xs ${300 - (messageInputs[offer.id] || "").length <= 10
+                                            ? "text-red-400"
+                                            : "text-stone-500"
+                                            }`}
+                                        >
+                                          {300 - (messageInputs[offer.id] || "").length} characters left
+                                        </div>
+                                        <button
+                                          onClick={() => handleSendMessage(offer.id)}
+                                          className={`mt-2 rounded-xl bg-gradient-to-r ${activeTheme.button} px-4 py-2 text-sm font-medium text-stone-950 transition`}
+                                        >
+                                          Send
+                                        </button>
+                                      </div>
+                                    </>
                                   )}
                                 </div>
                               </div>
-
-                              <div className="space-y-4">
-                                <div>
-                                  <div className="text-sm text-stone-400">Request</div>
-                                  <div className="text-base text-stone-200">
-                                    {ask.body}
-                                  </div>
-                                </div>
-                              </div>
                             </div>
-
-                            {relatedOffers.length > 0 && (
-                              <div className="mt-6">
-                                <div className="text-sm text-stone-400">Offers on this ask</div>
-
-                                <div className="mt-3 space-y-3">
-                                  {relatedOffers.map((offer) => (
-                                    <div
-                                      key={offer.id}
-                                      className="rounded-2xl border border-stone-700 bg-stone-950/40 p-4"
-                                    >
-                                      <div className="grid gap-4 md:grid-cols-2">
-                                        <div className="space-y-3">
-                                          <div>
-                                            <div className="text-sm text-stone-400">Helper</div>
-                                            <div className="text-sm text-stone-300">
-                                              {offer.helper_name || "Someone offered help"}
-                                            </div>
-                                          </div>
-
-                                          <div>
-                                            <div className="text-sm text-stone-400">Status</div>
-                                            <div className="text-sm text-stone-200">
-                                              {offer.status || "pending"}
-                                            </div>
-                                          </div>
-
-                                          {offer.status === "fulfilled" &&
-                                            !stories.some((s) => s.ask_id === offer.ask_id) && (
-                                              <div className="flex gap-2">
-                                                <button
-                                                  onClick={() => {
-                                                    setGratitudeAskId(offer.ask_id)
-                                                    setIsGratitudeOpen(true)
-                                                  }}
-                                                  className="rounded-xl bg-emerald-300 px-3 py-1 text-sm font-semibold text-stone-950 hover:bg-emerald-200 transition"
-                                                >
-                                                  Share Gratitude
-                                                </button>
-                                              </div>
-                                            )}
-
-                                          {offer.status === "pending" && (
-                                            <div className="flex gap-2">
-                                              <button
-                                                onClick={() => handleAcceptOffer(offer.id, offer.ask_id)}
-                                                className="rounded-xl bg-green-500 px-3 py-1 text-sm font-semibold text-black hover:bg-green-400 transition"
-                                              >
-                                                Accept
-                                              </button>
-
-                                              <button
-                                                onClick={() => handleDeclineOffer(offer.id)}
-                                                className="rounded-xl bg-red-500 px-3 py-1 text-sm font-semibold text-black hover:bg-red-400 transition"
-                                              >
-                                                Decline
-                                              </button>
-                                            </div>
-                                          )}
-
-                                          {offer.status === "accepted" && (
-                                            <div className="flex gap-2">
-                                              <button
-                                                onClick={() => handleFulfillOffer(offer.id)}
-                                                className="rounded-xl bg-emerald-300 px-3 py-1 text-sm font-semibold text-stone-950 hover:bg-emerald-200 transition"
-                                              >
-                                                Fulfilled
-                                              </button>
-                                            </div>
-                                          )}
-
-                                        </div>
-
-                                        <div className="space-y-4">
-                                          <div>
-                                            <div className="text-sm text-stone-400">Their Offer</div>
-                                            <div className="mt-2 text-sm text-stone-200">
-                                              {offer.helper_message}
-                                            </div>
-                                          </div>
-
-                                          <div className="mt-6 rounded-2xl border border-stone-700 bg-stone-950/30 p-4">
-                                            <div
-                                              onClick={() =>
-                                                setExpandedMessagesOfferId((current) =>
-                                                  current === offer.id ? null : offer.id
-                                                )
-                                              }
-                                              className="text-sm text-stone-400 cursor-pointer hover:text-white transition flex justify-between"
-                                            >
-                                              <span>
-                                                Messages ({getMessagesForOffer(offer.id).length})
-                                              </span>
-                                              <span>
-                                                {expandedMessagesOfferId === offer.id ? "−" : "+"}
-                                              </span>
-                                            </div>
-
-                                            {expandedMessagesOfferId === offer.id && (
-                                              <>
-                                                <div className="mt-3 space-y-2 max-h-80 overflow-y-auto">
-                                                  {getMessagesForOffer(offer.id).map((msg) => (
-                                                    <div
-                                                      key={msg.id}
-                                                      className={`flex w-full ${msg.sender_user_id === session.user.id
-                                                        ? "justify-end"
-                                                        : "justify-start"
-                                                        }`}
-                                                    >
-                                                      <div
-                                                        className={`max-w-[75%] break-words rounded-2xl px-3 py-2 text-sm ${msg.sender_user_id === session.user.id
-                                                          ? "bg-emerald-300 text-stone-950"
-                                                          : "bg-stone-800/60 text-stone-200"
-                                                          }`}
-                                                      >
-                                                        {msg.message_text}
-                                                      </div>
-                                                    </div>
-                                                  ))}
-
-                                                  {getMessagesForOffer(offer.id).length === 0 && (
-                                                    <div className="text-sm text-stone-500">No messages yet</div>
-                                                  )}
-                                                </div>
-
-                                                <div className="mt-4">
-                                                  <input
-                                                    type="text"
-                                                    value={messageInputs[offer.id] || ""}
-                                                    maxLength={300}
-                                                    onChange={(e) =>
-                                                      setMessageInputs((current) => ({
-                                                        ...current,
-                                                        [offer.id]: e.target.value,
-                                                      }))
-                                                    }
-                                                    placeholder="Type a message..."
-                                                    className="w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-100 outline-none"
-                                                  />
-                                                  <div
-                                                    className={`mt-1 text-right text-xs ${300 - (messageInputs[offer.id] || "").length <= 10
-                                                      ? "text-red-400"
-                                                      : "text-stone-500"
-                                                      }`}
-                                                  >
-                                                    {300 - (messageInputs[offer.id] || "").length} characters left
-                                                  </div>
-
-                                                  <button
-                                                    onClick={() => handleSendMessage(offer.id)}
-                                                    className="mt-2 rounded-xl bg-emerald-300 px-4 py-2 text-sm font-medium text-stone-950 hover:bg-emerald-200 transition"
-                                                  >
-                                                    Send
-                                                  </button>
-                                                </div>
-                                              </>
-                                            )}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
                           </div>
                         )}
                       </div>
-                    )
-                  })}
-                </div>
-              </div>
-            </section>
-          ) : null}
-
-          {myHelpOffers.length > 0 ? (
-            <section className="mx-auto mt-10 max-w-4xl px-6">
-              <div className="rounded-3xl border border-stone-800 bg-stone-900/60 p-6 backdrop-blur">
-                <h2 className="text-2xl font-semibold text-white">My Help Offers</h2>
-
-                <div className="mt-4 grid gap-4">
-                  {myHelpOffers.map((offer) => (
-                    <div key={offer.id}>
-                      {expandedHelpOfferId !== offer.id ? (
-                        <div
-                          onClick={() =>
-                            setExpandedHelpOfferId((current) =>
-                              current === offer.id ? null : offer.id
-                            )
-                          }
-                          className="cursor-pointer rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3 hover:bg-stone-900/80 transition flex justify-between items-center"
-                        >
-                          <div>
-                            <div className="text-sm text-stone-400">
-                              {asks.find((a) => a.id === offer.ask_id)?.asker || "Unknown"}
-                            </div>
-                            <div className="text-base text-white font-medium">
-                              {asks.find((a) => a.id === offer.ask_id)?.title || "Unknown ask"}
-                            </div>
-                          </div>
-
-                          <div className="text-sm text-stone-300">
-                            {offer.status || "pending"}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="rounded-3xl border border-stone-800 bg-stone-900/60 backdrop-blur p-6 shadow-lg">
-                          <div className="mb-4 flex justify-end">
-                            <button
-                              onClick={() => setExpandedHelpOfferId(null)}
-                              className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
-                            >
-                              Collapse
-                            </button>
-                          </div>
-
-                          <div className="grid gap-6 md:grid-cols-2">
-                            {/* LEFT SIDE */}
-                            <div className="grid gap-6 sm:grid-cols-2">
-                              <div>
-                                <div className="text-sm text-stone-400">Ask</div>
-                                <div className="text-xl font-semibold text-white">
-                                  {asks.find((a) => a.id === offer.ask_id)?.title || "Unknown ask"}
-                                </div>
-                              </div>
-
-                              <div>
-                                <div className="text-sm text-stone-400">Offered on</div>
-                                <div className="text-base text-stone-200">
-                                  {new Date(offer.created_at).toLocaleDateString()}
-                                </div>
-                              </div>
-
-                              <div>
-                                <div className="text-sm text-stone-400">Requested by</div>
-                                <div className="text-base text-stone-200">
-                                  {asks.find((a) => a.id === offer.ask_id)?.asker || "Unknown person"}
-                                </div>
-                              </div>
-
-                              <div>
-                                <div className="text-sm text-stone-400">Status</div>
-                                <div className="text-base text-stone-200">
-                                  {offer.status || "pending"}
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* RIGHT SIDE */}
-                            <div className="space-y-6">
-                              <div>
-                                <div className="text-sm text-stone-400">Original Request</div>
-                                <div className="text-base text-stone-200">
-                                  {asks.find((a) => a.id === offer.ask_id)?.body || "No ask text"}
-                                </div>
-                              </div>
-
-                              <div>
-                                <div className="text-sm text-stone-400">Your Offer</div>
-                                <div className="text-base text-stone-200">
-                                  {offer.helper_message}
-                                </div>
-                              </div>
-
-                              <div className="mt-6 rounded-2xl border border-stone-700 bg-stone-950/30 p-4">
-                                <div
-                                  onClick={() =>
-                                    setExpandedMessagesOfferId((current) =>
-                                      current === offer.id ? null : offer.id
-                                    )
-                                  }
-                                  className="text-sm text-stone-400 cursor-pointer hover:text-white transition flex justify-between"
-                                >
-                                  <span>
-                                    Messages ({getMessagesForOffer(offer.id).length})
-                                  </span>
-                                  <span>
-                                    {expandedMessagesOfferId === offer.id ? "−" : "+"}
-                                  </span>
-                                </div>
-
-                                {expandedMessagesOfferId === offer.id && (
-                                  <>
-                                    <div className="mt-3 space-y-2 max-h-80 overflow-y-auto">
-                                      {getMessagesForOffer(offer.id).map((msg) => (
-                                        <div
-                                          key={msg.id}
-                                          className={`flex w-full ${msg.sender_user_id === session.user.id
-                                            ? "justify-end"
-                                            : "justify-start"
-                                            }`}
-                                        >
-                                          <div
-                                            className={`max-w-[75%] break-words rounded-2xl px-3 py-2 text-sm ${msg.sender_user_id === session.user.id
-                                              ? "bg-emerald-300 text-stone-950"
-                                              : "bg-stone-800/60 text-stone-200"
-                                              }`}
-                                          >
-                                            {msg.message_text}
-                                          </div>
-                                        </div>
-                                      ))}
-
-                                      {getMessagesForOffer(offer.id).length === 0 && (
-                                        <div className="text-sm text-stone-500">No messages yet</div>
-                                      )}
-                                    </div>
-
-                                    <div className="mt-4">
-                                      <input
-                                        type="text"
-                                        value={messageInputs[offer.id] || ""}
-                                        onChange={(e) =>
-                                          setMessageInputs((current) => ({
-                                            ...current,
-                                            [offer.id]: e.target.value,
-                                          }))
-                                        }
-                                        maxLength={300}
-                                        placeholder="Type a message..."
-                                        className="w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-100 outline-none"
-                                      />
-                                      <div
-                                        className={`mt-1 text-right text-xs ${300 - (messageInputs[offer.id] || "").length <= 10
-                                          ? "text-red-400"
-                                          : "text-stone-500"
-                                          }`}
-                                      >
-                                        {300 - (messageInputs[offer.id] || "").length} characters left
-                                      </div>
-                                      <button
-                                        onClick={() => handleSendMessage(offer.id)}
-                                        className="mt-2 rounded-xl bg-emerald-300 px-4 py-2 text-sm font-medium text-stone-950 hover:bg-emerald-200 transition"
-                                      >
-                                        Send
-                                      </button>
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
-          ) : null}
-        </>
-      )
-      }
-
-      {
-        activeView === "profile" && (
-          <section className="mx-auto mt-10 max-w-3xl px-6">
-            <div className="rounded-3xl border border-stone-800 bg-stone-900/60 p-6 backdrop-blur">
-              <h2 className="text-2xl font-semibold text-white">Profile</h2>
-
-              <div className="mt-4">
-                <div className="text-sm text-stone-400">Current nickname</div>
-                <div className="text-lg text-white mb-4">
-                  {profile?.nickname || "Anonymous"}
-                </div>
-
-                <input
-                  type="text"
-                  value={profile?.nickname || ""}
-                  onChange={(e) =>
-                    setProfile((current) => ({
-                      ...current,
-                      nickname: e.target.value,
-                    }))
-                  }
-                  maxLength={30}
-                  placeholder="Enter new nickname"
-                  className="w-full rounded-xl border border-stone-700 bg-stone-900/80 px-4 py-2 text-stone-100 outline-none"
-                />
-                <div
-                  className={`mt-1 text-right text-xs ${30 - (profile?.nickname || "").length <= 10
-                    ? "text-red-400"
-                    : "text-stone-500"
-                    }`}
-                >
-                  {30 - (profile?.nickname || "").length} characters left
-                </div>
-
-                <button
-                  onClick={async () => {
-                    const trimmedNickname = (profile?.nickname || "").trim()
-
-                    if (!trimmedNickname) {
-                      setProfileStatus("Nickname cannot be empty.")
-                      return
-                    }
-
-                    if (trimmedNickname.length > 30) {
-                      setProfileStatus("Nickname must be 30 characters or fewer.")
-                      return
-                    }
-
-                    const { error } = await supabase
-                      .from("profiles")
-                      .update({ nickname: trimmedNickname })
-                      .eq("id", session.user.id)
-
-                    if (error) {
-                      setProfileStatus("Could not update nickname.")
-                      return
-                    }
-
-                    setProfile((current) => ({
-                      ...current,
-                      nickname: trimmedNickname,
-                    }))
-                    setProfileStatus("Nickname updated.")
-                  }}
-                  className="mt-3 rounded-xl bg-emerald-300 px-4 py-2 text-stone-950 hover:bg-emerald-200 transition"
-                >
-                  Save
-                </button>
-
-                {profileStatus ? (
-                  <div
-                    className={`mt-3 rounded-2xl px-4 py-3 text-sm ${profileStatus.includes("Could not")
-                      ? "border border-red-400/30 bg-red-400/10 text-red-200"
-                      : "border border-emerald-400/30 bg-emerald-400/10 text-emerald-100"
-                      }`}
-                  >
-                    {profileStatus}
+                    ))}
                   </div>
-                ) : null}
-
-              </div>
-            </div>
-          </section>
+                </div>
+              </section>
+            ) : null}
+          </>
         )
-      }
+        }
 
-      {isGratitudeOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => {
-              setIsGratitudeOpen(false)
-              setGratitudeAskId(null)
-            }}
-          />
+        {
+          activeView === "profile" && (
+            <section className="mx-auto mt-10 max-w-3xl px-6">
+              <div className="rounded-3xl border border-stone-800 bg-stone-900/60 p-6 backdrop-blur">
+                <h2 className="text-2xl font-semibold text-white">Profile</h2>
 
-          <div className="relative z-10 w-full max-w-2xl rounded-3xl border border-stone-800 bg-stone-900/90 p-6 shadow-2xl backdrop-blur md:p-8">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-3xl font-semibold">Share Gratitude</h2>
-                <p className="mt-3 text-stone-300 leading-7">
-                  Share what happened and what it meant.
-                </p>
+                <div className="mt-4">
+                  <div className="text-sm text-stone-400">Current nickname</div>
+                  <div className="mb-4 text-lg text-white">
+                    {profile?.nickname || "Anonymous"}
+                  </div>
+
+                  <input
+                    type="text"
+                    value={profile?.nickname || ""}
+                    onChange={(e) =>
+                      setProfile((current) => ({
+                        ...current,
+                        nickname: e.target.value,
+                      }))
+                    }
+                    maxLength={30}
+                    placeholder="Enter new nickname"
+                    className="w-full rounded-xl border border-stone-700 bg-stone-900/80 px-4 py-2 text-stone-100 outline-none"
+                  />
+
+                  <div className="mt-6">
+                    <div className="text-sm text-stone-400">Theme</div>
+
+                    <select
+                      value={profile?.theme || "emerald"}
+                      onChange={(e) =>
+                        setProfile((current) => ({
+                          ...current,
+                          theme: e.target.value,
+                        }))
+                      }
+                      className="mt-2 w-full rounded-xl border border-stone-700 bg-stone-900/80 px-4 py-2 text-stone-100 outline-none"
+                    >
+                      <option value="emerald">Emerald</option>
+                      <option value="ocean">Ocean</option>
+                      <option value="purple">Purple</option>
+                      <option value="rose">Rose</option>
+                      <option value="amber">Amber</option>
+                    </select>
+                  </div>
+
+                  <button
+                    onClick={async () => {
+                      const trimmedNickname = (profile?.nickname || "").trim()
+                      const selectedTheme = profile?.theme || "emerald"
+
+                      if (!trimmedNickname) {
+                        setProfileStatus("Nickname cannot be empty.")
+                        return
+                      }
+
+                      const { error } = await supabase
+                        .from("profiles")
+                        .update({
+                          nickname: trimmedNickname,
+                          theme: selectedTheme,
+                        })
+                        .eq("id", session.user.id)
+
+                      if (error) {
+                        setProfileStatus("Could not update profile.")
+                        return
+                      }
+
+                      localStorage.setItem("ask-and-receive-theme", selectedTheme)
+                      setProfileStatus("Profile updated.")
+                    }}
+                    className={`mt-6 rounded-xl bg-gradient-to-r ${activeTheme.button} px-4 py-2 text-stone-950 transition`}
+                  >
+                    Save Profile
+                  </button>
+
+                  {profileStatus ? (
+                    <div className="mt-3">
+                      <div
+                        className={`inline-block rounded-lg border px-3 py-1 text-xs ${activeTheme.accentBorder} ${activeTheme.accentBg} ${activeTheme.accentText}`}
+                      >
+                        {profileStatus}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
               </div>
+            </section>
+          )
+        }
 
-              <button
-                type="button"
-                onClick={() => {
-                  setIsGratitudeOpen(false)
-                  setGratitudeAskId(null)
-                }}
-                className="rounded-full border border-stone-700 px-3 py-1 text-sm hover:bg-stone-800 transition"
-              >
-                Close
-              </button>
-            </div>
+        {isGratitudeOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+              onClick={() => {
+                setIsGratitudeOpen(false)
+                setGratitudeAskId(null)
+              }}
+            />
 
-            <form onSubmit={handleGratitudeSubmit} className="mt-8 grid gap-4">
-              <label className="grid gap-2 text-sm">
-                <span className="text-stone-300">Title</span>
-                <input
-                  type="text"
-                  value={gratitudeForm.title}
-                  maxLength={80}
-                  onChange={(event) =>
-                    setGratitudeForm((current) => ({
-                      ...current,
-                      title: event.target.value,
-                    }))
-                  }
-                  className="rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none"
-                />
-                <div
-                  className={`text-right text-xs ${80 - gratitudeForm.title.length <= 10 ? "text-red-400" : "text-stone-500"
-                    }`}
-                >
-                  {80 - gratitudeForm.title.length} characters left
+            <div className="relative z-10 w-full max-w-2xl rounded-3xl border border-stone-800 bg-stone-900/90 p-6 shadow-2xl backdrop-blur md:p-8">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-3xl font-semibold">Share Gratitude</h2>
+                  <p className="mt-3 text-stone-300 leading-7">
+                    Share what happened and what it meant.
+                  </p>
                 </div>
-              </label>
-
-              <label className="grid gap-2 text-sm">
-                <span className="text-stone-300">Gratitude</span>
-                <textarea
-                  rows={5}
-                  value={gratitudeForm.body}
-                  maxLength={500}
-                  onChange={(event) =>
-                    setGratitudeForm((current) => ({
-                      ...current,
-                      body: event.target.value,
-                    }))
-                  }
-                  className="rounded-3xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none"
-                />
-                <div
-                  className={`text-right text-xs ${500 - gratitudeForm.body.length <= 10 ? "text-red-400" : "text-stone-500"
-                    }`}
-                >
-                  {500 - gratitudeForm.body.length} characters left
-                </div>
-              </label>
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="submit"
-                  className="rounded-2xl bg-emerald-300 px-5 py-3 font-medium text-stone-950 hover:bg-emerald-200 transition"
-                >
-                  Share Gratitude
-                </button>
 
                 <button
                   type="button"
@@ -1316,29 +1295,91 @@ export default function App() {
                     setIsGratitudeOpen(false)
                     setGratitudeAskId(null)
                   }}
-                  className="rounded-2xl border border-stone-700 px-5 py-3 hover:bg-stone-900/80 transition"
+                  className="rounded-full border border-stone-700 px-3 py-1 text-sm hover:bg-stone-800 transition"
                 >
-                  Cancel
+                  Close
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )
-      }
 
-      <HelpModal
-        isOpen={isHelpOpen}
-        selectedAsk={selectedAsk}
-        helpForm={helpForm}
-        setHelpForm={setHelpForm}
-        handleHelpSubmit={handleHelpSubmit}
-        helpStatus={helpStatus}
-        onClose={() => {
-          setIsHelpOpen(false)
-          setSelectedAsk(null)
-        }}
-      />
-    </div >
+              <form onSubmit={handleGratitudeSubmit} className="mt-8 grid gap-4">
+                <label className="grid gap-2 text-sm">
+                  <span className="text-stone-300">Title</span>
+                  <input
+                    type="text"
+                    value={gratitudeForm.title}
+                    maxLength={80}
+                    onChange={(event) =>
+                      setGratitudeForm((current) => ({
+                        ...current,
+                        title: event.target.value,
+                      }))
+                    }
+                    className="rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none"
+                  />
+                  <div
+                    className={`text-right text-xs ${80 - gratitudeForm.title.length <= 10 ? "text-red-400" : "text-stone-500"
+                      }`}
+                  >
+                    {80 - gratitudeForm.title.length} characters left
+                  </div>
+                </label>
+
+                <label className="grid gap-2 text-sm">
+                  <span className="text-stone-300">Gratitude</span>
+                  <textarea
+                    rows={5}
+                    value={gratitudeForm.body}
+                    maxLength={500}
+                    onChange={(event) =>
+                      setGratitudeForm((current) => ({
+                        ...current,
+                        body: event.target.value,
+                      }))
+                    }
+                    className="rounded-3xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none"
+                  />
+                  <div
+                    className={`text-right text-xs ${500 - gratitudeForm.body.length <= 10 ? "text-red-400" : "text-stone-500"
+                      }`}
+                  >
+                    {500 - gratitudeForm.body.length} characters left
+                  </div>
+                </label>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="submit"
+                    className={`rounded-2xl bg-gradient-to-r ${activeTheme.button} px-4 py-2 font-medium text-stone-950 transition`}
+                  >
+                    Share Gratitude
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsGratitudeOpen(false)
+                      setGratitudeAskId(null)
+                    }}
+                    className="rounded-2xl border border-stone-700 px-5 py-3 hover:bg-stone-900/80 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+        }
+
+        <HelpModal
+          isOpen={isHelpOpen}
+          selectedAsk={selectedAsk}
+          helpForm={helpForm}
+          setHelpForm={setHelpForm}
+          handleHelpSubmit={handleHelpSubmit}
+          helpStatus={helpStatus}
+          onClose={() => setIsHelpOpen(false)}
+        />
+      </div>
+    </ThemeProvider>
   )
 }

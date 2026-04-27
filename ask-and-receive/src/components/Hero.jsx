@@ -1,4 +1,8 @@
+import { useTheme } from "../ThemeContext"
+
 export default function Hero({ status, onClearSavedData }) {
+  const activeTheme = useTheme()
+
   return (
     <section className="mx-auto max-w-6xl px-6 pt-16 pb-12">
       <div className="max-w-4xl">
@@ -14,7 +18,7 @@ export default function Hero({ status, onClearSavedData }) {
         <div className="mt-6 flex flex-wrap gap-3">
           <a
             href="#post-ask"
-            className="rounded-2xl bg-emerald-300 text-stone-950 px-5 py-3 font-medium hover:bg-emerald-200 transition"
+            className={`rounded-2xl bg-gradient-to-r ${activeTheme.solidButton} text-stone-950 px-5 py-3 font-medium transition`}
           >
             Add an Ask
           </a>
@@ -29,7 +33,7 @@ export default function Hero({ status, onClearSavedData }) {
         </div>
 
         {status ? (
-          <div className="mt-6 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">
+          <div className="mt-6 rounded-2xl border ${activeTheme.accentBorder} ${activeTheme.accentBg} ${activeTheme.accentText}">
             {status}
           </div>
         ) : null}

@@ -1,4 +1,8 @@
+import { useTheme } from "../ThemeContext"
+
 export default function AskList({ asks, onHelpClick }) {
+  const activeTheme = useTheme()
+  
   return (
     <section id="asks" className="mx-auto max-w-6xl px-6 py-12">
       <div className="flex items-end justify-between gap-4 flex-wrap">
@@ -27,7 +31,9 @@ export default function AskList({ asks, onHelpClick }) {
               className="p-6 rounded-2xl bg-stone-900/60 backdrop-blur border border-stone-800"
             >
               <div className="flex items-center justify-between gap-3">
-                <span className="rounded-full border border-stone-700 px-3 py-1 text-xs text-stone-300">
+                <span
+                  className={`rounded-full border px-3 py-1 text-xs ${activeTheme.accentBorder} ${activeTheme.accentText}`}
+                >
                   {ask.category}
                 </span>
                 <span className="text-xs text-stone-400">by {ask.asker}</span>
@@ -37,13 +43,13 @@ export default function AskList({ asks, onHelpClick }) {
               <p className="mt-3 text-stone-300 leading-7">{ask.body}</p>
 
               {ask.isFulfilled ? (
-                <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-200">
+                <div className={`inline-block rounded-xl border px-4 py-2 text-sm font-medium ${activeTheme.badge}`}>
                   Fulfilled
                 </div>
               ) : (
                 <button
                   onClick={() => onHelpClick(ask)}
-                  className="rounded-2xl bg-emerald-300 px-4 py-2 font-medium text-stone-950 hover:bg-emerald-200 transition"
+                  className={`rounded-2xl bg-gradient-to-r ${activeTheme.button} px-4 py-2 font-medium text-stone-950 transition`}
                 >
                   I Can Help
                 </button>
