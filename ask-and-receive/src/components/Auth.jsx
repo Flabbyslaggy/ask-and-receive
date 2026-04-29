@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../supabaseClient"
 import { useTheme } from "../ThemeContext"
+import {
+  EyeIcon,
+  EyeSlashIcon,
+} from '@heroicons/react/24/outline'
 
 export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) {
   const activeTheme = useTheme()
@@ -11,6 +15,7 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
   const [message, setMessage] = useState("")
   const [isRecoveryMode, setIsRecoveryMode] = useState(false)
   const [newPassword, setNewPassword] = useState("")
+  const [confirmNewPassword, setConfirmNewPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [showReset, setShowReset] = useState(false)
   const [resetEmail, setResetEmail] = useState("")
@@ -22,6 +27,18 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
 
     try {
       if (isRecoveryMode) {
+
+        if (newPassword !== confirmNewPassword) {
+          if (newPassword.length < 8) {
+            setMessage("Password must be at least 8 characters.")
+            setLoading(false)
+            return
+          }
+          setMessage("Passwords do not match.")
+          setLoading(false)
+          return
+        }
+
         const { error } = await supabase.auth.updateUser({
           password: newPassword,
         })
@@ -34,6 +51,7 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
           onRecoveryComplete?.()
           window.history.replaceState({}, document.title, window.location.pathname)
           setNewPassword("")
+          setConfirmNewPassword("")
           setPassword("")
           setShowReset(false)
         }
@@ -98,7 +116,7 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
       search.includes("type=recovery")
     ) {
       setIsRecoveryMode(true)
-      setMessage("Enter your new password below.")
+      setMessage("Create a new password.")
     }
   }, [forceRecoveryMode])
 
@@ -214,33 +232,81 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
             />
           </label>
 
-          <label className="grid gap-2 text-sm">
-            <span className="text-stone-300">
-              {isRecoveryMode ? "New Password" : "Password"}
-            </span>
+        <label className="grid gap-2 text-sm">
+  <span className="text-stone-300">
+    {isRecoveryMode ? "New Password" : "Password"}
+  </span>
 
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={isRecoveryMode ? newPassword : password}
-                onChange={(event) =>
-                  isRecoveryMode
-                    ? setNewPassword(event.target.value)
-                    : setPassword(event.target.value)
-                }
-                className="w-full rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 pr-12 text-stone-100 outline-none"
-                required
-              />
+  {/* Password Field */}
+  <div className="relative">
+    <input
+      type={showPassword ? "text" : "password"}
+      value={isRecoveryMode ? newPassword : password}
+      onChange={(e) =>
+        isRecoveryMode
+          ? setNewPassword(e.target.value)
+          : setPassword(e.target.value)
+      }
+      className="w-full rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 pr-12 text-stone-100 outline-none focus:border-emerald-300/60"
+    />
 
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-white"
-              >
-                {showPassword ? "◉" : "○"}
-              </button>
-            </div>
-          </label>
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      className="absolute inset-y-0 right-3 flex items-center text-stone-400 hover:text-emerald-300"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12s-3.75 6.75-9.75 6.75S2.25 12 2.25 12z"
+        />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+    </button>
+  </div>
+
+  {isRecoveryMode && (
+    <div className="relative">
+      <input
+        type={showPassword ? "text" : "password"}
+        value={confirmNewPassword}
+        onChange={(e) => setConfirmNewPassword(e.target.value)}
+        placeholder="Confirm password"
+        className="w-full rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 pr-12 text-stone-100 outline-none focus:border-emerald-300/60"
+      />
+
+      <button
+        type="button"
+        onClick={() => setShowPassword(!showPassword)}
+        className="absolute inset-y-0 right-3 flex items-center text-stone-400 hover:text-emerald-300"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12s-3.75 6.75-9.75 6.75S2.25 12 2.25 12z"
+          />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      </button>
+    </div>
+  )}
+</label>
 
           <button
             type="submit"
