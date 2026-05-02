@@ -232,81 +232,179 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
             />
           </label>
 
-        <label className="grid gap-2 text-sm">
-  <span className="text-stone-300">
-    {isRecoveryMode ? "New Password" : "Password"}
-  </span>
+          <label className="grid gap-2 text-sm">
+            <span className="text-stone-300">
+              {isRecoveryMode ? "New Password" : "Password"}
+            </span>
 
-  {/* Password Field */}
-  <div className="relative">
-    <input
-      type={showPassword ? "text" : "password"}
-      value={isRecoveryMode ? newPassword : password}
-      onChange={(e) =>
-        isRecoveryMode
-          ? setNewPassword(e.target.value)
-          : setPassword(e.target.value)
-      }
-      className="w-full rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 pr-12 text-stone-100 outline-none focus:border-emerald-300/60"
-    />
+            {/* Password Field */}
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={isRecoveryMode ? newPassword : password}
+                onChange={(e) =>
+                  isRecoveryMode
+                    ? setNewPassword(e.target.value)
+                    : setPassword(e.target.value)
+                }
+                className="w-full rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 pr-12 text-stone-100 outline-none focus:border-emerald-300/60"
+              />
 
-    <button
-      type="button"
-      onClick={() => setShowPassword(!showPassword)}
-      className="absolute inset-y-0 right-3 flex items-center text-stone-400 hover:text-emerald-300"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-5 w-5"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth="2"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12s-3.75 6.75-9.75 6.75S2.25 12 2.25 12z"
-        />
-        <circle cx="12" cy="12" r="3" />
-      </svg>
-    </button>
-  </div>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-3 flex items-center text-stone-400 hover:text-emerald-300"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12s-3.75 6.75-9.75 6.75S2.25 12 2.25 12z"
+                  />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
 
-  {isRecoveryMode && (
-    <div className="relative">
-      <input
-        type={showPassword ? "text" : "password"}
-        value={confirmNewPassword}
-        onChange={(e) => setConfirmNewPassword(e.target.value)}
-        placeholder="Confirm password"
-        className="w-full rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 pr-12 text-stone-100 outline-none focus:border-emerald-300/60"
-      />
+            {isRecoveryMode && (
+              <div className="grid gap-2">
+                <div className="text-stone-300">Confirm New Password</div>
 
-      <button
-        type="button"
-        onClick={() => setShowPassword(!showPassword)}
-        className="absolute inset-y-0 right-3 flex items-center text-stone-400 hover:text-emerald-300"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12s-3.75 6.75-9.75 6.75S2.25 12 2.25 12z"
-          />
-          <circle cx="12" cy="12" r="3" />
-        </svg>
-      </button>
-    </div>
-  )}
-</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={confirmNewPassword}
+                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    className="w-full rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 pr-12 text-stone-100 outline-none focus:border-emerald-300/60"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-3 flex items-center text-stone-400 hover:text-emerald-300"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12s-3.75 6.75-9.75 6.75S2.25 12 2.25 12z"
+                      />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="mt-4 space-y-2 text-sm">
+                  <div
+                    className={`flex items-center gap-2 ${newPassword.length >= 8 ? activeTheme.accentText : "text-stone-300"
+                      }`}
+                  >
+
+                    <div
+                      className={`h-4 w-4 rounded-full flex items-center justify-center border transition-all duration-200 ${newPassword.length >= 8
+                          ? activeTheme.accentBorder
+                          : "border-stone-600/60"
+                        }`}
+                    >
+                      <div
+                        className={`h-2 w-2 rounded-full transition-all duration-200 ${newPassword.length >= 8
+                            ? "scale-100 opacity-100"
+                            : "scale-0 opacity-0"
+                          }`}
+                        style={{ backgroundColor: activeTheme.logoGradientFrom }}
+                      ></div>
+                    </div>
+
+                    <span>At least 8 characters</span>
+
+                  </div>
+                </div>
+
+                <div
+                  className={`flex items-center gap-2 ${/[A-Z]/.test(newPassword) ? activeTheme.accentText : "text-stone-300"
+                    }`}
+                >
+                  <div
+                    className={`h-4 w-4 rounded-full flex items-center justify-center border transition-all duration-200 ${/[A-Z]/.test(newPassword)
+                        ? activeTheme.accentBorder
+                        : "border-stone-600/60"
+                      }`}
+                  >
+                    <div
+                      className={`h-2 w-2 rounded-full transition-all duration-200 ${/[A-Z]/.test(newPassword)
+                          ? "scale-100 opacity-100"
+                          : "scale-0 opacity-0"
+                        }`}
+                      style={{ backgroundColor: activeTheme.logoGradientFrom }}
+                    ></div>
+                  </div>
+
+                  <span>At least one uppercase letter</span>
+                </div>
+
+                <div
+                  className={`flex items-center gap-2 ${/\d/.test(newPassword) ? activeTheme.accentText : "text-stone-300"
+                    }`}
+                >
+                  <div
+                    className={`h-4 w-4 rounded-full flex items-center justify-center border transition-all duration-200 ${/\d/.test(newPassword)
+                        ? activeTheme.accentBorder
+                        : "border-stone-600/60"
+                      }`}
+                  >
+                    <div
+                      className={`h-2 w-2 rounded-full transition-all duration-200 ${/\d/.test(newPassword)
+                          ? "scale-100 opacity-100"
+                          : "scale-0 opacity-0"
+                        }`}
+                      style={{ backgroundColor: activeTheme.logoGradientFrom }}
+                    ></div>
+                  </div>
+
+                  <span>At least one number</span>
+                </div>
+
+                <div
+                  className={`flex items-center gap-2 ${/[^A-Za-z0-9]/.test(newPassword)
+                    ? activeTheme.accentText
+                    : "text-stone-300"
+                    }`}
+                >
+                  <div
+                    className={`h-4 w-4 rounded-full flex items-center justify-center border transition-all duration-200 ${/[^A-Za-z0-9]/.test(newPassword)
+                        ? activeTheme.accentBorder
+                        : "border-stone-600/60"
+                      }`}
+                  >
+                    <div
+                      className={`h-2 w-2 rounded-full transition-all duration-200 ${/[^A-Za-z0-9]/.test(newPassword)
+                          ? "scale-100 opacity-100"
+                          : "scale-0 opacity-0"
+                        }`}
+                      style={{ backgroundColor: activeTheme.logoGradientFrom }}
+                    ></div>
+                  </div>
+
+                  <span>At least one symbol</span>
+                </div>
+
+              </div>
+            )}
+          </label>
 
           <button
             type="submit"
@@ -366,13 +464,25 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
           </div>
         ) : null}
 
-        <button
-          type="button"
-          onClick={() => setIsLogin((current) => !current)}
-          className={`mt-4 text-sm underline underline-offset-4 transition active:scale-95 ${activeTheme.accentText} opacity-80 hover:opacity-100`}
-        >
-          {isLogin ? "Need an account? Sign up" : "Already have an account? Log in"}
-        </button>
+        <div className="my-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-stone-400" />
+
+          <span className="text-xs text-stone-200">or</span>
+
+          <div className="h-px flex-1 bg-stone-400" />
+        </div>
+
+        <div className="text-center text-sm text-stone-400">
+          <span>Need an account? </span>
+
+          <button
+            type="button"
+            onClick={() => setIsLogin(false)}
+            className={`${activeTheme.accentText} font-medium hover:underline`}
+          >
+            Sign up
+          </button>
+        </div>
       </div>
     </section>
   )

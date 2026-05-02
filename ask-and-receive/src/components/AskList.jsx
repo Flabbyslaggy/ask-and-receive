@@ -1,8 +1,8 @@
 import { useTheme } from "../ThemeContext"
 
-export default function AskList({ asks, onHelpClick }) {
+export default function AskList({ asks, onHelpClick, isLoading }) {
   const activeTheme = useTheme()
-  
+
   return (
     <section id="asks" className="mx-auto max-w-6xl px-6 py-12">
       <div className="flex items-end justify-between gap-4 flex-wrap">
@@ -18,7 +18,9 @@ export default function AskList({ asks, onHelpClick }) {
         </div>
       </div>
 
-      {asks.length === 0 ? (
+      {isLoading ? (
+        <div className="mt-6 text-stone-400">Loading asks...</div>
+      ) : asks.length === 0 ? (
         <div className="mt-6 rounded-3xl border border-dashed border-stone-700 bg-stone-900/50 backdrop-blur p-8 text-stone-300">
           No asks yet. Add the first one above, then share the page and invite
           people to contribute.

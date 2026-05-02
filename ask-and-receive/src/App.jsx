@@ -122,7 +122,10 @@ export default function App() {
     async function handleSession(session) {
       setSession(session)
 
-      if (!session) return
+      if (!session) {
+        setIsAppLoading(false)
+        return
+      }
 
       const userId = session.user.id
 
@@ -142,6 +145,7 @@ export default function App() {
           },
         ])
       }
+      setIsAppLoading(false)
     }
 
     supabase.auth.getSession().then(({ data }) => {
@@ -165,12 +169,11 @@ export default function App() {
     async function fetchAsks() {
       const { data, error } = await supabase
         .from("asks")
-        .select("id, user_id, asker_name, title, category, body, created_at").select("*")
+        .select("*")
         .order("created_at", { ascending: false })
 
       if (error) {
         console.error("Error fetching asks:", error)
-        setIsAppLoading(false)
         return
       }
 
@@ -193,7 +196,10 @@ export default function App() {
 
   useEffect(() => {
     async function fetchMyHelpOffers() {
-      if (!session) return
+      if (!session) {
+        setIsAppLoading(false)
+        return
+      }
 
       const { data, error } = await supabase
         .from("help_offers")
@@ -356,26 +362,7 @@ export default function App() {
     "Skill or Time",
     "Experience",
   ]
-
-  useEffect(() => {
-    try {
-      const savedAsks = localStorage.getItem(ASK_STORAGE_KEY)
-      if (savedAsks) {
-        setAsks(JSON.parse(savedAsks))
-      }
-    } catch (error) {
-      console.error("Could not load asks from localStorage:", error)
-    }
-  }, [])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(ASK_STORAGE_KEY, JSON.stringify(asks))
-    } catch (error) {
-      console.error("Could not save asks to localStorage:", error)
-    }
-  }, [asks])
-
+ 
   async function handleAskSubmit(event) {
     event.preventDefault()
     console.log("SUBMIT CLICKED")
@@ -720,6 +707,7 @@ export default function App() {
             />
 
             <AskList
+              isLoading={isAppLoading}
               asks={asks.map((ask) => ({
                 ...ask,
                 isFulfilled: offersForMyAsks.some(
