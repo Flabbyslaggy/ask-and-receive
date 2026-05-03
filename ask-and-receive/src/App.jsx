@@ -96,6 +96,15 @@ export default function App() {
   const [helpStatus, setHelpStatus] = useState("")
   const [offersForMyAsks, setOffersForMyAsks] = useState([])
   const [myAsks, setMyAsks] = useState([])
+  const [editingAskId, setEditingAskId] = useState(null)
+  const [editAskForm, setEditAskForm] = useState({
+    title: "",
+    body: ""
+  })
+  const [editingOfferId, setEditingOfferId] = useState(null)
+  const [editOfferForm, setEditOfferForm] = useState({
+    helper_message: "",
+  })
   const [messages, setMessages] = useState([])
   const [messageInputs, setMessageInputs] = useState({})
   const [activeView, setActiveView] = useState("home")
@@ -362,7 +371,7 @@ export default function App() {
     "Skill or Time",
     "Experience",
   ]
- 
+
   async function handleAskSubmit(event) {
     event.preventDefault()
     console.log("SUBMIT CLICKED")
@@ -412,6 +421,83 @@ export default function App() {
     })
 
     setAskStatus("Your ask was added.")
+  }
+
+  async function handleSaveAskEdit(askId) {
+    if (!editAskForm.title.trim() || !editAskForm.body.trim()) {
+      setStatus("Please add a title and details.")
+      return
+    }
+
+    const { error } = await supabase
+      .from("asks")
+      .update({
+        title: editAskForm.title.trim(),
+        body: editAskForm.body.trim(),
+      })
+      .eq("id", askId)
+      .eq("user_id", session.user.id)
+
+    if (error) {
+      console.error(error)
+      setStatus("Could not save your changes.")
+      return
+    }
+
+    setAsks((current) =>
+      current.map((ask) =>
+        ask.id === askId
+          ? {
+            ...ask,
+            title: editAskForm.title.trim(),
+            body: editAskForm.body.trim(),
+          }
+          : ask
+      )
+    )
+
+    setEditingAskId(null)
+    setEditAskForm({
+      title: "",
+      body: "",
+    })
+
+    setStatus("Your ask was updated.")
+  }
+
+  async function handleSaveOfferEdit(offerId) {
+    const trimmedMessage = editOfferForm.helper_message.trim()
+
+    if (!trimmedMessage) {
+      setStatus("Please add offer details.")
+      return
+    }
+
+    const { error } = await supabase
+      .from("help_offers")
+      .update({
+        helper_message: trimmedMessage,
+      })
+      .eq("id", offerId)
+      .eq("user_id", session.user.id)
+
+    if (error) {
+      console.error(error)
+      setStatus("Could not save your changes.")
+      return
+    }
+
+    setMyHelpOffers((current) =>
+      current.map((offer) =>
+        offer.id === offerId
+          ? { ...offer, helper_message: trimmedMessage }
+          : offer
+      )
+    )
+
+    setEditingOfferId(null)
+    setEditOfferForm({ helper_message: "" })
+    setStatus("Your offer was updated.")
   }
 
   function handleHelpClick(ask) {
@@ -758,7 +844,44 @@ export default function App() {
                             </div>
                           ) : (
                             <div className="rounded-3xl border border-stone-800 bg-stone-900/60 backdrop-blur p-6 shadow-lg">
-                              <div className="mb-4 flex justify-end">
+                              <div className="mb-4 flex justify-end gap-2">
+                                {editingAskId === ask.id ? (
+                                  <>
+                                    <button
+                                      onClick={() => handleSaveAskEdit(ask.id)}
+                                      className={`rounded-xl bg-gradient-to-r ${activeTheme.button} px-3 py-1 text-sm font-semibold text-stone-950 transition`}
+                                    >
+                                      Save
+                                    </button>
+
+                                    <button
+                                      onClick={() => {
+                                        setEditingAskId(null)
+                                        setEditAskForm({
+                                          title: "",
+                                          body: "",
+                                        })
+                                      }}
+                                      className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      setEditingAskId(ask.id)
+                                      setEditAskForm({
+                                        title: ask.title,
+                                        body: ask.body,
+                                      })
+                                    }}
+                                    className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                                  >
+                                    Edit
+                                  </button>
+                                )}
+
                                 <button
                                   onClick={() => setExpandedAskId(null)}
                                   className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
@@ -770,9 +893,25 @@ export default function App() {
                                 <div className="space-y-4">
                                   <div>
                                     <div className="text-sm text-stone-400">Ask</div>
-                                    <div className="text-xl font-semibold text-white">
-                                      {ask.title}
-                                    </div>
+
+                                    {editingAskId === ask.id ? (
+                                      <input
+                                        type="text"
+                                        value={editAskForm.title}
+                                        maxLength={80}
+                                        onChange={(e) =>
+                                          setEditAskForm((current) => ({
+                                            ...current,
+                                            title: e.target.value,
+                                          }))
+                                        }
+                                        className="mt-1 w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-white outline-none"
+                                      />
+                                    ) : (
+                                      <div className="text-xl font-semibold text-white">
+                                        {ask.title}
+                                      </div>
+                                    )}
                                   </div>
 
                                   <div>
@@ -804,10 +943,25 @@ export default function App() {
 
                                 <div className="space-y-4">
                                   <div>
-                                    <div className="text-sm text-stone-400">Request</div>
-                                    <div className="text-base text-stone-200">
-                                      {ask.body}
-                                    </div>
+                                    <div className="text-sm text-stone-400">Details</div>
+
+                                    {editingAskId === ask.id ? (
+                                      <textarea
+                                        value={editAskForm.body}
+                                        maxLength={500}
+                                        onChange={(e) =>
+                                          setEditAskForm((current) => ({
+                                            ...current,
+                                            body: e.target.value,
+                                          }))
+                                        }
+                                        className="mt-1 w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-200 outline-none"
+                                      />
+                                    ) : (
+                                      <div className="text-base text-stone-200">
+                                        {ask.body}
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -1069,10 +1223,59 @@ export default function App() {
                                 </div>
 
                                 <div>
-                                  <div className="text-sm text-stone-400">Your Offer</div>
-                                  <div className="text-base text-stone-200">
-                                    {offer.helper_message}
+                                  <div className="mb-2 flex items-center justify-between">
+                                    <div className="text-sm text-stone-400">Your Offer</div>
+
+                                    <button
+                                      onClick={() => {
+                                        setEditingOfferId(offer.id)
+                                        setEditOfferForm({
+                                          helper_message: offer.helper_message || "",
+                                        })
+                                      }}
+                                      className="rounded-xl border border-stone-700 px-3 py-1 text-xs text-stone-300 hover:bg-stone-900/80 transition"
+                                    >
+                                      Edit
+                                    </button>
                                   </div>
+
+                                  {editingOfferId === offer.id ? (
+                                    <>
+                                      <textarea
+                                        value={editOfferForm.helper_message}
+                                        maxLength={500}
+                                        onChange={(e) =>
+                                          setEditOfferForm({
+                                            helper_message: e.target.value,
+                                          })
+                                        }
+                                        className="mt-2 w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-200 outline-none"
+                                      />
+
+                                      <div className="mt-2 flex gap-2">
+                                        <button
+                                          onClick={() => handleSaveOfferEdit(offer.id)}
+                                          className={`rounded-xl bg-gradient-to-r ${activeTheme.button} px-3 py-1 text-sm font-semibold text-stone-950 transition`}
+                                        >
+                                          Save
+                                        </button>
+
+                                        <button
+                                          onClick={() => {
+                                            setEditingOfferId(null)
+                                            setEditOfferForm({ helper_message: "" })
+                                          }}
+                                          className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <div className="text-base text-stone-200">
+                                      {offer.helper_message}
+                                    </div>
+                                  )}
                                 </div>
 
                                 <div className="mt-6 rounded-2xl border border-stone-700 bg-stone-950/30 p-4">
