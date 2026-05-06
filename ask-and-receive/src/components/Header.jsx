@@ -47,7 +47,7 @@ export default function Header({ activeView, setActiveView, profile }) {
                 : `border-stone-700 text-stone-200 hover:${activeTheme.accentText} hover:bg-stone-900/80`
               }`}
           >
-            Profile
+            My Profile
           </button>
 
         </nav>
