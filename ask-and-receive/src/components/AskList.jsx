@@ -1,6 +1,13 @@
+import { useState } from "react"
 import { useTheme } from "../ThemeContext"
 
-function AskCard({ ask, onHelpClick, activeTheme }) {
+function AskCard({
+  ask,
+  onHelpClick,
+  activeTheme,
+  isExpanded,
+  onToggleExpanded,
+}) {
   return (
     <div className="p-6 rounded-2xl bg-stone-900/60 backdrop-blur border border-stone-800">
       <div className="flex items-center justify-between gap-3">
@@ -15,37 +22,56 @@ function AskCard({ ask, onHelpClick, activeTheme }) {
 
       <h3 className="mt-4 text-xl font-medium">{ask.title}</h3>
 
-      <p className="mt-3 text-stone-300 leading-7">{ask.body}</p>
+      <button
+        type="button"
+        onClick={onToggleExpanded}
+        className="mt-4 text-sm text-stone-400 hover:text-stone-200 transition"
+      >
+        {isExpanded ? "Hide details" : "View details"}
+      </button>
 
-      <div className="mt-4">
-        {ask.isFulfilled ? (
-          <div
-            className={`inline-block rounded-xl border px-4 py-2 text-sm font-medium ${activeTheme.badge}`}
-          >
-            Fulfilled
+      {isExpanded && (
+        <div className="mt-4 border-t border-stone-800 pt-4">
+          <p className="text-stone-300 leading-7">{ask.body}</p>
+
+          <div className="mt-4">
+            {ask.isFulfilled ? (
+              <div
+                className={`inline-block rounded-xl border px-4 py-2 text-sm font-medium ${activeTheme.badge}`}
+              >
+                Fulfilled
+              </div>
+            ) : ask.isOwnAsk ? (
+              <div className="inline-block rounded-xl border border-stone-700 px-4 py-2 text-sm text-stone-400">
+                Your Ask
+              </div>
+            ) : ask.hasMyOffer ? (
+              <div className="inline-block rounded-xl border border-stone-700 px-4 py-2 text-sm text-stone-400">
+                Offer Sent
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onHelpClick(ask)}
+                className={`rounded-2xl bg-gradient-to-r ${activeTheme.button} px-4 py-2 font-medium text-stone-950 transition`}
+              >
+                I Can Help
+              </button>
+            )}
           </div>
-        ) : ask.isOwnAsk ? (
-          <div className="inline-block rounded-xl border border-stone-700 px-4 py-2 text-sm text-stone-400">
-            Your Ask
-          </div>
-        ) : ask.hasMyOffer ? (
-          <div className="inline-block rounded-xl border border-stone-700 px-4 py-2 text-sm text-stone-400">
-            Offer Sent
-          </div>
-        ) : (
-          <button
-            onClick={() => onHelpClick(ask)}
-            className={`rounded-2xl bg-gradient-to-r ${activeTheme.button} px-4 py-2 font-medium text-stone-950 transition`}
-          >
-            I Can Help
-          </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
 
 function AskSection({ title, asks, onHelpClick, activeTheme }) {
+  const [expandedAskId, setExpandedAskId] = useState(null)
+
+  const toggleAskExpanded = (askId) => {
+    setExpandedAskId((currentId) => (currentId === askId ? null : askId))
+  }
+
   if (asks.length === 0) return null
 
   return (
@@ -53,14 +79,20 @@ function AskSection({ title, asks, onHelpClick, activeTheme }) {
       <div className="mb-3 text-lg font-semibold text-white">{title}</div>
 
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {asks.map((ask) => (
-          <AskCard
-            key={ask.id}
-            ask={ask}
-            onHelpClick={onHelpClick}
-            activeTheme={activeTheme}
-          />
-        ))}
+        {asks.map((ask) => {
+          const isExpanded = expandedAskId === ask.id
+
+          return (
+            <AskCard
+              key={ask.id}
+              ask={ask}
+              onHelpClick={onHelpClick}
+              activeTheme={activeTheme}
+              isExpanded={isExpanded}
+              onToggleExpanded={() => toggleAskExpanded(ask.id)}
+            />
+          )
+        })}
       </div>
     </div>
   )
@@ -69,17 +101,9 @@ function AskSection({ title, asks, onHelpClick, activeTheme }) {
 export default function AskList({ asks, onHelpClick, isLoading }) {
   const activeTheme = useTheme()
 
-  const openAsks = asks.filter(
-    (ask) => !ask.isFulfilled && !ask.hasAnyOffer
-  )
-
-  const pendingAsks = asks.filter(
-    (ask) => !ask.isFulfilled && ask.hasAnyOffer
-  )
-
-  const fulfilledAsks = asks.filter(
-    (ask) => ask.isFulfilled
-  )
+  const openAsks = asks.filter((ask) => !ask.isFulfilled && !ask.hasAnyOffer)
+  const pendingAsks = asks.filter((ask) => !ask.isFulfilled && ask.hasAnyOffer)
+  const fulfilledAsks = asks.filter((ask) => ask.isFulfilled)
 
   return (
     <section id="asks" className="mx-auto max-w-6xl px-6 py-12">

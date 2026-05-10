@@ -106,9 +106,16 @@ export default function App() {
   const [editOfferForm, setEditOfferForm] = useState({
     helper_message: "",
   })
+  const [editingStoryId, setEditingStoryId] = useState(null)
+  const [editStoryForm, setEditStoryForm] = useState({
+    title: "",
+    body: "",
+  })
   const [messages, setMessages] = useState([])
   const [messageInputs, setMessageInputs] = useState({})
-  const [activeView, setActiveView] = useState("home")
+  const [activeView, setActiveView] = useState(() => {
+    return localStorage.getItem("ask-receive-active-view") || "home"
+  })
   const [stories, setStories] = useState([])
   const [isGratitudeOpen, setIsGratitudeOpen] = useState(false)
   const [gratitudeAskId, setGratitudeAskId] = useState(null)
@@ -129,7 +136,6 @@ export default function App() {
     body: "",
   })
   const [gratitudeForm, setGratitudeForm] = useState({
-    title: "",
     body: "",
   })
 
@@ -179,6 +185,10 @@ export default function App() {
 
     return () => subscription.unsubscribe()
   }, [])
+
+  useEffect(() => {
+    localStorage.setItem("ask-receive-active-view", activeView)
+  }, [activeView])
 
   useEffect(() => {
     async function fetchAsks() {
@@ -300,6 +310,90 @@ export default function App() {
 
     fetchMessages()
   }, [session])
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("asks-realtime")
+
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "asks",
+        },
+        async () => {
+          const { data, error } = await supabase
+            .from("asks")
+            .select("*")
+            .order("created_at", { ascending: false })
+
+          if (!error && data) {
+            const formatted = data.map((ask) => ({
+              id: ask.id,
+              user_id: ask.user_id,
+              asker: ask.asker_name,
+              title: ask.title,
+              category: ask.category,
+              body: ask.body,
+              created_at: ask.created_at,
+            }))
+
+            setAsks(formatted)
+          }
+        }
+      )
+
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!session) return
+
+    const channel = supabase
+      .channel("help-offers-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "help_offers",
+        },
+        async () => {
+          const { data, error } = await supabase
+            .from("help_offers")
+            .select("*")
+
+          if (error) {
+            console.error("Error refreshing help offers:", error)
+            return
+          }
+
+          setAllOffers(data)
+
+          setMyHelpOffers(
+            data.filter((offer) => offer.user_id === session.user.id)
+          )
+
+          const myAskIds = asks
+            .filter((ask) => ask.user_id === session.user.id)
+            .map((ask) => ask.id)
+
+          setOffersForMyAsks(
+            data.filter((offer) => myAskIds.includes(offer.ask_id))
+          )
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [session, asks])
 
   useEffect(() => {
     async function fetchStories() {
@@ -526,6 +620,48 @@ export default function App() {
     setStatus("Your ask was updated.")
   }
 
+  async function handleDeleteAsk(askId) {
+    const confirmed = window.confirm(
+      "Are you sure you want to permanently delete this ask and all related offers, messages, and gratitude?"
+    )
+
+    if (!confirmed) return
+
+    const { error } = await supabase.rpc("delete_my_ask_cascade", {
+      ask_id_input: askId,
+    })
+
+    if (error) {
+      console.error("Error deleting ask:", error)
+      setStatus(`Could not delete ask: ${error.message}`)
+      return
+    }
+
+    setAsks((current) =>
+      current.filter((ask) => ask.id !== askId)
+    )
+
+    setMyAsks((current) =>
+      current.filter((ask) => ask.id !== askId)
+    )
+
+    setOffersForMyAsks((current) =>
+      current.filter((offer) => offer.ask_id !== askId)
+    )
+
+    setAllOffers((current) =>
+      current.filter((offer) => offer.ask_id !== askId)
+    )
+
+    setStories((current) =>
+      current.filter((story) => story.ask_id !== askId)
+    )
+
+    setExpandedAskId(null)
+
+    setStatus("Ask deleted.")
+  }
+
   async function handleSaveOfferEdit(offerId) {
     const trimmedMessage = editOfferForm.helper_message.trim()
 
@@ -559,6 +695,34 @@ export default function App() {
     setEditingOfferId(null)
     setEditOfferForm({ helper_message: "" })
     setStatus("Your offer was updated.")
+  }
+
+  async function handleWithdrawOffer(offerId) {
+    const { error } = await supabase
+      .from("help_offers")
+      .delete()
+      .eq("id", offerId)
+      .eq("user_id", session.user.id)
+
+    if (error) {
+      console.error("Error withdrawing offer:", error)
+      setStatus("Could not withdraw offer.")
+      return
+    }
+
+    setMyHelpOffers((current) =>
+      current.filter((offer) => offer.id !== offerId)
+    )
+
+    setOffersForMyAsks((current) =>
+      current.filter((offer) => offer.id !== offerId)
+    )
+
+    setAllOffers((current) =>
+      current.filter((offer) => offer.id !== offerId)
+    )
+
+    setStatus("Offer withdrawn.")
   }
 
   function handleHelpClick(ask) {
@@ -749,10 +913,9 @@ export default function App() {
   async function handleGratitudeSubmit(event) {
     event.preventDefault()
 
-    const trimmedTitle = gratitudeForm.title.trim()
     const trimmedBody = gratitudeForm.body.trim()
 
-    if (!trimmedTitle || !trimmedBody) {
+    if (!trimmedBody) {
       return
     }
 
@@ -764,7 +927,7 @@ export default function App() {
       {
         ask_id: gratitudeAskId,
         user_id: session.user.id,
-        title: trimmedTitle,
+        title: asks.find((ask) => ask.id === gratitudeAskId)?.title || "Gratitude",
         body: trimmedBody,
         helper_name: helper?.helper_name || "Someone",
       },
@@ -780,7 +943,7 @@ export default function App() {
         id: Date.now(),
         ask_id: gratitudeAskId,
         user_id: session.user.id,
-        title: trimmedTitle,
+        title: asks.find((ask) => ask.id === gratitudeAskId)?.title || "Gratitude",
         body: trimmedBody,
         created_at: new Date().toISOString(),
       },
@@ -788,11 +951,87 @@ export default function App() {
     ])
 
     setGratitudeForm({
-      title: "",
       body: "",
     })
     setIsGratitudeOpen(false)
     setGratitudeAskId(null)
+  }
+
+  async function handleSaveStoryEdit(storyId) {
+    const trimmedTitle = editStoryForm.title.trim()
+    const trimmedBody = editStoryForm.body.trim()
+
+    if (!trimmedTitle || !trimmedBody) {
+      setStatus("Please add a title and gratitude message.")
+      return
+    }
+
+    const { error } = await supabase
+      .from("stories")
+      .update({
+        title: trimmedTitle,
+        body: trimmedBody,
+      })
+      .eq("id", storyId)
+      .eq("user_id", session.user.id)
+
+    if (error) {
+      console.error("Error updating gratitude:", error)
+      setStatus("Could not update gratitude.")
+      return
+    }
+
+    setStories((current) =>
+      current.map((story) =>
+        story.id === storyId
+          ? {
+            ...story,
+            title: trimmedTitle,
+            body: trimmedBody,
+          }
+          : story
+      )
+    )
+
+    setEditingStoryId(null)
+    setEditStoryForm({
+      title: "",
+      body: "",
+    })
+
+    setStatus("Gratitude updated.")
+  }
+
+  async function handleDeleteStory(storyId) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this gratitude?"
+    )
+
+    if (!confirmed) return
+
+    const { error } = await supabase
+      .from("stories")
+      .delete()
+      .eq("id", storyId)
+      .eq("user_id", session.user.id)
+
+    if (error) {
+      console.error("Error deleting gratitude:", error)
+      setStatus("Could not delete gratitude.")
+      return
+    }
+
+    setStories((current) =>
+      current.filter((story) => story.id !== storyId)
+    )
+
+    setEditingStoryId(null)
+    setEditStoryForm({
+      title: "",
+      body: "",
+    })
+
+    setStatus("Gratitude deleted.")
   }
 
   async function handleLogout() {
@@ -899,6 +1138,9 @@ export default function App() {
                       const relatedOffers = offersForMyAsks.filter(
                         (offer) => offer.ask_id === ask.id
                       )
+                      const relatedStory = stories.find(
+                        (story) => story.ask_id === ask.id
+                      )
                       const isFulfilled = offersForMyAsks.some(
                         (offer) => offer.ask_id === ask.id && (offer.status === "fulfilled")
                       )
@@ -966,11 +1208,20 @@ export default function App() {
                                 )}
 
                                 <button
+                                  type="button"
+                                  onClick={() => handleDeleteAsk(ask.id)}
+                                  className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-1 text-sm text-red-200 hover:bg-red-500/20 transition"
+                                >
+                                  Delete
+                                </button>
+
+                                <button
                                   onClick={() => setExpandedAskId(null)}
                                   className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
                                 >
                                   Collapse
                                 </button>
+
                               </div>
                               <div className="grid gap-6 md:grid-cols-2">
                                 <div className="space-y-4">
@@ -1225,6 +1476,98 @@ export default function App() {
                                   </div>
                                 </div>
                               )}
+
+                              {relatedStory && (
+                                <div className="mt-6 rounded-2xl border border-stone-700 bg-stone-950/30 p-4">
+                                  <div className="mb-3 flex items-start justify-between gap-3">
+                                    <div>
+                                      <div className="text-sm text-stone-400">Gratitude</div>
+                                      <div className="text-base font-medium text-white">
+                                        {relatedStory.title}
+                                      </div>
+                                    </div>
+
+                                    <div className="flex gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setEditingStoryId(relatedStory.id)
+                                          setEditStoryForm({
+                                            title: relatedStory.title,
+                                            body: relatedStory.body,
+                                          })
+                                        }}
+                                        className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                                      >
+                                        Edit
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteStory(relatedStory.id)}
+                                        className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-1 text-sm text-red-200 hover:bg-red-500/20 transition"
+                                      >
+                                        Delete
+                                      </button>
+                                    </div>
+
+                                  </div>
+
+                                  {editingStoryId === relatedStory.id ? (
+                                    <div className="grid gap-3">
+                                      <input
+                                        type="text"
+                                        value={editStoryForm.title}
+                                        maxLength={80}
+                                        onChange={(e) =>
+                                          setEditStoryForm((current) => ({
+                                            ...current,
+                                            title: e.target.value,
+                                          }))
+                                        }
+                                        className="rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-white outline-none"
+                                      />
+
+                                      <textarea
+                                        value={editStoryForm.body}
+                                        maxLength={500}
+                                        onChange={(e) =>
+                                          setEditStoryForm((current) => ({
+                                            ...current,
+                                            body: e.target.value,
+                                          }))
+                                        }
+                                        className="rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-200 outline-none"
+                                      />
+
+                                      <div className="flex gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={() => handleSaveStoryEdit(relatedStory.id)}
+                                          className={`rounded-xl bg-gradient-to-r ${activeTheme.button} px-3 py-1 text-sm font-semibold text-stone-950 transition`}
+                                        >
+                                          Save
+                                        </button>
+
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setEditingStoryId(null)
+                                            setEditStoryForm({ title: "", body: "" })
+                                          }}
+                                          className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="text-sm text-stone-200">
+                                      {relatedStory.body}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -1331,6 +1674,21 @@ export default function App() {
                                       className="rounded-xl border border-stone-700 px-3 py-1 text-xs text-stone-300 hover:bg-stone-900/80 transition"
                                     >
                                       Edit
+                                    </button>
+
+                                    <button
+                                      onClick={() => {
+                                        const confirmed = window.confirm(
+                                          "Are you sure you want to withdraw this offer?"
+                                        )
+
+                                        if (confirmed) {
+                                          handleWithdrawOffer(offer.id)
+                                        }
+                                      }}
+                                      className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-1 text-sm text-red-200 hover:bg-red-500/20 transition"
+                                    >
+                                      Withdraw
                                     </button>
                                   </div>
 
@@ -1489,6 +1847,31 @@ export default function App() {
                     className="w-full rounded-xl border border-stone-700 bg-stone-900/80 px-4 py-2 text-stone-100 outline-none"
                   />
 
+                  <div className="mt-4">
+                    <div className="text-sm text-stone-400">Avatar image URL</div>
+
+                    <input
+                      type="text"
+                      value={profile?.avatar_url || ""}
+                      onChange={(e) =>
+                        setProfile((current) => ({
+                          ...current,
+                          avatar_url: e.target.value,
+                        }))
+                      }
+                      placeholder="Paste an image URL..."
+                      className="mt-2 w-full rounded-xl border border-stone-700 bg-stone-900/80 px-4 py-2 text-stone-100 outline-none"
+                    />
+
+                    {profile?.avatar_url ? (
+                      <img
+                        src={profile.avatar_url}
+                        alt="Profile avatar preview"
+                        className="mt-4 h-20 w-20 rounded-full border border-stone-700 object-cover"
+                      />
+                    ) : null}
+                  </div>
+
                   <div className="mt-6">
                     <div className="text-sm text-stone-400">Theme</div>
 
@@ -1514,6 +1897,7 @@ export default function App() {
                     onClick={async () => {
                       const trimmedNickname = (profile?.nickname || "").trim()
                       const selectedTheme = profile?.theme || "emerald"
+                      const avatarUrl = (profile?.avatar_url || "").trim()
 
                       if (!trimmedNickname) {
                         setProfileStatus("Nickname cannot be empty.")
@@ -1525,6 +1909,7 @@ export default function App() {
                         .update({
                           nickname: trimmedNickname,
                           theme: selectedTheme,
+                          avatar_url: avatarUrl,
                         })
                         .eq("id", session.user.id)
 
@@ -1603,27 +1988,6 @@ export default function App() {
               </div>
 
               <form onSubmit={handleGratitudeSubmit} className="mt-8 grid gap-4">
-                <label className="grid gap-2 text-sm">
-                  <span className="text-stone-300">Title</span>
-                  <input
-                    type="text"
-                    value={gratitudeForm.title}
-                    maxLength={80}
-                    onChange={(event) =>
-                      setGratitudeForm((current) => ({
-                        ...current,
-                        title: event.target.value,
-                      }))
-                    }
-                    className="rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none"
-                  />
-                  <div
-                    className={`text-right text-xs ${80 - gratitudeForm.title.length <= 10 ? "text-red-400" : "text-stone-500"
-                      }`}
-                  >
-                    {80 - gratitudeForm.title.length} characters left
-                  </div>
-                </label>
 
                 <label className="grid gap-2 text-sm">
                   <span className="text-stone-300">Gratitude</span>
@@ -1681,8 +2045,28 @@ export default function App() {
             <div className="relative z-10 w-full max-w-md rounded-3xl border border-stone-800 bg-stone-900/90 p-6 shadow-2xl backdrop-blur">
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="text-2xl font-semibold text-white">
-                    {selectedProfile.nickname || "Anonymous"}
+                  <div className="flex items-center gap-4">
+                    {selectedProfile.avatar_url ? (
+                      <img
+                        src={selectedProfile.avatar_url}
+                        alt="User avatar"
+                        className="h-16 w-16 rounded-full border border-stone-700 object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full border border-stone-700 bg-stone-800 text-xl text-stone-400">
+                        ?
+                      </div>
+                    )}
+
+                    <div>
+                      <div className="text-2xl font-semibold text-white">
+                        {selectedProfile.nickname || "Anonymous"}
+                      </div>
+
+                      <div className="text-sm text-stone-400">
+                        Community member
+                      </div>
+                    </div>
                   </div>
                   <div className="text-sm text-stone-400">
                     Community member
@@ -1786,8 +2170,8 @@ export default function App() {
 
                 <div
                   className={`mt-1 text-right text-xs ${500 - reportReason.length <= 10
-                      ? "text-red-400"
-                      : "text-stone-500"
+                    ? "text-red-400"
+                    : "text-stone-500"
                     }`}
                 >
                   {500 - reportReason.length} characters left
