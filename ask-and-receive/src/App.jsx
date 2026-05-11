@@ -1603,8 +1603,8 @@ export default function App() {
                             className="cursor-pointer rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3 hover:bg-stone-900/80 transition flex justify-between items-center"
                           >
 
-                            <div className="flex items-start justify-between gap-3 min-w-0">
-                              <div className="min-w-0 flex-1">
+                            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+                              <div className="min-w-0">
                                 <div
                                   onClick={(event) => {
                                     event.stopPropagation()
