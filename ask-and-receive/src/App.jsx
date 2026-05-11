@@ -1618,7 +1618,7 @@ export default function App() {
                                   {asks.find((a) => a.id === offer.ask_id)?.asker || "Unknown"}
                                 </div>
 
-                                <div className="text-sm text-stone-300 break-words">
+                                <div className="text-medium text-white-300 break-words">
                                   {asks.find((a) => a.id === offer.ask_id)?.title || "Unknown ask"}
                                 </div>
                               </div>
