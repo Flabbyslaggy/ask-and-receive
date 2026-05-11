@@ -455,6 +455,19 @@ export default function App() {
     return data
   }
 
+  async function handleProfileClick(userId, fallbackName = "Anonymous") {
+    if (!userId) return
+
+    const clickedProfile = await getProfileById(userId)
+
+    setSelectedProfile(
+      clickedProfile || {
+        id: userId,
+        nickname: fallbackName,
+      }
+    )
+  }
+
   useEffect(() => {
     async function fetchProfile() {
       if (!session) {
@@ -1099,7 +1112,10 @@ export default function App() {
               onClearSavedData={handleClearSavedData}
             />
 
-            <StoriesSection stories={stories} />
+            <StoriesSection
+              stories={stories}
+              handleProfileClick={handleProfileClick}
+            />
 
             <AskForm
               askForm={askForm}
@@ -1315,16 +1331,7 @@ export default function App() {
                                             <div>
                                               <div className="text-sm text-stone-400">Helper</div>
                                               <div
-                                                onClick={async () => {
-                                                  const clickedProfile = await getProfileById(offer.user_id)
-
-                                                  setSelectedProfile(
-                                                    clickedProfile || {
-                                                      nickname: offer.helper_name,
-                                                      id: offer.user_id,
-                                                    }
-                                                  )
-                                                }}
+                                                onClick={() => handleProfileClick(offer.user_id, offer.helper_name)}
                                                 className="text-sm text-stone-300 cursor-pointer hover:underline"
                                               >
                                                 {offer.helper_name || "Someone offered help"}
@@ -1596,9 +1603,19 @@ export default function App() {
                             className="cursor-pointer rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3 hover:bg-stone-900/80 transition flex justify-between items-center"
                           >
                             <div>
-                              <div className="text-sm text-stone-400">
+                              <div
+                                onClick={(event) => {
+                                  event.stopPropagation()
+                                  handleProfileClick(
+                                    asks.find((a) => a.id === offer.ask_id)?.user_id,
+                                    asks.find((a) => a.id === offer.ask_id)?.asker
+                                  )
+                                }}
+                                className="text-sm text-stone-400 cursor-pointer hover:underline"
+                              >
                                 {asks.find((a) => a.id === offer.ask_id)?.asker || "Unknown"}
                               </div>
+
                               <div className="text-base text-white font-medium">
                                 {asks.find((a) => a.id === offer.ask_id)?.title || "Unknown ask"}
                               </div>
@@ -1638,8 +1655,17 @@ export default function App() {
 
                                 <div>
                                   <div className="text-sm text-stone-400">Requested by</div>
-                                  <div className="text-base text-stone-200">
-                                    {asks.find((a) => a.id === offer.ask_id)?.asker || "Unknown person"}
+                                  <div
+                                    onClick={(event) => {
+                                      event.stopPropagation()
+                                      handleProfileClick(
+                                        asks.find((a) => a.id === offer.ask_id)?.user_id,
+                                        asks.find((a) => a.id === offer.ask_id)?.asker
+                                      )
+                                    }}
+                                    className="text-sm text-stone-400 cursor-pointer hover:underline"
+                                  >
+                                    {asks.find((a) => a.id === offer.ask_id)?.asker || "Unknown"}
                                   </div>
                                 </div>
 
@@ -1862,6 +1888,44 @@ export default function App() {
                       placeholder="Paste an image URL..."
                       className="mt-2 w-full rounded-xl border border-stone-700 bg-stone-900/80 px-4 py-2 text-stone-100 outline-none"
                     />
+
+                    <label className={`mt-3 inline-flex cursor-pointer items-center rounded-xl bg-gradient-to-r ${activeTheme.button} px-4 py-2 text-sm font-medium text-stone-950 transition`}>
+                      Upload avatar from device
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          if (!file) return
+
+                          const fileExt = file.name.split(".").pop()
+                          const fileName = `${session.user.id}-${Date.now()}.${fileExt}`
+                          const filePath = `${session.user.id}/${fileName}`
+
+                          const { error: uploadError } = await supabase.storage
+                            .from("avatars")
+                            .upload(filePath, file)
+
+                          if (uploadError) {
+                            console.error("Avatar upload error:", uploadError)
+                            setProfileStatus("Could not upload avatar.")
+                            return
+                          }
+
+                          const { data } = supabase.storage
+                            .from("avatars")
+                            .getPublicUrl(filePath)
+
+                          setProfile((current) => ({
+                            ...current,
+                            avatar_url: data.publicUrl,
+                          }))
+
+                          setProfileStatus("Avatar uploaded. Click Save Profile to keep it.")
+                        }}
+                        className="hidden"
+                      />
+                    </label>
 
                     {profile?.avatar_url ? (
                       <img
