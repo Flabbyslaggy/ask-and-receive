@@ -1602,37 +1602,29 @@ export default function App() {
                             }
                             className="cursor-pointer rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3 hover:bg-stone-900/80 transition flex justify-between items-center"
                           >
-                            <div
-                              onClick={() =>
-                                setExpandedHelpOfferId((current) =>
-                                  current === offer.id ? null : offer.id
-                                )
-                              }
-                              className="cursor-pointer rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3 hover:bg-stone-900/80 transition"
-                            >
-                              <div className="flex items-start justify-between gap-3 min-w-0">
-                                <div className="min-w-0 flex-1">
-                                  <div
-                                    onClick={(event) => {
-                                      event.stopPropagation()
-                                      handleProfileClick(
-                                        asks.find((a) => a.id === offer.ask_id)?.user_id,
-                                        asks.find((a) => a.id === offer.ask_id)?.asker
-                                      )
-                                    }}
-                                    className="text-sm text-stone-400 cursor-pointer hover:underline break-words"
-                                  >
-                                    {asks.find((a) => a.id === offer.ask_id)?.asker || "Unknown"}
-                                  </div>
 
-                                  <div className="text-sm text-stone-300 break-words">
-                                    {asks.find((a) => a.id === offer.ask_id)?.title || "Unknown ask"}
-                                  </div>
+                            <div className="flex items-start justify-between gap-3 min-w-0">
+                              <div className="min-w-0 flex-1">
+                                <div
+                                  onClick={(event) => {
+                                    event.stopPropagation()
+                                    handleProfileClick(
+                                      asks.find((a) => a.id === offer.ask_id)?.user_id,
+                                      asks.find((a) => a.id === offer.ask_id)?.asker
+                                    )
+                                  }}
+                                  className="text-sm text-stone-400 cursor-pointer hover:underline break-words"
+                                >
+                                  {asks.find((a) => a.id === offer.ask_id)?.asker || "Unknown"}
                                 </div>
 
-                                <div className="shrink-0 text-sm text-stone-300">
-                                  {offer.status || "pending"}
+                                <div className="text-sm text-stone-300 break-words">
+                                  {asks.find((a) => a.id === offer.ask_id)?.title || "Unknown ask"}
                                 </div>
+                              </div>
+
+                              <div className="shrink-0 text-sm text-stone-300">
+                                {offer.status || "pending"}
                               </div>
                             </div>
                           </div>
