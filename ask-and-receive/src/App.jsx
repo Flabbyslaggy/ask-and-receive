@@ -1908,7 +1908,7 @@ export default function App() {
 
                           if (uploadError) {
                             console.error("Avatar upload error:", uploadError)
-                            setProfileStatus("Could not upload avatar.")
+                            setProfileStatus(`Could not upload avatar: ${uploadError.message}`)
                             return
                           }
 
