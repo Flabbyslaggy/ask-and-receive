@@ -1600,7 +1600,7 @@ export default function App() {
                                 current === offer.id ? null : offer.id
                               )
                             }
-                            className="cursor-pointer rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3 hover:bg-stone-900/80 transition flex justify-between items-center gap-4"
+                            className="cursor-pointer rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3 hover:bg-stone-900/80 transition flex items-start justify-between gap-3 overflow-hidden"
                           >
                             <div className="min-w-0 flex-1">
                               <div
