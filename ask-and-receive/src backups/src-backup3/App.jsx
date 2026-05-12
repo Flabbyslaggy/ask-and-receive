@@ -9,8 +9,8 @@ import StoriesSection from "./components/StoriesSection"
 import AskForm from "./components/AskForm"
 import AskList from "./components/AskList"
 import HelpModal from "./components/HelpModal"
-import MyAsksSection from "./components/dashboard/MyAsksSection"
-import MyHelpOffersSection from "./components/dashboard/MyHelpOffersSection"
+import OfferMessages from "./components/dashboard/OfferMessages"
+import MyHelpOfferCard from "./components/dashboard/MyHelpOfferCard"
 
 const ASK_STORAGE_KEY = "ask-and-receive-asks"
 
@@ -1146,61 +1146,438 @@ export default function App() {
         )}
         {activeView === "dashboard" && (
           <>
-            <MyAsksSection
-              myAsks={myAsks}
-              offersForMyAsks={offersForMyAsks}
-              stories={stories}
-              expandedAskId={expandedAskId}
-              setExpandedAskId={setExpandedAskId}
-              editingAskId={editingAskId}
-              setEditingAskId={setEditingAskId}
-              editAskForm={editAskForm}
-              setEditAskForm={setEditAskForm}
-              handleSaveAskEdit={handleSaveAskEdit}
-              handleDeleteAsk={handleDeleteAsk}
-              activeTheme={activeTheme}
-              handleProfileClick={handleProfileClick}
-              setGratitudeAskId={setGratitudeAskId}
-              setIsGratitudeOpen={setIsGratitudeOpen}
-              handleAcceptOffer={handleAcceptOffer}
-              handleDeclineOffer={handleDeclineOffer}
-              handleFulfillOffer={handleFulfillOffer}
-              getMessagesForOffer={getMessagesForOffer}
-              expandedMessagesOfferId={expandedMessagesOfferId}
-              setExpandedMessagesOfferId={setExpandedMessagesOfferId}
-              currentUserId={session.user.id}
-              messageInputs={messageInputs}
-              setMessageInputs={setMessageInputs}
-              handleSendMessage={handleSendMessage}
-              editingStoryId={editingStoryId}
-              setEditingStoryId={setEditingStoryId}
-              editStoryForm={editStoryForm}
-              setEditStoryForm={setEditStoryForm}
-              handleDeleteStory={handleDeleteStory}
-              handleSaveStoryEdit={handleSaveStoryEdit}
-            />
+            {myAsks.length > 0 ? (
+              <section className="mx-auto mt-10 max-w-4xl px-6">
+                <div className="rounded-3xl border border-stone-800 bg-stone-900/60 p-6 backdrop-blur">
+                  <h2 className="text-2xl font-semibold text-white">My Asks</h2>
 
-            <MyHelpOffersSection
-              myHelpOffers={myHelpOffers}
-              asks={asks}
-              expandedHelpOfferId={expandedHelpOfferId}
-              setExpandedHelpOfferId={setExpandedHelpOfferId}
-              handleProfileClick={handleProfileClick}
-              editingOfferId={editingOfferId}
-              setEditingOfferId={setEditingOfferId}
-              editOfferForm={editOfferForm}
-              setEditOfferForm={setEditOfferForm}
-              handleSaveOfferEdit={handleSaveOfferEdit}
-              handleWithdrawOffer={handleWithdrawOffer}
-              activeTheme={activeTheme}
-              getMessagesForOffer={getMessagesForOffer}
-              expandedMessagesOfferId={expandedMessagesOfferId}
-              setExpandedMessagesOfferId={setExpandedMessagesOfferId}
-              currentUserId={session.user.id}
-              messageInputs={messageInputs}
-              setMessageInputs={setMessageInputs}
-              handleSendMessage={handleSendMessage}
-            />
+                  <div className="mt-4 grid gap-4">
+                    {myAsks.map((ask) => {
+                      const relatedOffers = offersForMyAsks.filter(
+                        (offer) => offer.ask_id === ask.id
+                      )
+                      const relatedStory = stories.find(
+                        (story) => story.ask_id === ask.id
+                      )
+                      const isFulfilled = offersForMyAsks.some(
+                        (offer) => offer.ask_id === ask.id && (offer.status === "fulfilled")
+                      )
+
+                      return (
+                        <div key={ask.id}>
+                          {expandedAskId !== ask.id ? (
+                            <div
+                              onClick={() =>
+                                setExpandedAskId((current) =>
+                                  current === ask.id ? null : ask.id
+                                )
+                              }
+                              className="cursor-pointer rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3 hover:bg-stone-900/80 transition flex justify-between items-center"
+                            >
+                              <div>
+                                <div className="text-sm text-stone-400">My Ask</div>
+                                <div className="text-base text-white font-medium">
+                                  {ask.title}
+                                </div>
+                              </div>
+
+                              <div className="text-sm text-stone-300">
+                                {isFulfilled ? "fulfilled" : "open"}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="rounded-3xl border border-stone-800 bg-stone-900/60 backdrop-blur p-6 shadow-lg">
+                              <div className="mb-4 flex justify-end gap-2">
+                                {editingAskId === ask.id ? (
+                                  <>
+                                    <button
+                                      onClick={() => handleSaveAskEdit(ask.id)}
+                                      className={`rounded-xl bg-gradient-to-r ${activeTheme.button} px-3 py-1 text-sm font-semibold text-stone-950 transition`}
+                                    >
+                                      Save
+                                    </button>
+
+                                    <button
+                                      onClick={() => {
+                                        setEditingAskId(null)
+                                        setEditAskForm({
+                                          title: "",
+                                          body: "",
+                                        })
+                                      }}
+                                      className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      setEditingAskId(ask.id)
+                                      setEditAskForm({
+                                        title: ask.title,
+                                        body: ask.body,
+                                      })
+                                    }}
+                                    className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                                  >
+                                    Edit
+                                  </button>
+                                )}
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteAsk(ask.id)}
+                                  className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-1 text-sm text-red-200 hover:bg-red-500/20 transition"
+                                >
+                                  Delete
+                                </button>
+
+                                <button
+                                  onClick={() => setExpandedAskId(null)}
+                                  className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                                >
+                                  Collapse
+                                </button>
+
+                              </div>
+                              <div className="grid gap-6 md:grid-cols-2">
+                                <div className="space-y-4">
+                                  <div>
+                                    <div className="text-sm text-stone-400">Ask</div>
+
+                                    {editingAskId === ask.id ? (
+                                      <input
+                                        type="text"
+                                        value={editAskForm.title}
+                                        maxLength={80}
+                                        onChange={(e) =>
+                                          setEditAskForm((current) => ({
+                                            ...current,
+                                            title: e.target.value,
+                                          }))
+                                        }
+                                        className="mt-1 w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-white outline-none"
+                                      />
+                                    ) : (
+                                      <div className="text-xl font-semibold text-white">
+                                        {ask.title}
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div>
+                                    <div className="text-sm text-stone-400">Category</div>
+                                    <div className="text-base text-stone-200">
+                                      {ask.category}
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    <div className="text-sm text-stone-400">Asked on</div>
+                                    <div className="text-base text-stone-200">
+                                      {new Date(ask.created_at).toLocaleDateString()}
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    {isFulfilled ? (
+                                      <div className={`inline-block rounded-2xl border px-3 py-1 text-sm font-medium ${activeTheme.badge}`}>
+                                        Fulfilled
+                                      </div>
+                                    ) : (
+                                      <div className="inline-block rounded-2xl border border-stone-700 px-3 py-1 text-sm text-stone-300">
+                                        Open
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                  <div>
+                                    <div className="text-sm text-stone-400">Details</div>
+
+                                    {editingAskId === ask.id ? (
+                                      <textarea
+                                        value={editAskForm.body}
+                                        maxLength={500}
+                                        onChange={(e) =>
+                                          setEditAskForm((current) => ({
+                                            ...current,
+                                            body: e.target.value,
+                                          }))
+                                        }
+                                        className="mt-1 w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-200 outline-none"
+                                      />
+                                    ) : (
+                                      <div className="text-base text-stone-200">
+                                        {ask.body}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {relatedOffers.length > 0 && (
+                                <div className="mt-6">
+                                  <div className="text-sm text-stone-400">Offers on this ask</div>
+
+                                  <div className="mt-3 space-y-3">
+                                    {relatedOffers.map((offer) => (
+                                      <div
+                                        key={offer.id}
+                                        className="rounded-2xl border border-stone-700 bg-stone-950/40 p-4"
+                                      >
+                                        <div className="grid gap-4 md:grid-cols-2">
+                                          <div className="space-y-3">
+                                            <div>
+                                              <div className="text-sm text-stone-400">Helper</div>
+                                              <div
+                                                onClick={() => handleProfileClick(offer.user_id, offer.helper_name)}
+                                                className="text-sm text-stone-300 cursor-pointer hover:underline"
+                                              >
+                                                {offer.helper_name || "Someone offered help"}
+                                              </div>
+                                            </div>
+
+                                            <div>
+                                              <div className="text-sm text-stone-400">Status</div>
+                                              <div className="text-sm text-stone-200">
+                                                {offer.status || "pending"}
+                                              </div>
+                                            </div>
+
+                                            {offer.status === "fulfilled" &&
+                                              !stories.some((s) => s.ask_id === offer.ask_id) && (
+                                                <div className="flex gap-2">
+                                                  <button
+                                                    onClick={() => {
+                                                      setGratitudeAskId(offer.ask_id)
+                                                      setIsGratitudeOpen(true)
+                                                    }}
+                                                    className={`rounded-xl bg-gradient-to-r ${activeTheme.button} px-3 py-1 text-sm font-semibold text-stone-950 transition`}
+                                                  >
+                                                    Share Gratitude
+                                                  </button>
+                                                </div>
+                                              )}
+
+                                            {offer.status === "pending" && (
+                                              <div className="flex gap-2">
+                                                <button
+                                                  onClick={() => handleAcceptOffer(offer.id, offer.ask_id)}
+                                                  className="rounded-xl bg-green-500 px-3 py-1 text-sm font-semibold text-black hover:bg-green-400 transition"
+                                                >
+                                                  Accept
+                                                </button>
+
+                                                <button
+                                                  onClick={() => handleDeclineOffer(offer.id)}
+                                                  className="rounded-xl bg-red-500 px-3 py-1 text-sm font-semibold text-black hover:bg-red-400 transition"
+                                                >
+                                                  Decline
+                                                </button>
+                                              </div>
+                                            )}
+
+                                            {offer.status === "accepted" && (
+                                              <div className="flex gap-2">
+                                                <button
+                                                  onClick={() => handleFulfillOffer(offer.id)}
+                                                  className={`rounded-xl bg-gradient-to-r ${activeTheme.button} px-3 py-1 text-sm font-semibold text-stone-950 transition`}
+                                                >
+                                                  Mark Fulfilled
+                                                </button>
+                                              </div>
+                                            )}
+
+                                          </div>
+
+                                          <div className="space-y-4">
+                                            <div>
+                                              <div className="text-sm text-stone-400">Their Offer</div>
+                                              <div className="mt-2 text-sm text-stone-200">
+                                                {offer.helper_message}
+                                              </div>
+                                            </div>
+
+                                            <OfferMessages
+                                              offerId={offer.id}
+                                              isExpanded={expandedMessagesOfferId === offer.id}
+                                              onToggle={() =>
+                                                setExpandedMessagesOfferId((current) =>
+                                                  current === offer.id ? null : offer.id
+                                                )
+                                              }
+                                              messages={getMessagesForOffer(offer.id)}
+                                              currentUserId={session.user.id}
+                                              activeTheme={activeTheme}
+                                              messageValue={messageInputs[offer.id] || ""}
+                                              onMessageChange={(offerId, value) =>
+                                                setMessageInputs((current) => ({
+                                                  ...current,
+                                                  [offerId]: value,
+                                                }))
+                                              }
+                                              onSendMessage={handleSendMessage}
+                                            />
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {relatedStory && (
+                                <div className="mt-6 rounded-2xl border border-stone-700 bg-stone-950/30 p-4">
+                                  <div className="mb-3 flex items-start justify-between gap-3">
+                                    <div>
+                                      <div className="text-sm text-stone-400">Gratitude</div>
+                                      <div className="text-base font-medium text-white">
+                                        {relatedStory.title}
+                                      </div>
+                                    </div>
+
+                                    <div className="flex gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setEditingStoryId(relatedStory.id)
+                                          setEditStoryForm({
+                                            title: relatedStory.title,
+                                            body: relatedStory.body,
+                                          })
+                                        }}
+                                        className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                                      >
+                                        Edit
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteStory(relatedStory.id)}
+                                        className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-1 text-sm text-red-200 hover:bg-red-500/20 transition"
+                                      >
+                                        Delete
+                                      </button>
+                                    </div>
+
+                                  </div>
+
+                                  {editingStoryId === relatedStory.id ? (
+                                    <div className="grid gap-3">
+                                      <input
+                                        type="text"
+                                        value={editStoryForm.title}
+                                        maxLength={80}
+                                        onChange={(e) =>
+                                          setEditStoryForm((current) => ({
+                                            ...current,
+                                            title: e.target.value,
+                                          }))
+                                        }
+                                        className="rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-white outline-none"
+                                      />
+
+                                      <textarea
+                                        value={editStoryForm.body}
+                                        maxLength={500}
+                                        onChange={(e) =>
+                                          setEditStoryForm((current) => ({
+                                            ...current,
+                                            body: e.target.value,
+                                          }))
+                                        }
+                                        className="rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-200 outline-none"
+                                      />
+
+                                      <div className="flex gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={() => handleSaveStoryEdit(relatedStory.id)}
+                                          className={`rounded-xl bg-gradient-to-r ${activeTheme.button} px-3 py-1 text-sm font-semibold text-stone-950 transition`}
+                                        >
+                                          Save
+                                        </button>
+
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setEditingStoryId(null)
+                                            setEditStoryForm({ title: "", body: "" })
+                                          }}
+                                          className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="text-sm text-stone-200">
+                                      {relatedStory.body}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </section>
+            ) : null}
+
+            {myHelpOffers.length > 0 ? (
+              <section className="mx-auto mt-10 max-w-4xl px-6">
+                <div className="rounded-3xl border border-stone-800 bg-stone-900/60 p-6 backdrop-blur">
+                  <h2 className="text-2xl font-semibold text-white">My Help Offers</h2>
+
+                  <div className="mt-4 grid gap-4">
+                    {myHelpOffers.map((offer) => (
+                      <MyHelpOfferCard
+                        key={offer.id}
+                        offer={offer}
+                        ask={asks.find((a) => a.id === offer.ask_id)}
+                        isExpanded={expandedHelpOfferId === offer.id}
+                        onToggle={() =>
+                          setExpandedHelpOfferId((current) =>
+                            current === offer.id ? null : offer.id
+                          )
+                        }
+                        onCollapse={() => setExpandedHelpOfferId(null)}
+                        onProfileClick={handleProfileClick}
+                        editingOfferId={editingOfferId}
+                        setEditingOfferId={setEditingOfferId}
+                        editOfferForm={editOfferForm}
+                        setEditOfferForm={setEditOfferForm}
+                        onSaveOfferEdit={handleSaveOfferEdit}
+                        onWithdrawOffer={handleWithdrawOffer}
+                        activeTheme={activeTheme}
+                        messages={getMessagesForOffer(offer.id)}
+                        isMessagesExpanded={expandedMessagesOfferId === offer.id}
+                        onToggleMessages={() =>
+                          setExpandedMessagesOfferId((current) =>
+                            current === offer.id ? null : offer.id
+                          )
+                        }
+                        currentUserId={session.user.id}
+                        messageValue={messageInputs[offer.id] || ""}
+                        onMessageChange={(offerId, value) =>
+                          setMessageInputs((current) => ({
+                            ...current,
+                            [offerId]: value,
+                          }))
+                        }
+                        onSendMessage={handleSendMessage}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </section>
+            ) : null}
           </>
         )
         }

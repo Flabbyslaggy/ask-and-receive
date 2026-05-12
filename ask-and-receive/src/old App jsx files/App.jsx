@@ -9,8 +9,8 @@ import StoriesSection from "./components/StoriesSection"
 import AskForm from "./components/AskForm"
 import AskList from "./components/AskList"
 import HelpModal from "./components/HelpModal"
+import MyHelpOfferCard from "./components/dashboard/MyHelpOfferCard"
 import MyAsksSection from "./components/dashboard/MyAsksSection"
-import MyHelpOffersSection from "./components/dashboard/MyHelpOffersSection"
 
 const ASK_STORAGE_KEY = "ask-and-receive-asks"
 
@@ -1180,27 +1180,54 @@ export default function App() {
               handleSaveStoryEdit={handleSaveStoryEdit}
             />
 
-            <MyHelpOffersSection
-              myHelpOffers={myHelpOffers}
-              asks={asks}
-              expandedHelpOfferId={expandedHelpOfferId}
-              setExpandedHelpOfferId={setExpandedHelpOfferId}
-              handleProfileClick={handleProfileClick}
-              editingOfferId={editingOfferId}
-              setEditingOfferId={setEditingOfferId}
-              editOfferForm={editOfferForm}
-              setEditOfferForm={setEditOfferForm}
-              handleSaveOfferEdit={handleSaveOfferEdit}
-              handleWithdrawOffer={handleWithdrawOffer}
-              activeTheme={activeTheme}
-              getMessagesForOffer={getMessagesForOffer}
-              expandedMessagesOfferId={expandedMessagesOfferId}
-              setExpandedMessagesOfferId={setExpandedMessagesOfferId}
-              currentUserId={session.user.id}
-              messageInputs={messageInputs}
-              setMessageInputs={setMessageInputs}
-              handleSendMessage={handleSendMessage}
-            />
+            {myHelpOffers.length > 0 ? (
+              <section className="mx-auto mt-10 max-w-4xl px-6">
+                <div className="rounded-3xl border border-stone-800 bg-stone-900/60 p-6 backdrop-blur">
+                  <h2 className="text-2xl font-semibold text-white">My Help Offers</h2>
+
+                  <div className="mt-4 grid gap-4">
+                    {myHelpOffers.map((offer) => (
+                      <MyHelpOfferCard
+                        key={offer.id}
+                        offer={offer}
+                        ask={asks.find((a) => a.id === offer.ask_id)}
+                        isExpanded={expandedHelpOfferId === offer.id}
+                        onToggle={() =>
+                          setExpandedHelpOfferId((current) =>
+                            current === offer.id ? null : offer.id
+                          )
+                        }
+                        onCollapse={() => setExpandedHelpOfferId(null)}
+                        onProfileClick={handleProfileClick}
+                        editingOfferId={editingOfferId}
+                        setEditingOfferId={setEditingOfferId}
+                        editOfferForm={editOfferForm}
+                        setEditOfferForm={setEditOfferForm}
+                        onSaveOfferEdit={handleSaveOfferEdit}
+                        onWithdrawOffer={handleWithdrawOffer}
+                        activeTheme={activeTheme}
+                        messages={getMessagesForOffer(offer.id)}
+                        isMessagesExpanded={expandedMessagesOfferId === offer.id}
+                        onToggleMessages={() =>
+                          setExpandedMessagesOfferId((current) =>
+                            current === offer.id ? null : offer.id
+                          )
+                        }
+                        currentUserId={session.user.id}
+                        messageValue={messageInputs[offer.id] || ""}
+                        onMessageChange={(offerId, value) =>
+                          setMessageInputs((current) => ({
+                            ...current,
+                            [offerId]: value,
+                          }))
+                        }
+                        onSendMessage={handleSendMessage}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </section>
+            ) : null}
           </>
         )
         }
