@@ -36,17 +36,17 @@ export default function MyAskCard({
   stories,
 }) {
   return (
-    <div>
+    <div className="w-full min-w-0">
       {expandedAskId !== ask.id ? (
         <div
           onClick={() =>
             setExpandedAskId((current) => (current === ask.id ? null : ask.id))
           }
-          className="cursor-pointer rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3 hover:bg-stone-900/80 transition flex justify-between items-center"
+          className="flex w-full min-w-0 cursor-pointer items-center justify-between gap-3 rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3 transition hover:bg-stone-900/80"
         >
-          <div>
+          <div className="min-w-0">
             <div className="text-sm text-stone-400">My Ask</div>
-            <div className="text-base text-white font-medium">{ask.title}</div>
+            <div className="break-words text-base font-medium text-white">{ask.title}</div>
           </div>
 
           <div className="text-sm text-stone-300">
@@ -54,7 +54,7 @@ export default function MyAskCard({
           </div>
         </div>
       ) : (
-        <div className="rounded-3xl border border-stone-800 bg-stone-900/60 backdrop-blur p-6 shadow-lg">
+        <div className="w-full min-w-0 rounded-3xl border border-stone-800 bg-stone-900/60 p-4 shadow-lg backdrop-blur sm:p-6">
           <div className="mb-4 flex justify-end gap-2">
             {editingAskId === ask.id ? (
               <>
