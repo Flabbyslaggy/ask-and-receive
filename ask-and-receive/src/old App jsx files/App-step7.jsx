@@ -12,8 +12,6 @@ import HelpModal from "./components/HelpModal"
 import MyAsksSection from "./components/dashboard/MyAsksSection"
 import MyHelpOffersSection from "./components/dashboard/MyHelpOffersSection"
 import GratitudeModal from "./components/modals/GratitudeModal"
-import ProfileModal from "./components/modals/ProfileModal"
-import ReportModal from "./components/modals/ReportModal"
 
 const ASK_STORAGE_KEY = "ask-and-receive-asks"
 
@@ -975,34 +973,6 @@ export default function App() {
     setGratitudeAskId(null)
   }
 
-  async function handleReportSubmit() {
-    const trimmedReason = reportReason.trim()
-
-    if (!trimmedReason) {
-      setReportStatus("Please enter a reason.")
-      return
-    }
-
-    const { error } = await supabase
-      .from("user_reports")
-      .insert([
-        {
-          reported_user_id: selectedProfile.id,
-          reporter_user_id: session.user.id,
-          reason: trimmedReason,
-        },
-      ])
-
-    if (error) {
-      console.error(error)
-      setReportStatus("Could not submit report.")
-      return
-    }
-
-    setReportStatus("Report submitted.")
-    setReportReason("")
-  }
-
   async function handleSaveStoryEdit(storyId) {
     const trimmedTitle = editStoryForm.title.trim()
     const trimmedBody = editStoryForm.body.trim()
@@ -1423,27 +1393,197 @@ export default function App() {
         )}
 
         {selectedProfile && (
-          <ProfileModal
-            selectedProfile={selectedProfile}
-            selectedProfileOffers={selectedProfileOffers}
-            asks={asks}
-            onClose={() => setSelectedProfile(null)}
-            onReportClick={() => {
-              setIsReportOpen(true)
-              setReportReason("")
-              setReportStatus("")
-            }}
-          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+              onClick={() => setSelectedProfile(null)}
+            />
+
+            <div className="relative z-10 w-full max-w-md rounded-3xl border border-stone-800 bg-stone-900/90 p-6 shadow-2xl backdrop-blur">
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="flex items-center gap-4">
+                    {selectedProfile.avatar_url ? (
+                      <img
+                        src={selectedProfile.avatar_url}
+                        alt="User avatar"
+                        className="h-16 w-16 rounded-full border border-stone-700 object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full border border-stone-700 bg-stone-800 text-xl text-stone-400">
+                        ?
+                      </div>
+                    )}
+
+                    <div>
+                      <div className="text-2xl font-semibold text-white">
+                        {selectedProfile.nickname || "Anonymous"}
+                      </div>
+
+                      <div className="text-sm text-stone-400">
+                        Community member
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-sm text-stone-400">
+                    Community member
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setSelectedProfile(null)}
+                  className="rounded-full border border-stone-700 px-3 py-1 text-sm hover:bg-stone-800 transition"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="mt-4 text-stone-300 text-sm space-y-2">
+                <div>
+                  <span className="text-stone-400">Asks posted:</span>{" "}
+                  {asks.filter(a => a.user_id === selectedProfile.id).length}
+                </div>
+
+                <div>
+                  <span className="text-stone-400">Help offers made:</span>{" "}
+                  {selectedProfileOffers.length}
+                </div>
+
+                <div className="mt-4">
+                  <div className="text-sm text-stone-400 mb-2">Asks Posted</div>
+
+                  {asks
+                    .filter(a => a.user_id === selectedProfile.id)
+                    .slice(0, 3)
+                    .map((ask) => (
+                      <div
+                        key={ask.id}
+                        className="mb-2 rounded-xl border border-stone-700 px-3 py-2 text-sm text-stone-200"
+                      >
+                        {ask.title}
+                      </div>
+                    ))}
+
+                  {asks.filter(a => a.user_id === selectedProfile.id).length === 0 && (
+                    <div className="text-sm text-stone-500">
+                      No asks yet
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <button
+                  onClick={() => {
+                    setIsReportOpen(true)
+                    setReportReason("")
+                    setReportStatus("")
+                  }}
+                  className="rounded-xl border border-red-400/30 px-3 py-2 text-sm text-red-300 hover:bg-red-400/10 transition"
+                >
+                  Report User
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         {isReportOpen && (
-          <ReportModal
-            reportReason={reportReason}
-            setReportReason={setReportReason}
-            reportStatus={reportStatus}
-            onSubmit={handleReportSubmit}
-            onClose={() => setIsReportOpen(false)}
-          />
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+              onClick={() => setIsReportOpen(false)}
+            />
+
+            <div className="relative z-10 w-full max-w-lg rounded-3xl border border-stone-800 bg-stone-900/90 p-6 shadow-2xl backdrop-blur">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-semibold text-white">
+                    Report User
+                  </h2>
+
+                  <p className="mt-2 text-sm text-stone-300">
+                    Tell us why you are reporting this user.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setIsReportOpen(false)}
+                  className="rounded-full border border-stone-700 px-3 py-1 text-sm hover:bg-stone-800 transition"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="mt-6">
+                <textarea
+                  rows={5}
+                  value={reportReason}
+                  maxLength={500}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  placeholder="Describe the issue..."
+                  className="w-full rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none"
+                />
+
+                <div
+                  className={`mt-1 text-right text-xs ${500 - reportReason.length <= 10
+                    ? "text-red-400"
+                    : "text-stone-500"
+                    }`}
+                >
+                  {500 - reportReason.length} characters left
+                </div>
+
+                {reportStatus && (
+                  <div className="mt-3 text-sm text-stone-300">
+                    {reportStatus}
+                  </div>
+                )}
+
+                <div className="mt-6 flex gap-3">
+                  <button
+                    onClick={async () => {
+                      const trimmedReason = reportReason.trim()
+
+                      if (!trimmedReason) {
+                        setReportStatus("Please enter a reason.")
+                        return
+                      }
+
+                      const { error } = await supabase
+                        .from("user_reports")
+                        .insert([
+                          {
+                            reported_user_id: selectedProfile.id,
+                            reporter_user_id: session.user.id,
+                            reason: trimmedReason,
+                          },
+                        ])
+
+                      if (error) {
+                        console.error(error)
+                        setReportStatus("Could not submit report.")
+                        return
+                      }
+
+                      setReportStatus("Report submitted.")
+                      setReportReason("")
+                    }}
+                    className="rounded-2xl bg-red-500 px-4 py-2 font-medium text-black hover:bg-red-400 transition"
+                  >
+                    Submit Report
+                  </button>
+
+                  <button
+                    onClick={() => setIsReportOpen(false)}
+                    className="rounded-2xl border border-stone-700 px-4 py-2 hover:bg-stone-900/80 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         <HelpModal
