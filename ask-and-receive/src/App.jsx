@@ -10,6 +10,7 @@ import {
   fetchStories,
   createStory,
   updateStory,
+  deleteStory,
 } from "./services/storyService"
 import AskForm from "./components/AskForm"
 import AskList from "./components/AskList"
@@ -861,7 +862,7 @@ export default function App() {
       (o) => o.ask_id === gratitudeAskId && o.status === "fulfilled"
     )
 
-    const { error } = await createStory({
+    const { data, error } = await createStory({
       askId: gratitudeAskId,
       userId: session.user.id,
       title:
@@ -877,14 +878,7 @@ export default function App() {
     }
 
     setStories((current) => [
-      {
-        id: Date.now(),
-        ask_id: gratitudeAskId,
-        user_id: session.user.id,
-        title: asks.find((ask) => ask.id === gratitudeAskId)?.title || "Gratitude",
-        body: trimmedBody,
-        created_at: new Date().toISOString(),
-      },
+      data,
       ...current,
     ])
 
@@ -973,11 +967,10 @@ export default function App() {
 
     if (!confirmed) return
 
-    const { error } = await supabase
-      .from("stories")
-      .delete()
-      .eq("id", storyId)
-      .eq("user_id", session.user.id)
+    const { error } = await deleteStory({
+      storyId,
+      userId: session.user.id,
+    })
 
     if (error) {
       console.error("Error deleting gratitude:", error)

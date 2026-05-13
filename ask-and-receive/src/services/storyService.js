@@ -21,17 +21,21 @@ export async function createStory({
   body,
   helperName,
 }) {
-  const { error } = await supabase.from("stories").insert([
-    {
-      ask_id: askId,
-      user_id: userId,
-      title,
-      body,
-      helper_name: helperName,
-    },
-  ])
+  const { data, error } = await supabase
+    .from("stories")
+    .insert([
+      {
+        ask_id: askId,
+        user_id: userId,
+        title,
+        body,
+        helper_name: helperName,
+      },
+    ])
+    .select("*")
+    .single()
 
-  return { error }
+  return { data, error }
 }
 
 export async function updateStory({ storyId, userId, title, body }) {
@@ -41,6 +45,16 @@ export async function updateStory({ storyId, userId, title, body }) {
       title,
       body,
     })
+    .eq("id", storyId)
+    .eq("user_id", userId)
+
+  return { error }
+}
+
+export async function deleteStory({ storyId, userId }) {
+  const { error } = await supabase
+    .from("stories")
+    .delete()
     .eq("id", storyId)
     .eq("user_id", userId)
 
