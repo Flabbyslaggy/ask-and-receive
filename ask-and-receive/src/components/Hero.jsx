@@ -6,9 +6,8 @@ export default function Hero({ status, onClearSavedData }) {
   return (
     <section className="mx-auto max-w-6xl px-6 pt-16 pb-12">
       <div className="max-w-4xl">
-        <h1 className="text-4xl md:text-6xl font-semibold tracking-tight leading-tight">
-          A place where people say what they’ve always wanted… and sometimes
-          someone says yes.
+        <h1 className="text-4xl md:text-4xl font-semibold tracking-tight leading-tight">
+          You need something. I have something. Let's get together.
         </h1>
 
         <p className="mt-4 text-stone-300 max-w-2xl leading-7">

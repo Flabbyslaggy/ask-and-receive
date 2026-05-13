@@ -6,11 +6,24 @@ import Header from "./components/Header"
 import Hero from "./components/Hero"
 import { ThemeProvider } from "./ThemeContext"
 import StoriesSection from "./components/StoriesSection"
+import { fetchStories } from "./services/storyService"
 import AskForm from "./components/AskForm"
 import AskList from "./components/AskList"
 import HelpModal from "./components/HelpModal"
 import MyAsksSection from "./components/dashboard/MyAsksSection"
+import {
+  fetchAsks,
+  createAsk,
+  updateAsk,
+  deleteAskCascade,
+} from "./services/askService"
 import MyHelpOffersSection from "./components/dashboard/MyHelpOffersSection"
+import {
+  fetchMyHelpOffers,
+  fetchAllOffers,
+  fetchOffersForAskIds,
+} from "./services/offerService"
+import { fetchMessages } from "./services/messageService"
 import GratitudeModal from "./components/modals/GratitudeModal"
 import ProfileModal from "./components/modals/ProfileModal"
 import ReportModal from "./components/modals/ReportModal"
@@ -196,124 +209,63 @@ export default function App() {
   }, [activeView])
 
   useEffect(() => {
-    async function fetchAsks() {
-      const { data, error } = await supabase
-        .from("asks")
-        .select("*")
-        .order("created_at", { ascending: false })
-
-      if (error) {
-        console.error("Error fetching asks:", error)
-        return
-      }
-
-      const formatted = data.map((ask) => ({
-        id: ask.id,
-        user_id: ask.user_id,
-        asker: ask.asker_name,
-        title: ask.title,
-        category: ask.category,
-        body: ask.body,
-        created_at: ask.created_at,
-      }))
+    async function loadAsks() {
+      const formatted = await fetchAsks()
 
       setAsks(formatted)
       setIsAppLoading(false)
     }
 
-    fetchAsks()
+    loadAsks()
   }, [])
 
   useEffect(() => {
-    async function fetchMyHelpOffers() {
+    async function loadMyHelpOffers() {
       if (!session) {
         setIsAppLoading(false)
         return
       }
 
-      const { data, error } = await supabase
-        .from("help_offers")
-        .select("*")
-        .eq("user_id", session.user.id)
-        .order("created_at", { ascending: false })
-
-      if (error) {
-        console.error("Error fetching help offers:", error)
-        return
-      }
-
+      const data = await fetchMyHelpOffers(session.user.id)
       setMyHelpOffers(data)
     }
 
-    fetchMyHelpOffers()
+    loadMyHelpOffers()
   }, [session])
 
   useEffect(() => {
-    async function fetchOffersForMyAsks() {
+    async function loadOffersForMyAsks() {
       if (!session || asks.length === 0) return
 
       const myAskIds = asks
         .filter((ask) => ask.user_id === session.user.id)
         .map((ask) => ask.id)
 
-      if (myAskIds.length === 0) {
-        setOffersForMyAsks([])
-        return
-      }
-
-      const { data, error } = await supabase
-        .from("help_offers")
-        .select("*")
-        .in("ask_id", myAskIds)
-        .order("created_at", { ascending: false })
-
-      if (error) {
-        console.error("Error fetching offers for my asks:", error)
-        return
-      }
-
+      const data = await fetchOffersForAskIds(myAskIds)
       setOffersForMyAsks(data)
     }
 
-    fetchOffersForMyAsks()
+    loadOffersForMyAsks()
   }, [session, asks])
 
   useEffect(() => {
-    async function fetchAllOffers() {
-      const { data, error } = await supabase
-        .from("help_offers")
-        .select("*")
-
-      if (error) {
-        console.error("Error fetching all offers:", error)
-        return
-      }
-
+    async function loadAllOffers() {
+      const data = await fetchAllOffers()
       setAllOffers(data)
     }
 
-    fetchAllOffers()
+    loadAllOffers()
   }, [])
 
   useEffect(() => {
-    async function fetchMessages() {
+    async function loadMessages() {
       if (!session) return
 
-      const { data, error } = await supabase
-        .from("messages")
-        .select("*")
-        .order("created_at", { ascending: true })
-
-      if (error) {
-        console.error("Error fetching messages:", error)
-        return
-      }
-
+      const data = await fetchMessages()
       setMessages(data)
-      console.log("MESSAGES", data)
     }
 
-    fetchMessages()
+    loadMessages()
   }, [session])
 
   useEffect(() => {
@@ -401,21 +353,12 @@ export default function App() {
   }, [session, asks])
 
   useEffect(() => {
-    async function fetchStories() {
-      const { data, error } = await supabase
-        .from("stories")
-        .select("*")
-        .order("created_at", { ascending: false })
-
-      if (error) {
-        console.error("Error fetching stories:", error)
-        return
-      }
-
+    async function loadStories() {
+      const data = await fetchStories()
       setStories(data)
     }
 
-    fetchStories()
+    loadStories()
   }, [])
 
   useEffect(() => {
@@ -572,15 +515,13 @@ export default function App() {
       return
     }
 
-    const { error } = await supabase.from("asks").insert([
-      {
-        user_id: session.user.id,
-        title: trimmedTitle,
-        body: trimmedBody,
-        category: askForm.category,
-        asker_name: profile?.nickname || "Anonymous",
-      },
-    ])
+    const { error } = await createAsk({
+      userId: session.user.id,
+      title: trimmedTitle,
+      body: trimmedBody,
+      category: askForm.category,
+      askerName: profile?.nickname || "Anonymous",
+    })
 
     if (error) {
       setAskStatus(`Could not save ask: ${error.message}`)
@@ -602,14 +543,12 @@ export default function App() {
       return
     }
 
-    const { error } = await supabase
-      .from("asks")
-      .update({
-        title: editAskForm.title.trim(),
-        body: editAskForm.body.trim(),
-      })
-      .eq("id", askId)
-      .eq("user_id", session.user.id)
+    const { error } = await updateAsk({
+      askId,
+      userId: session.user.id,
+      title: editAskForm.title.trim(),
+      body: editAskForm.body.trim(),
+    })
 
     if (error) {
       console.error(error)
@@ -645,9 +584,7 @@ export default function App() {
 
     if (!confirmed) return
 
-    const { error } = await supabase.rpc("delete_my_ask_cascade", {
-      ask_id_input: askId,
-    })
+    const { error } = await deleteAskCascade(askId)
 
     if (error) {
       console.error("Error deleting ask:", error)
