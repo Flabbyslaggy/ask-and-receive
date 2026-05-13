@@ -22,6 +22,11 @@ import {
   fetchMyHelpOffers,
   fetchAllOffers,
   fetchOffersForAskIds,
+  updateOfferMessage,
+  withdrawOffer,
+  acceptOffer,
+  declineOffer,
+  fulfillOffer,
 } from "./services/offerService"
 import { fetchMessages } from "./services/messageService"
 import GratitudeModal from "./components/modals/GratitudeModal"
@@ -625,13 +630,11 @@ export default function App() {
       return
     }
 
-    const { error } = await supabase
-      .from("help_offers")
-      .update({
-        helper_message: trimmedMessage,
-      })
-      .eq("id", offerId)
-      .eq("user_id", session.user.id)
+    const { error } = await updateOfferMessage({
+      offerId,
+      userId: session.user.id,
+      helperMessage: trimmedMessage,
+    })
 
     if (error) {
       console.error(error)
@@ -653,11 +656,10 @@ export default function App() {
   }
 
   async function handleWithdrawOffer(offerId) {
-    const { error } = await supabase
-      .from("help_offers")
-      .delete()
-      .eq("id", offerId)
-      .eq("user_id", session.user.id)
+    const { error } = await withdrawOffer({
+      offerId,
+      userId: session.user.id,
+    })
 
     if (error) {
       console.error("Error withdrawing offer:", error)
@@ -739,25 +741,13 @@ export default function App() {
   }
 
   async function handleAcceptOffer(offerId, askId) {
-    const { error: acceptError } = await supabase
-      .from("help_offers")
-      .update({ status: "accepted" })
-      .eq("id", offerId)
+    const { error } = await acceptOffer({
+      offerId,
+      askId,
+    })
 
-    if (acceptError) {
-      console.error("Error accepting offer:", acceptError)
-      return
-    }
-
-    const { error: declineError } = await supabase
-      .from("help_offers")
-      .update({ status: "declined" })
-      .eq("ask_id", askId)
-      .neq("id", offerId)
-      .eq("status", "pending")
-
-    if (declineError) {
-      console.error("Error declining other offers:", declineError)
+    if (error) {
+      console.error("Error accepting offer:", error)
       return
     }
 
@@ -779,10 +769,7 @@ export default function App() {
   async function handleDeclineOffer(offerId) {
     console.log("DECLINE CLICKED", offerId)
 
-    const { error } = await supabase
-      .from("help_offers")
-      .update({ status: "declined" })
-      .eq("id", offerId)
+    const { error } = await declineOffer(offerId)
 
     if (error) {
       console.error("Error declining offer:", error)
@@ -801,26 +788,18 @@ export default function App() {
   }
 
   async function handleFulfillOffer(offerId) {
-    const { error } = await supabase
-      .from("help_offers")
-      .update({ status: "fulfilled" })
-      .eq("id", offerId)
+    const askId = offersForMyAsks.find(
+      (o) => o.id === offerId
+    )?.ask_id
+
+    const { error } = await fulfillOffer({
+      offerId,
+      askId,
+    })
 
     if (error) {
       console.error("Error fulfilling offer:", error)
       return
-    }
-
-    const { error: declineError } = await supabase
-      .from("help_offers")
-      .update({ status: "declined" })
-      .eq("ask_id", (
-        offersForMyAsks.find((o) => o.id === offerId)?.ask_id
-      ))
-      .neq("id", offerId)
-
-    if (declineError) {
-      console.error("Error declining other offers:", declineError)
     }
 
     setOffersForMyAsks((current) =>
