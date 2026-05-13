@@ -6,7 +6,11 @@ import Header from "./components/Header"
 import Hero from "./components/Hero"
 import { ThemeProvider } from "./ThemeContext"
 import StoriesSection from "./components/StoriesSection"
-import { fetchStories } from "./services/storyService"
+import {
+  fetchStories,
+  createStory,
+  updateStory,
+} from "./services/storyService"
 import AskForm from "./components/AskForm"
 import AskList from "./components/AskList"
 import HelpModal from "./components/HelpModal"
@@ -857,15 +861,15 @@ export default function App() {
       (o) => o.ask_id === gratitudeAskId && o.status === "fulfilled"
     )
 
-    const { error } = await supabase.from("stories").insert([
-      {
-        ask_id: gratitudeAskId,
-        user_id: session.user.id,
-        title: asks.find((ask) => ask.id === gratitudeAskId)?.title || "Gratitude",
-        body: trimmedBody,
-        helper_name: helper?.helper_name || "Someone",
-      },
-    ])
+    const { error } = await createStory({
+      askId: gratitudeAskId,
+      userId: session.user.id,
+      title:
+        asks.find((ask) => ask.id === gratitudeAskId)?.title ||
+        "Gratitude",
+      body: trimmedBody,
+      helperName: helper?.helper_name || "Someone",
+    })
 
     if (error) {
       console.error("Error saving gratitude:", error)
@@ -928,14 +932,12 @@ export default function App() {
       return
     }
 
-    const { error } = await supabase
-      .from("stories")
-      .update({
-        title: trimmedTitle,
-        body: trimmedBody,
-      })
-      .eq("id", storyId)
-      .eq("user_id", session.user.id)
+    const { error } = await updateStory({
+      storyId,
+      userId: session.user.id,
+      title: trimmedTitle,
+      body: trimmedBody,
+    })
 
     if (error) {
       console.error("Error updating gratitude:", error)
