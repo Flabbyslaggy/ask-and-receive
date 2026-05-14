@@ -33,11 +33,7 @@ export default function ProfileModal({
               <div>
                 <div className="text-2xl font-semibold text-white">
                   {selectedProfile.nickname || "Anonymous"}
-                </div>
-
-                <div className="text-sm text-stone-400">
-                  Community member
-                </div>
+                </div>              
               </div>
             </div>
             <div className="text-sm text-stone-400">

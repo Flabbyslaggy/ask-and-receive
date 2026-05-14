@@ -20,6 +20,7 @@ export async function createStory({
   title,
   body,
   helperName,
+  helperUserId,
 }) {
   const { data, error } = await supabase
     .from("stories")
@@ -30,6 +31,7 @@ export async function createStory({
         title,
         body,
         helper_name: helperName,
+        helper_user_id: helperUserId,
       },
     ])
     .select("*")

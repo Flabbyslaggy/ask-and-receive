@@ -128,3 +128,37 @@ export async function fulfillOffer({ offerId, askId }) {
 
   return { error: null }
 }
+
+export async function findExistingOffer({
+  askId,
+  userId,
+}) {
+  const { data, error } = await supabase
+    .from("help_offers")
+    .select("id")
+    .eq("ask_id", askId)
+    .eq("user_id", userId)
+    .maybeSingle()
+
+  return { data, error }
+}
+
+export async function createHelpOffer({
+  askId,
+  userId,
+  helperName,
+  helperMessage,
+}) {
+  const { error } = await supabase
+    .from("help_offers")
+    .insert([
+      {
+        ask_id: askId,
+        user_id: userId,
+        helper_name: helperName,
+        helper_message: helperMessage,
+      },
+    ])
+
+  return { error }
+}

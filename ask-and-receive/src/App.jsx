@@ -5,6 +5,7 @@ import oceanBg from "./assets/ocean-bg.jpg"
 import Header from "./components/Header"
 import Hero from "./components/Hero"
 import { ThemeProvider } from "./ThemeContext"
+import { themes } from "./theme/themes"
 import StoriesSection from "./components/StoriesSection"
 import {
   fetchStories,
@@ -32,8 +33,21 @@ import {
   acceptOffer,
   declineOffer,
   fulfillOffer,
+  findExistingOffer,
+  createHelpOffer,
 } from "./services/offerService"
-import { fetchMessages } from "./services/messageService"
+import {
+  fetchMessages,
+  sendMessage,
+  getMessagesForOffer,
+} from "./services/messageService"
+import {
+  fetchProfile,
+  fetchProfileOffers,
+  fetchProfileById,
+  updateProfile,
+  syncProfileDisplayName,
+} from "./services/profileService"
 import GratitudeModal from "./components/modals/GratitudeModal"
 import ProfileModal from "./components/modals/ProfileModal"
 import ReportModal from "./components/modals/ReportModal"
@@ -52,64 +66,6 @@ const sampleStories = [
     body: "An ask that sounded small turned into a memory someone still talks about years later.",
   },
 ]
-
-const themes = {
-  emerald: {
-    button: "from-emerald-300 to-green-200 hover:from-emerald-200 hover:to-lime-100",
-    solidButton: "bg-emerald-300 hover:bg-emerald-200",
-    accentText: "text-emerald-300",
-    accentBorder: "border-emerald-400/30",
-    accentBg: "bg-emerald-400/10",
-    badge: "border-emerald-500/30 bg-emerald-500/10 text-emerald-200",
-    ring: "ring-emerald-300/40",
-    logoGradientFrom: "#6ee7b7",
-    logoGradientTo: "#22c55e",
-  },
-  ocean: {
-    button: "from-cyan-400 to-blue-400 hover:from-cyan-300 hover:to-blue-300",
-    solidButton: "bg-cyan-300 hover:bg-cyan-200",
-    accentText: "text-cyan-300",
-    accentBorder: "border-cyan-400/30",
-    accentBg: "bg-cyan-400/10",
-    badge: "border-cyan-500/30 bg-cyan-500/10 text-cyan-200",
-    ring: "ring-cyan-300/40",
-    logoGradientFrom: "#67e8f9",
-    logoGradientTo: "#3b82f6",
-  },
-  purple: {
-    button: "from-violet-400 to-fuchsia-400 hover:from-violet-300 hover:to-fuchsia-300",
-    solidButton: "bg-violet-300 hover:bg-violet-200",
-    accentText: "text-violet-300",
-    accentBorder: "border-violet-400/30",
-    accentBg: "bg-violet-400/10",
-    badge: "border-violet-500/30 bg-violet-500/10 text-violet-200",
-    ring: "ring-violet-300/40",
-    logoGradientFrom: "#c4b5fd",
-    logoGradientTo: "#d946ef",
-  },
-  rose: {
-    button: "from-rose-400 to-pink-300 hover:from-rose-300 hover:to-pink-200",
-    solidButton: "bg-rose-300 hover:bg-rose-200",
-    accentText: "text-rose-300",
-    accentBorder: "border-rose-400/30",
-    accentBg: "bg-rose-400/10",
-    badge: "border-rose-500/30 bg-rose-500/10 text-rose-200",
-    ring: "ring-rose-300/40",
-    logoGradientFrom: "#fda4af",
-    logoGradientTo: "#ec4899",
-  },
-  amber: {
-    button: "from-amber-300 to-orange-400 hover:from-amber-200 hover:to-orange-300",
-    solidButton: "bg-amber-300 hover:bg-amber-200",
-    accentText: "text-amber-300",
-    accentBorder: "border-amber-400/30",
-    accentBg: "bg-amber-400/10",
-    badge: "border-amber-500/30 bg-amber-500/10 text-amber-200",
-    ring: "ring-amber-300/40",
-    logoGradientFrom: "#fde047",
-    logoGradientTo: "#fb923c",
-  },
-}
 
 export default function App() {
   const [session, setSession] = useState(null)
@@ -399,11 +355,7 @@ export default function App() {
   }, [session])
 
   async function getProfileById(userId) {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .maybeSingle()
+    const { data, error } = await fetchProfileById(userId)
 
     if (error) {
       console.error("Error fetching profile:", error)
@@ -457,10 +409,9 @@ export default function App() {
         return
       }
 
-      const { data, error } = await supabase
-        .from("help_offers")
-        .select("*")
-        .eq("user_id", selectedProfile.id)
+      const { data, error } = await fetchProfileOffers(
+        selectedProfile.id
+      )
 
       if (error) {
         console.error("Error fetching profile offers:", error)
@@ -707,12 +658,13 @@ export default function App() {
       return
     }
 
-    const { data: existingOffer, error: existingOfferError } = await supabase
-      .from("help_offers")
-      .select("id")
-      .eq("ask_id", selectedAsk.id)
-      .eq("user_id", session.user.id)
-      .maybeSingle()
+    const {
+      data: existingOffer,
+      error: existingOfferError,
+    } = await findExistingOffer({
+      askId: selectedAsk.id,
+      userId: session.user.id,
+    })
 
     if (existingOfferError) {
       setHelpStatus("Could not check your existing offers.")
@@ -724,14 +676,12 @@ export default function App() {
       return
     }
 
-    const { error } = await supabase.from("help_offers").insert([
-      {
-        ask_id: selectedAsk.id,
-        user_id: session.user.id,
-        helper_name: profile?.nickname || "Anonymous",
-        helper_message: trimmedMessage,
-      },
-    ])
+    const { error } = await createHelpOffer({
+      askId: selectedAsk.id,
+      userId: session.user.id,
+      helperName: profile?.nickname || "Anonymous",
+      helperMessage: trimmedMessage,
+    })
 
     if (error) {
       setHelpStatus("Could not send help offer.")
@@ -814,10 +764,14 @@ export default function App() {
           : offer
       )
     )
-  }
 
-  function getMessagesForOffer(offerId) {
-    return messages.filter((msg) => msg.offer_id === offerId)
+    setAllOffers((current) =>
+      current.map((offer) =>
+        offer.id === offerId
+          ? { ...offer, status: "fulfilled" }
+          : offer
+      )
+    )
   }
 
   async function handleSendMessage(offerId) {
@@ -830,13 +784,11 @@ export default function App() {
       return
     }
 
-    const { error } = await supabase.from("messages").insert([
-      {
-        offer_id: offerId,
-        sender_user_id: session.user.id,
-        message_text: messageText,
-      },
-    ])
+    const { error } = await sendMessage({
+      offerId,
+      senderUserId: session.user.id,
+      messageText,
+    })
 
     if (error) {
       console.error("Error sending message:", error)
@@ -870,6 +822,7 @@ export default function App() {
         "Gratitude",
       body: trimmedBody,
       helperName: helper?.helper_name || "Someone",
+      helperUserId: helper?.user_id || null,
     })
 
     if (error) {
@@ -1077,9 +1030,13 @@ export default function App() {
                 hasMyOffer: myHelpOffers.some(
                   (offer) => offer.ask_id === ask.id
                 ),
-                hasAnyOffer: allOffers.some((offer) => offer.ask_id === ask.id),
-                isFulfilled: offersForMyAsks.some(
-                  (offer) => offer.ask_id === ask.id && (offer.status === "fulfilled")
+                hasAnyOffer: allOffers.some(
+                  (offer) => offer.ask_id === ask.id
+                ),
+                isFulfilled: allOffers.some(
+                  (offer) =>
+                    offer.ask_id === ask.id &&
+                    (offer.status === "fulfilled")
                 ),
               }))}
               onHelpClick={handleHelpClick}
@@ -1107,7 +1064,9 @@ export default function App() {
               handleAcceptOffer={handleAcceptOffer}
               handleDeclineOffer={handleDeclineOffer}
               handleFulfillOffer={handleFulfillOffer}
-              getMessagesForOffer={getMessagesForOffer}
+              getMessagesForOffer={(offerId) =>
+                getMessagesForOffer(messages, offerId)
+              }
               expandedMessagesOfferId={expandedMessagesOfferId}
               setExpandedMessagesOfferId={setExpandedMessagesOfferId}
               currentUserId={session.user.id}
@@ -1135,7 +1094,9 @@ export default function App() {
               handleSaveOfferEdit={handleSaveOfferEdit}
               handleWithdrawOffer={handleWithdrawOffer}
               activeTheme={activeTheme}
-              getMessagesForOffer={getMessagesForOffer}
+              getMessagesForOffer={(offerId) =>
+                getMessagesForOffer(messages, offerId)
+              }
               expandedMessagesOfferId={expandedMessagesOfferId}
               setExpandedMessagesOfferId={setExpandedMessagesOfferId}
               currentUserId={session.user.id}
@@ -1268,34 +1229,27 @@ export default function App() {
                         return
                       }
 
-                      const { error } = await supabase
-                        .from("profiles")
-                        .update({
-                          nickname: trimmedNickname,
-                          theme: selectedTheme,
-                          avatar_url: avatarUrl,
-                        })
-                        .eq("id", session.user.id)
+                      const { error } = await updateProfile({
+                        userId: session.user.id,
+                        nickname: trimmedNickname,
+                        theme: selectedTheme,
+                        avatarUrl,
+                      })
 
                       if (error) {
                         setProfileStatus("Could not update profile.")
                         return
                       }
 
-                      await supabase
-                        .from("asks")
-                        .update({ asker_name: trimmedNickname })
-                        .eq("user_id", session.user.id)
+                      const { error: syncError } = await syncProfileDisplayName({
+                        userId: session.user.id,
+                        nickname: trimmedNickname,
+                      })
 
-                      await supabase
-                        .from("help_offers")
-                        .update({ helper_name: trimmedNickname })
-                        .eq("user_id", session.user.id)
-
-                      await supabase
-                        .from("stories")
-                        .update({ helper_name: trimmedNickname })
-                        .eq("user_id", session.user.id)
+                      if (syncError) {
+                        setProfileStatus("Profile saved, but display name sync failed.")
+                        return
+                      }
 
                       localStorage.setItem("ask-and-receive-theme", selectedTheme)
                       setProfileStatus("Profile updated.")

@@ -9,7 +9,7 @@ function AskCard({
   onToggleExpanded,
 }) {
   return (
-    <div className="p-6 rounded-2xl bg-stone-900/60 backdrop-blur border border-stone-800">
+    <div className={`p-6 rounded-2xl ${activeTheme.cardBg} backdrop-blur border ${activeTheme.cardBorder}`}>
       <div className="flex items-center justify-between gap-3">
         <span
           className={`rounded-full border px-3 py-1 text-xs ${activeTheme.accentBorder} ${activeTheme.accentText}`}
@@ -123,7 +123,7 @@ export default function AskList({ asks, onHelpClick, isLoading }) {
       {isLoading ? (
         <div className="mt-6 text-stone-400">Loading asks...</div>
       ) : asks.length === 0 ? (
-        <div className="mt-6 rounded-3xl border border-dashed border-stone-700 bg-stone-900/50 backdrop-blur p-8 text-stone-300">
+        <div className={`mt-6 rounded-3xl border border-dashed ${activeTheme.inputBorder} ${activeTheme.sectionBg} backdrop-blur p-8 text-stone-300`}>
           No asks yet. Add the first one above, then share the page and invite
           people to contribute.
         </div>

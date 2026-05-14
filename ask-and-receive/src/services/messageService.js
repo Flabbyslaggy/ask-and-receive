@@ -13,3 +13,23 @@ export async function fetchMessages() {
 
     return data
 }
+
+export async function sendMessage({
+    offerId,
+    senderUserId,
+    messageText,
+}) {
+    const { error } = await supabase.from("messages").insert([
+        {
+            offer_id: offerId,
+            sender_user_id: senderUserId,
+            message_text: messageText,
+        },
+    ])
+
+    return { error }
+}
+
+export function getMessagesForOffer(messages, offerId) {
+    return messages.filter((msg) => msg.offer_id === offerId)
+}
