@@ -18,7 +18,7 @@ export default function HelpModal({
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative z-10 w-full max-w-2xl rounded-3xl border border-stone-800 bg-stone-900/90 backdrop-blur p-6 md:p-8 shadow-2xl">
+      <div className={`relative z-10 w-full max-w-2xl rounded-3xl border ${activeTheme.cardBorder} ${activeTheme.modalBg} backdrop-blur p-6 md:p-8 shadow-2xl`}>
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-3xl font-semibold">Help an Ask Happen</h2>
@@ -66,7 +66,7 @@ export default function HelpModal({
                 }))
               }
               placeholder="Tell us what you can offer."
-              className="rounded-3xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none placeholder:text-stone-500 focus:ring-2 ${activeTheme.ring}"
+              className={`rounded-3xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 text-stone-100 outline-none placeholder:text-stone-500 focus:ring-2 ${activeTheme.ring}`}
             />
             <div
               className={`text-right text-xs ${500 - helpForm.helperMessage.length <= 10 ? "text-red-400" : "text-stone-400"

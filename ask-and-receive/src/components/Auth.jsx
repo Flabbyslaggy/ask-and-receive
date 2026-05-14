@@ -122,7 +122,7 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
 
   return (
     <section className="mx-auto max-w-md px-6 py-12">
-      <div className="rounded-3xl border border-stone-900 bg-stone-900/80 backdrop-blur p-6">
+      <div className={`rounded-3xl border ${activeTheme.cardBorder} ${activeTheme.modalBg} backdrop-blur p-6`}>
         <div className="mb-8 text-center">
           <div className={`mx-auto mb-3 flex h-32 w-32 items-center justify-center rounded-full bg-stone-950/70 ring-2 ${activeTheme.ring} ${activeTheme.accentText}`}
           >
@@ -227,7 +227,7 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none"
+              className={`rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 text-stone-100 outline-none`}
               required
             />
           </label>
@@ -247,13 +247,13 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
                     ? setNewPassword(e.target.value)
                     : setPassword(e.target.value)
                 }
-                className="w-full rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 pr-12 text-stone-100 outline-none focus:border-emerald-300/60"
+                className={`w-full rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 pr-12 text-stone-100 outline-none focus:ring-2 ${activeTheme.ring}`}
               />
 
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-3 flex items-center text-stone-400 hover:text-emerald-300"
+                className={`absolute inset-y-0 right-3 flex items-center text-stone-400 transition ${activeTheme.accentText}`}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -282,13 +282,13 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
                     type={showPassword ? "text" : "password"}
                     value={confirmNewPassword}
                     onChange={(e) => setConfirmNewPassword(e.target.value)}
-                    className="w-full rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 pr-12 text-stone-100 outline-none focus:border-emerald-300/60"
+                    className={`w-full rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 pr-12 text-stone-100 outline-none focus:ring-2 ${activeTheme.ring}`}
                   />
 
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-3 flex items-center text-stone-400 hover:text-emerald-300"
+                    className={`absolute inset-y-0 right-3 flex items-center text-stone-400 transition ${activeTheme.accentText}`}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -316,14 +316,14 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
 
                     <div
                       className={`h-4 w-4 rounded-full flex items-center justify-center border transition-all duration-200 ${newPassword.length >= 8
-                          ? activeTheme.accentBorder
-                          : "border-stone-600/60"
+                        ? activeTheme.accentBorder
+                        : "border-stone-600/60"
                         }`}
                     >
                       <div
                         className={`h-2 w-2 rounded-full transition-all duration-200 ${newPassword.length >= 8
-                            ? "scale-100 opacity-100"
-                            : "scale-0 opacity-0"
+                          ? "scale-100 opacity-100"
+                          : "scale-0 opacity-0"
                           }`}
                         style={{ backgroundColor: activeTheme.logoGradientFrom }}
                       ></div>
@@ -340,14 +340,14 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
                 >
                   <div
                     className={`h-4 w-4 rounded-full flex items-center justify-center border transition-all duration-200 ${/[A-Z]/.test(newPassword)
-                        ? activeTheme.accentBorder
-                        : "border-stone-600/60"
+                      ? activeTheme.accentBorder
+                      : "border-stone-600/60"
                       }`}
                   >
                     <div
                       className={`h-2 w-2 rounded-full transition-all duration-200 ${/[A-Z]/.test(newPassword)
-                          ? "scale-100 opacity-100"
-                          : "scale-0 opacity-0"
+                        ? "scale-100 opacity-100"
+                        : "scale-0 opacity-0"
                         }`}
                       style={{ backgroundColor: activeTheme.logoGradientFrom }}
                     ></div>
@@ -362,14 +362,14 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
                 >
                   <div
                     className={`h-4 w-4 rounded-full flex items-center justify-center border transition-all duration-200 ${/\d/.test(newPassword)
-                        ? activeTheme.accentBorder
-                        : "border-stone-600/60"
+                      ? activeTheme.accentBorder
+                      : "border-stone-600/60"
                       }`}
                   >
                     <div
                       className={`h-2 w-2 rounded-full transition-all duration-200 ${/\d/.test(newPassword)
-                          ? "scale-100 opacity-100"
-                          : "scale-0 opacity-0"
+                        ? "scale-100 opacity-100"
+                        : "scale-0 opacity-0"
                         }`}
                       style={{ backgroundColor: activeTheme.logoGradientFrom }}
                     ></div>
@@ -386,14 +386,14 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
                 >
                   <div
                     className={`h-4 w-4 rounded-full flex items-center justify-center border transition-all duration-200 ${/[^A-Za-z0-9]/.test(newPassword)
-                        ? activeTheme.accentBorder
-                        : "border-stone-600/60"
+                      ? activeTheme.accentBorder
+                      : "border-stone-600/60"
                       }`}
                   >
                     <div
                       className={`h-2 w-2 rounded-full transition-all duration-200 ${/[^A-Za-z0-9]/.test(newPassword)
-                          ? "scale-100 opacity-100"
-                          : "scale-0 opacity-0"
+                        ? "scale-100 opacity-100"
+                        : "scale-0 opacity-0"
                         }`}
                       style={{ backgroundColor: activeTheme.logoGradientFrom }}
                     ></div>
@@ -430,7 +430,7 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
         ) : null}
 
         {showReset ? (
-          <div className="mt-4 rounded-2xl border border-stone-700 bg-stone-950/70 p-4 transition-all duration-300 ease-out opacity-100 translate-y-0">
+          <div className={`mt-4 rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.sectionBg} p-4 transition-all duration-300 ease-out opacity-100 translate-y-0`}>
             <h3 className="text-lg font-medium text-stone-100">Reset password</h3>
             <p className="mt-1 text-sm text-stone-300">
               Enter your email and we’ll send you a reset link.
@@ -456,7 +456,7 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
               <button
                 type="button"
                 onClick={() => setShowReset(false)}
-                className="rounded-2xl border border-stone-700 px-4 py-2 text-stone-200 hover:bg-stone-900/80"
+                className={`rounded-2xl border ${activeTheme.mutedBorder} px-4 py-2 text-stone-200 ${activeTheme.hoverSurface}`}
               >
                 Cancel
               </button>

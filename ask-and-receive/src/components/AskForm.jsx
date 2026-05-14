@@ -11,7 +11,7 @@ export default function AskForm({
   
   return (
     <section id="post-ask" className="mx-auto max-w-4xl px-6 py-12">
-      <div className="rounded-3xl border border-stone-800 bg-stone-900/60 backdrop-blur p-6 md:p-8">
+      <div className={`rounded-3xl border ${activeTheme.cardBorder} ${activeTheme.cardBg} backdrop-blur p-6 md:p-8`}>
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h2 className="text-3xl font-semibold">Post an Ask</h2>
@@ -41,7 +41,7 @@ export default function AskForm({
                     category: event.target.value,
                   }))
                 }
-                className={`rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none focus:ring-2 ${activeTheme.ring}`}
+                className={`rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 text-stone-100 outline-none focus:ring-2 ${activeTheme.ring}`}
               >
                 {categories.map((category) => (
                   <option key={category} value={category}>
@@ -65,7 +65,7 @@ export default function AskForm({
                 }))
               }
               placeholder="Example: Ride on a Boat at Sunrise"
-              className={`rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none focus:ring-2 ${activeTheme.ring}`}
+              className={`rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 text-stone-100 outline-none focus:ring-2 ${activeTheme.ring}`}
             />
             <div
               className={`text-right text-xs ${80 - askForm.title.length <= 10
@@ -90,7 +90,7 @@ export default function AskForm({
                 }))
               }
               placeholder="Say it plainly. No sob story needed."
-              className={`rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none focus:ring-2 ${activeTheme.ring}`}
+              className={`rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 text-stone-100 outline-none focus:ring-2 ${activeTheme.ring}`}
             />
             <div
               className={`text-right text-xs ${500 - askForm.body.length <= 10 ? "text-red-400" : "text-stone-400"

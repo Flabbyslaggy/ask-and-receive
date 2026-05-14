@@ -12,7 +12,7 @@ export default function GratitudeModal({
         onClick={onClose}
       />
 
-      <div className="relative z-10 w-full max-w-2xl rounded-3xl border border-stone-800 bg-stone-900/90 p-6 shadow-2xl backdrop-blur md:p-8">
+      <div className={`relative z-10 w-full max-w-2xl rounded-3xl border ${activeTheme.cardBorder} ${activeTheme.modalBg} p-6 shadow-2xl backdrop-blur md:p-8`}>
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-3xl font-semibold">Share Gratitude</h2>
@@ -43,7 +43,7 @@ export default function GratitudeModal({
                   body: event.target.value,
                 }))
               }
-              className="rounded-3xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none"
+              className={`rounded-3xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 text-stone-100 outline-none`}
             />
             <div
               className={`text-right text-xs ${

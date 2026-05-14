@@ -42,7 +42,7 @@ export default function MyAskCard({
           onClick={() =>
             setExpandedAskId((current) => (current === ask.id ? null : ask.id))
           }
-          className="flex w-full min-w-0 cursor-pointer items-center justify-between gap-3 rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3 transition hover:bg-stone-900/80"
+          className={`flex w-full min-w-0 cursor-pointer items-center justify-between gap-3 rounded-2xl border ${activeTheme.cardBorder} ${activeTheme.cardBg} px-4 py-3 transition ${activeTheme.hoverSurface}`}
         >
           <div className="min-w-0">
             <div className="text-sm text-stone-400">My Ask</div>
@@ -54,7 +54,7 @@ export default function MyAskCard({
           </div>
         </div>
       ) : (
-        <div className="w-full min-w-0 rounded-3xl border border-stone-800 bg-stone-900/60 p-4 shadow-lg backdrop-blur sm:p-6">
+        <div className={`w-full min-w-0 rounded-3xl border ${activeTheme.cardBorder} ${activeTheme.cardBg} p-4 shadow-lg backdrop-blur sm:p-6`}>
           <div className="mb-4 flex justify-end gap-2">
             {editingAskId === ask.id ? (
               <>
@@ -70,7 +70,7 @@ export default function MyAskCard({
                     setEditingAskId(null)
                     setEditAskForm({ title: "", body: "" })
                   }}
-                  className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                  className={`rounded-xl border ${activeTheme.mutedBorder} px-3 py-1 text-sm text-stone-300 transition ${activeTheme.hoverSurface}`}
                 >
                   Cancel
                 </button>
@@ -81,7 +81,7 @@ export default function MyAskCard({
                   setEditingAskId(ask.id)
                   setEditAskForm({ title: ask.title, body: ask.body })
                 }}
-                className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                className={`rounded-xl border ${activeTheme.mutedBorder} px-3 py-1 text-sm text-stone-300 transition ${activeTheme.hoverSurface}`}
               >
                 Edit
               </button>
@@ -97,7 +97,7 @@ export default function MyAskCard({
 
             <button
               onClick={() => setExpandedAskId(null)}
-              className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+              className={`rounded-xl border ${activeTheme.mutedBorder} px-3 py-1 text-sm text-stone-300 transition ${activeTheme.hoverSurface}`}
             >
               Collapse
             </button>
@@ -119,7 +119,7 @@ export default function MyAskCard({
                         title: e.target.value,
                       }))
                     }
-                    className="mt-1 w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-white outline-none"
+                    className={`mt-1 w-full rounded-xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-3 py-2 text-sm text-white outline-none`}
                   />
                 ) : (
                   <div className="text-xl font-semibold text-white">
@@ -222,7 +222,7 @@ export default function MyAskCard({
           )}
 
           {relatedStory && (
-            <div className="mt-6 rounded-2xl border border-stone-700 bg-stone-950/30 p-4">
+            <div className={`mt-6 rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.sectionBg} p-4`}>
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div>
                   <div className="text-sm text-stone-400">Gratitude</div>
@@ -241,7 +241,7 @@ export default function MyAskCard({
                         body: relatedStory.body,
                       })
                     }}
-                    className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                    className={`rounded-xl border ${activeTheme.mutedBorder} px-3 py-1 text-sm text-stone-300 transition ${activeTheme.hoverSurface}`}
                   >
                     Edit
                   </button>
@@ -268,7 +268,7 @@ export default function MyAskCard({
                         title: e.target.value,
                       }))
                     }
-                    className="rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-white outline-none"
+                    className={`rounded-xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-3 py-2 text-sm text-white outline-none`}
                   />
 
                   <textarea
@@ -298,7 +298,7 @@ export default function MyAskCard({
                         setEditingStoryId(null)
                         setEditStoryForm({ title: "", body: "" })
                       }}
-                      className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                      className={`rounded-xl border ${activeTheme.mutedBorder} px-3 py-1 text-sm text-stone-300 transition ${activeTheme.hoverSurface}`}
                     >
                       Cancel
                     </button>

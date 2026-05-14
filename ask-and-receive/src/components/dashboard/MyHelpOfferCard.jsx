@@ -36,7 +36,7 @@ export default function MyHelpOfferCard({
       {!isExpanded ? (
         <div
           onClick={onToggle}
-          className="cursor-pointer rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3 hover:bg-stone-900/80 transition"
+          className={`cursor-pointer rounded-2xl border ${activeTheme.cardBorder} ${activeTheme.cardBg} px-4 py-3 transition ${activeTheme.hoverSurface}`}
         >
           <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
             <div className="min-w-0">
@@ -58,11 +58,11 @@ export default function MyHelpOfferCard({
           </div>
         </div>
       ) : (
-        <div className="rounded-3xl border border-stone-800 bg-stone-900/60 backdrop-blur p-6 shadow-lg">
+        <div className={`rounded-3xl border ${activeTheme.cardBorder} ${activeTheme.cardBg} backdrop-blur p-6 shadow-lg`}>
           <div className="mb-4 flex justify-end">
             <button
               onClick={onCollapse}
-              className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+              className={`rounded-xl border ${activeTheme.mutedBorder} px-3 py-1 text-sm text-stone-300 transition ${activeTheme.hoverSurface}`}
             >
               Collapse
             </button>
@@ -123,7 +123,7 @@ export default function MyHelpOfferCard({
                         helper_message: offer.helper_message || "",
                       })
                     }}
-                    className="rounded-xl border border-stone-700 px-3 py-1 text-xs text-stone-300 hover:bg-stone-900/80 transition"
+                    className={`rounded-xl border ${activeTheme.mutedBorder} px-3 py-1 text-xs text-stone-300 transition ${activeTheme.hoverSurface}`}
                   >
                     Edit
                   </button>
@@ -154,7 +154,7 @@ export default function MyHelpOfferCard({
                           helper_message: e.target.value,
                         })
                       }
-                      className="mt-2 w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-200 outline-none"
+                      className={`mt-2 w-full rounded-xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-3 py-2 text-sm text-stone-200 outline-none`}
                     />
 
                     <div className="mt-2 flex gap-2">
@@ -170,7 +170,7 @@ export default function MyHelpOfferCard({
                           setEditingOfferId(null)
                           setEditOfferForm({ helper_message: "" })
                         }}
-                        className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                        className={`rounded-xl border ${activeTheme.mutedBorder} px-3 py-1 text-sm text-stone-300 transition ${activeTheme.hoverSurface}`}
                       >
                         Cancel
                       </button>

@@ -24,7 +24,7 @@ export default function Hero({ status, onClearSavedData }) {
 
           <a
             href="#asks"
-            className="rounded-2xl border border-stone-700 px-5 py-3 hover:bg-stone-900/80 transition"
+            className={`rounded-2xl px-5 py-3 transition ${activeTheme.surfaceButton}`}
           >
             Browse Asks
           </a>
@@ -32,7 +32,9 @@ export default function Hero({ status, onClearSavedData }) {
         </div>
 
         {status ? (
-          <div className="mt-6 rounded-2xl border ${activeTheme.accentBorder} ${activeTheme.accentBg} ${activeTheme.accentText}">
+          <div
+            className={`mt-6 rounded-2xl border px-4 py-3 text-sm ${activeTheme.accentBorder} ${activeTheme.accentBg} ${activeTheme.accentText}`}
+          >
             {status}
           </div>
         ) : null}

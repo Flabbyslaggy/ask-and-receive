@@ -12,7 +12,7 @@ export default function OfferMessages({
   const charactersLeft = 300 - (messageValue || "").length
 
   return (
-    <div className="mt-6 rounded-2xl border border-stone-700 bg-stone-950/30 p-4">
+    <div className={`mt-6 rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.sectionBg} p-4`}>
       <div
         onClick={onToggle}
         className="text-sm text-stone-400 cursor-pointer hover:text-white transition flex justify-between"
@@ -35,7 +35,7 @@ export default function OfferMessages({
                 <div
                   className={`max-w-[75%] break-words rounded-2xl px-3 py-2 text-sm ${msg.sender_user_id === currentUserId
                     ? `${activeTheme.solidButton} text-stone-950`
-                    : "bg-stone-800/60 text-stone-200"
+                    : `${activeTheme.cardBg} text-stone-200`
                     }`}
                 >
                   {msg.message_text}
@@ -55,7 +55,7 @@ export default function OfferMessages({
               onChange={(e) => onMessageChange(offerId, e.target.value)}
               maxLength={300}
               placeholder="Type a message..."
-              className="w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-100 outline-none"
+              className={`w-full rounded-xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-3 py-2 text-sm text-stone-100 outline-none`}
             />
             <div
               className={`mt-1 text-right text-xs ${charactersLeft <= 10

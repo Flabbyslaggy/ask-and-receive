@@ -18,7 +18,7 @@ export default function RelatedOfferCard({
   onSendMessage,
 }) {
   return (
-    <div className="rounded-2xl border border-stone-700 bg-stone-950/40 p-4">
+    <div className={`rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.sectionBg} p-4`}>
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-3">
           <div>

@@ -4,7 +4,7 @@ export default function Header({ activeView, setActiveView, profile }) {
   const activeTheme = useTheme()
 
   return (
-    <header className="relative border-b border-stone-800/60 bg-stone-950/70 backdrop-blur">
+    <header className={`relative border-b ${activeTheme.headerBorder} ${activeTheme.headerBg} backdrop-blur`}>
       <div className="mx-auto max-w-6xl px-6 py-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="text-2xl md:text-3xl font-semibold tracking-tight">
@@ -24,7 +24,7 @@ export default function Header({ activeView, setActiveView, profile }) {
             onClick={() => setActiveView("home")}
             className={`rounded-full border px-4 py-2 transition ${activeView === "home"
               ? `${activeTheme.accentBorder} ${activeTheme.accentBg} ${activeTheme.accentText}`
-              : `border-stone-700 text-stone-200 hover:${activeTheme.accentText} hover:bg-stone-900/80`
+              : `${activeTheme.mutedBorder} text-stone-200 ${activeTheme.hoverSurface}`
               }`}
           >
             Home
@@ -34,7 +34,7 @@ export default function Header({ activeView, setActiveView, profile }) {
             onClick={() => setActiveView("dashboard")}
             className={`rounded-full border px-4 py-2 transition ${activeView === "dashboard"
               ? `${activeTheme.accentBorder} ${activeTheme.accentBg} ${activeTheme.accentText}`
-              : `border-stone-700 text-stone-200 hover:${activeTheme.accentText} hover:bg-stone-900/80`
+              : `${activeTheme.mutedBorder} text-stone-200 ${activeTheme.hoverSurface}`
               }`}
           >
             Dashboard
@@ -44,7 +44,7 @@ export default function Header({ activeView, setActiveView, profile }) {
             onClick={() => setActiveView("profile")}
             className={`rounded-full border px-4 py-2 transition ${activeView === "profile"
                 ? `${activeTheme.accentBorder} ${activeTheme.accentBg} ${activeTheme.accentText}`
-                : `border-stone-700 text-stone-200 hover:${activeTheme.accentText} hover:bg-stone-900/80`
+                : `${activeTheme.mutedBorder} text-stone-200 ${activeTheme.hoverSurface}`
               }`}
           >
             My Profile

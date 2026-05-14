@@ -1111,7 +1111,7 @@ export default function App() {
         {
           activeView === "profile" && (
             <section className="mx-auto mt-10 max-w-3xl px-6">
-              <div className="rounded-3xl border border-stone-800 bg-stone-900/60 p-6 backdrop-blur">
+              <div className={`rounded-3xl border ${activeTheme.cardBorder} ${activeTheme.cardBg} p-6 backdrop-blur`}>
                 <h2 className="text-2xl font-semibold text-white">Profile</h2>
 
                 <div className="mt-4">
@@ -1131,7 +1131,7 @@ export default function App() {
                     }
                     maxLength={30}
                     placeholder="Enter new nickname"
-                    className="w-full rounded-xl border border-stone-700 bg-stone-900/80 px-4 py-2 text-stone-100 outline-none"
+                    className={`w-full rounded-xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-2 text-stone-100 outline-none`}
                   />
 
                   <div className="mt-4">
@@ -1147,7 +1147,7 @@ export default function App() {
                         }))
                       }
                       placeholder="Paste an image URL..."
-                      className="mt-2 w-full rounded-xl border border-stone-700 bg-stone-900/80 px-4 py-2 text-stone-100 outline-none"
+                      className={`mt-2 w-full rounded-xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-2 text-stone-100 outline-none`}
                     />
 
                     <label className={`mt-3 inline-flex cursor-pointer items-center rounded-xl bg-gradient-to-r ${activeTheme.button} px-4 py-2 text-sm font-medium text-stone-950 transition`}>
@@ -1208,7 +1208,7 @@ export default function App() {
                           theme: e.target.value,
                         }))
                       }
-                      className="mt-2 w-full rounded-xl border border-stone-700 bg-stone-900/80 px-4 py-2 text-stone-100 outline-none"
+                      className={`mt-2 w-full rounded-xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-2 text-stone-100 outline-none`}
                     >
                       <option value="emerald">Emerald</option>
                       <option value="ocean">Ocean</option>

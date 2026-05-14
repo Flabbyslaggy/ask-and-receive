@@ -1,3 +1,5 @@
+import { useTheme } from "../../ThemeContext"
+
 export default function ProfileModal({
   selectedProfile,
   selectedProfileOffers,
@@ -6,6 +8,7 @@ export default function ProfileModal({
   onReportClick,
 }) {
   const postedAsks = asks.filter((ask) => ask.user_id === selectedProfile.id)
+  const activeTheme = useTheme()
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -14,7 +17,7 @@ export default function ProfileModal({
         onClick={onClose}
       />
 
-      <div className="relative z-10 w-full max-w-md rounded-3xl border border-stone-800 bg-stone-900/90 p-6 shadow-2xl backdrop-blur">
+      <div className={`relative z-10 w-full max-w-md rounded-3xl border ${activeTheme.cardBorder} ${activeTheme.modalBg} p-6 shadow-2xl backdrop-blur`}>
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-4">
@@ -33,7 +36,7 @@ export default function ProfileModal({
               <div>
                 <div className="text-2xl font-semibold text-white">
                   {selectedProfile.nickname || "Anonymous"}
-                </div>              
+                </div>
               </div>
             </div>
             <div className="text-sm text-stone-400">
@@ -66,7 +69,7 @@ export default function ProfileModal({
             {postedAsks.slice(0, 3).map((ask) => (
               <div
                 key={ask.id}
-                className="mb-2 rounded-xl border border-stone-700 px-3 py-2 text-sm text-stone-200"
+                className={`mb-2 rounded-xl border ${activeTheme.inputBorder} ${activeTheme.cardBg} px-3 py-2 text-sm text-stone-200`}
               >
                 {ask.title}
               </div>

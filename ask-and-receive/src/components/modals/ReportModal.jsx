@@ -1,3 +1,5 @@
+import { useTheme } from "../../ThemeContext"
+
 export default function ReportModal({
   reportReason,
   setReportReason,
@@ -5,6 +7,9 @@ export default function ReportModal({
   onSubmit,
   onClose,
 }) {
+
+  const activeTheme = useTheme()
+
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div
@@ -12,7 +17,7 @@ export default function ReportModal({
         onClick={onClose}
       />
 
-      <div className="relative z-10 w-full max-w-lg rounded-3xl border border-stone-800 bg-stone-900/90 p-6 shadow-2xl backdrop-blur">
+      <div className={`relative z-10 w-full max-w-lg rounded-3xl border ${activeTheme.cardBorder} ${activeTheme.modalBg} p-6 shadow-2xl backdrop-blur`}>
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-2xl font-semibold text-white">Report User</h2>
@@ -37,7 +42,7 @@ export default function ReportModal({
             maxLength={500}
             onChange={(e) => setReportReason(e.target.value)}
             placeholder="Describe the issue..."
-            className="w-full rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none"
+            className={`w-full rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 text-stone-100 outline-none`}
           />
 
           <div
