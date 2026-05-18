@@ -68,7 +68,7 @@ export default function StoriesSection({ stories, handleProfileClick }) {
                   current === 0 ? stories.length - 1 : current - 1
                 )
               }
-              className="rounded-2xl border border-stone-700 px-4 py-2 hover:bg-stone-900/80 transition"
+              className={`rounded-2xl border ${activeTheme.mutedBorder} px-4 py-2 transition ${activeTheme.hoverSurface}`}
             >
               Previous
             </button>
@@ -80,7 +80,7 @@ export default function StoriesSection({ stories, handleProfileClick }) {
                   current === stories.length - 1 ? 0 : current + 1
                 )
               }
-              className="rounded-2xl border border-stone-700 px-4 py-2 hover:bg-stone-900/80 transition"
+              className={`rounded-2xl border ${activeTheme.mutedBorder} px-4 py-2 transition ${activeTheme.hoverSurface}`}
             >
               Next
             </button>

@@ -22,18 +22,18 @@ export default function RelatedOfferCard({
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-3">
           <div>
-            <div className="text-sm text-stone-400">Helper</div>
+            <div className={`text-sm ${activeTheme.subtleText}`}>Helper</div>
             <div
               onClick={() => onProfileClick(offer.user_id, offer.helper_name)}
-              className="text-sm text-stone-300 cursor-pointer hover:underline"
+              className={`text-sm ${activeTheme.mutedText} cursor-pointer hover:underline`}
             >
               {offer.helper_name || "Someone offered help"}
             </div>
           </div>
 
           <div>
-            <div className="text-sm text-stone-400">Status</div>
-            <div className="text-sm text-stone-200">
+            <div className={`text-sm ${activeTheme.subtleText}`}>Status</div>
+            <div className={`text-sm ${activeTheme.secondaryText}`}>
               {offer.status || "pending"}
             </div>
           </div>
@@ -42,7 +42,7 @@ export default function RelatedOfferCard({
             <div className="flex gap-2">
               <button
                 onClick={() => onOpenGratitude(offer.ask_id)}
-                className={`rounded-xl bg-gradient-to-r ${activeTheme.button} px-3 py-1 text-sm font-semibold text-stone-950 transition`}
+                className={`rounded-xl bg-gradient-to-r ${activeTheme.button} px-3 py-1 text-sm font-semibold ${activeTheme.buttonText} transition`}
               >
                 Share Gratitude
               </button>
@@ -53,14 +53,14 @@ export default function RelatedOfferCard({
             <div className="flex gap-2">
               <button
                 onClick={() => onAcceptOffer(offer.id, offer.ask_id)}
-                className="rounded-xl bg-green-500 px-3 py-1 text-sm font-semibold text-black hover:bg-green-400 transition"
+                className={`rounded-xl ${activeTheme.successButton} px-3 py-1 text-sm font-semibold ${activeTheme.successText} transition`}
               >
                 Accept
               </button>
 
               <button
                 onClick={() => onDeclineOffer(offer.id)}
-                className="rounded-xl bg-red-500 px-3 py-1 text-sm font-semibold text-black hover:bg-red-400 transition"
+                className={`rounded-xl bg-gradient-to-r ${activeTheme.dangerButton} px-3 py-1 text-sm font-semibold ${activeTheme.buttonText} transition`}
               >
                 Decline
               </button>
@@ -71,7 +71,7 @@ export default function RelatedOfferCard({
             <div className="flex gap-2">
               <button
                 onClick={() => onFulfillOffer(offer.id)}
-                className={`rounded-xl bg-gradient-to-r ${activeTheme.button} px-3 py-1 text-sm font-semibold text-stone-950 transition`}
+                className={`rounded-xl bg-gradient-to-r ${activeTheme.button} px-3 py-1 text-sm font-semibold ${activeTheme.buttonText} transition`}
               >
                 Mark Fulfilled
               </button>
@@ -81,8 +81,8 @@ export default function RelatedOfferCard({
 
         <div className="space-y-4">
           <div>
-            <div className="text-sm text-stone-400">Their Offer</div>
-            <div className="mt-2 text-sm text-stone-200">
+            <div className={`text-sm ${activeTheme.subtleText}`}>Their Offer</div>
+            <div className={`mt-2 text-sm ${activeTheme.secondaryText}`}>
               {offer.helper_message}
             </div>
           </div>

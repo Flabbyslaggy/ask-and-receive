@@ -25,58 +25,59 @@ export default function ProfileModal({
                 <img
                   src={selectedProfile.avatar_url}
                   alt="User avatar"
-                  className="h-16 w-16 rounded-full border border-stone-700 object-cover"
+                  className={`h-16 w-16 rounded-full border ${activeTheme.mutedBorder} object-cover`}
                 />
               ) : (
-                <div className="flex h-16 w-16 items-center justify-center rounded-full border border-stone-700 bg-stone-800 text-xl text-stone-400">
+                <div className={`flex h-16 w-16 items-center justify-center rounded-full border ${activeTheme.mutedBorder} ${activeTheme.sectionBg} text-xl ${activeTheme.subtleText}`}>
                   ?
                 </div>
               )}
 
               <div>
-                <div className="text-2xl font-semibold text-white">
+                <div className={`text-2xl font-semibold ${activeTheme.primaryText}`}>
                   {selectedProfile.nickname || "Anonymous"}
                 </div>
               </div>
             </div>
-            <div className="text-sm text-stone-400">
+
+            <div className={`text-sm ${activeTheme.subtleText}`}>
               Community member
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="rounded-full border border-stone-700 px-3 py-1 text-sm hover:bg-stone-800 transition"
+            className={`rounded-full border ${activeTheme.mutedBorder} px-3 py-1 text-sm transition ${activeTheme.hoverSurface} ${activeTheme.secondaryText}`}
           >
             Close
           </button>
         </div>
 
-        <div className="mt-4 space-y-2 text-sm text-stone-300">
+        <div className={`mt-4 space-y-2 text-sm ${activeTheme.mutedText}`}>
           <div>
-            <span className="text-stone-400">Asks posted:</span>{" "}
+            <span className={`${activeTheme.subtleText}`}>Asks posted:</span>{" "}
             {postedAsks.length}
           </div>
 
           <div>
-            <span className="text-stone-400">Help offers made:</span>{" "}
+            <span className={`${activeTheme.subtleText}`}>Help offers made:</span>{" "}
             {selectedProfileOffers.length}
           </div>
 
           <div className="mt-4">
-            <div className="mb-2 text-sm text-stone-400">Asks Posted</div>
+            <div className={`mb-2 text-sm ${activeTheme.subtleText}`}>Asks Posted</div>
 
             {postedAsks.slice(0, 3).map((ask) => (
               <div
                 key={ask.id}
-                className={`mb-2 rounded-xl border ${activeTheme.inputBorder} ${activeTheme.cardBg} px-3 py-2 text-sm text-stone-200`}
+                className={`mb-2 rounded-xl border ${activeTheme.inputBorder} ${activeTheme.cardBg} px-3 py-2 text-sm ${activeTheme.secondaryText}`}
               >
                 {ask.title}
               </div>
             ))}
 
             {postedAsks.length === 0 && (
-              <div className="text-sm text-stone-500">
+              <div className={`text-sm ${activeTheme.secondaryText}`}>
                 No asks yet
               </div>
             )}
@@ -86,7 +87,7 @@ export default function ProfileModal({
         <div className="pt-4">
           <button
             onClick={onReportClick}
-            className="rounded-xl border border-red-400/30 px-3 py-2 text-sm text-red-300 hover:bg-red-400/10 transition"
+            className={`rounded-xl border ${activeTheme.dangerBorder} px-3 py-2 text-sm ${activeTheme.dangerText} hover:${activeTheme.dangerHover} transition`}
           >
             Report User
           </button>

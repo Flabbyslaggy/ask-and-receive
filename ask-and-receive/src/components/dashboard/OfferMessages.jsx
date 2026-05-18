@@ -15,7 +15,7 @@ export default function OfferMessages({
     <div className={`mt-6 rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.sectionBg} p-4`}>
       <div
         onClick={onToggle}
-        className="text-sm text-stone-400 cursor-pointer hover:text-white transition flex justify-between"
+        className={`text-sm ${activeTheme.subtleText} cursor-pointer hover:text-white transition flex justify-between`}
       >
         <span>Messages ({messages.length})</span>
         <span>{isExpanded ? "−" : "+"}</span>
@@ -34,8 +34,8 @@ export default function OfferMessages({
               >
                 <div
                   className={`max-w-[75%] break-words rounded-2xl px-3 py-2 text-sm ${msg.sender_user_id === currentUserId
-                    ? `${activeTheme.solidButton} text-stone-950`
-                    : `${activeTheme.cardBg} text-stone-200`
+                    ? `${activeTheme.solidButton} ${activeTheme.buttonText}`
+                    : `${activeTheme.cardBg} ${activeTheme.secondaryText}`
                     }`}
                 >
                   {msg.message_text}
@@ -44,7 +44,7 @@ export default function OfferMessages({
             ))}
 
             {messages.length === 0 && (
-              <div className="text-sm text-stone-500">No messages yet</div>
+              <div className={`text-sm ${activeTheme.secondaryText}`}>No messages yet</div>
             )}
           </div>
 
@@ -55,19 +55,19 @@ export default function OfferMessages({
               onChange={(e) => onMessageChange(offerId, e.target.value)}
               maxLength={300}
               placeholder="Type a message..."
-              className={`w-full rounded-xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-3 py-2 text-sm text-stone-100 outline-none`}
+              className={`w-full rounded-xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-3 py-2 text-sm ${activeTheme.primaryText} outline-none`}
             />
             <div
               className={`mt-1 text-right text-xs ${charactersLeft <= 10
                 ? "text-red-400"
-                : "text-stone-500"
+                : `${activeTheme.secondaryText}`
                 }`}
             >
               {charactersLeft} characters left
             </div>
             <button
               onClick={() => onSendMessage(offerId)}
-              className={`mt-2 rounded-xl bg-gradient-to-r ${activeTheme.button} px-4 py-2 text-sm font-medium text-stone-950 transition`}
+              className={`mt-2 rounded-xl bg-gradient-to-r ${activeTheme.button} px-4 py-2 text-sm font-medium ${activeTheme.buttonText} transition`}
             >
               Send
             </button>

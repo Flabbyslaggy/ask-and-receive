@@ -124,8 +124,7 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
     <section className="mx-auto max-w-md px-6 py-12">
       <div className={`rounded-3xl border ${activeTheme.cardBorder} ${activeTheme.modalBg} backdrop-blur p-6`}>
         <div className="mb-8 text-center">
-          <div className={`mx-auto mb-3 flex h-32 w-32 items-center justify-center rounded-full bg-stone-950/70 ring-2 ${activeTheme.ring} ${activeTheme.accentText}`}
-          >
+          <div className={`mx-auto mb-3 flex h-32 w-32 items-center justify-center rounded-full ${activeTheme.sectionBg} ring-2 ${activeTheme.ring} ${activeTheme.accentText}`}>
             <div className="h-full w-full">
               <svg
                 viewBox="55 73 57 54"
@@ -204,7 +203,7 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
           </p>
         </div>
 
-        <div className="mb-4 text-lg font-medium text-white">
+        <div className={`mb-4 text-lg font-medium ${activeTheme.primaryText}`}>
           {isRecoveryMode
             ? "Set New Password"
             : isLogin
@@ -222,18 +221,18 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
 
         <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
           <label className="grid gap-2 text-sm">
-            <span className="text-stone-300">Email</span>
+            <span className={`${activeTheme.mutedText}`}>Email</span>
             <input
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className={`rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 text-stone-100 outline-none`}
+              className={`rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 ${activeTheme.primaryText} outline-none`}
               required
             />
           </label>
 
           <label className="grid gap-2 text-sm">
-            <span className="text-stone-300">
+            <span className={`${activeTheme.mutedText}`}>
               {isRecoveryMode ? "New Password" : "Password"}
             </span>
 
@@ -247,13 +246,13 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
                     ? setNewPassword(e.target.value)
                     : setPassword(e.target.value)
                 }
-                className={`w-full rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 pr-12 text-stone-100 outline-none focus:ring-2 ${activeTheme.ring}`}
+                className={`w-full rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 pr-12 ${activeTheme.primaryText} outline-none focus:ring-2 ${activeTheme.ring}`}
               />
 
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className={`absolute inset-y-0 right-3 flex items-center text-stone-400 transition ${activeTheme.accentText}`}
+                className={`absolute inset-y-0 right-3 flex items-center ${activeTheme.subtleText} transition ${activeTheme.accentText}`}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -275,20 +274,20 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
 
             {isRecoveryMode && (
               <div className="grid gap-2">
-                <div className="text-stone-300">Confirm New Password</div>
+                <div className={`${activeTheme.mutedText}`}>Confirm New Password</div>
 
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
                     value={confirmNewPassword}
                     onChange={(e) => setConfirmNewPassword(e.target.value)}
-                    className={`w-full rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 pr-12 text-stone-100 outline-none focus:ring-2 ${activeTheme.ring}`}
+                    className={`w-full rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 pr-12 ${activeTheme.primaryText} outline-none focus:ring-2 ${activeTheme.ring}`}
                   />
 
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className={`absolute inset-y-0 right-3 flex items-center text-stone-400 transition ${activeTheme.accentText}`}
+                    className={`absolute inset-y-0 right-3 flex items-center ${activeTheme.subtleText} transition ${activeTheme.accentText}`}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -310,14 +309,14 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
 
                 <div className="mt-4 space-y-2 text-sm">
                   <div
-                    className={`flex items-center gap-2 ${newPassword.length >= 8 ? activeTheme.accentText : "text-stone-300"
+                    className={`flex items-center gap-2 ${newPassword.length >= 8 ? activeTheme.accentText : `${activeTheme.mutedText}`
                       }`}
                   >
 
                     <div
                       className={`h-4 w-4 rounded-full flex items-center justify-center border transition-all duration-200 ${newPassword.length >= 8
                         ? activeTheme.accentBorder
-                        : "border-stone-600/60"
+                        : `${activeTheme.inactiveBorder}`
                         }`}
                     >
                       <div
@@ -335,13 +334,13 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
                 </div>
 
                 <div
-                  className={`flex items-center gap-2 ${/[A-Z]/.test(newPassword) ? activeTheme.accentText : "text-stone-300"
+                  className={`flex items-center gap-2 ${/[A-Z]/.test(newPassword) ? activeTheme.accentText : `${activeTheme.mutedText}`
                     }`}
                 >
                   <div
                     className={`h-4 w-4 rounded-full flex items-center justify-center border transition-all duration-200 ${/[A-Z]/.test(newPassword)
                       ? activeTheme.accentBorder
-                      : "border-stone-600/60"
+                      : `${activeTheme.inactiveBorder}`
                       }`}
                   >
                     <div
@@ -357,13 +356,13 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
                 </div>
 
                 <div
-                  className={`flex items-center gap-2 ${/\d/.test(newPassword) ? activeTheme.accentText : "text-stone-300"
+                  className={`flex items-center gap-2 ${/\d/.test(newPassword) ? activeTheme.accentText : `${activeTheme.mutedText}`
                     }`}
                 >
                   <div
                     className={`h-4 w-4 rounded-full flex items-center justify-center border transition-all duration-200 ${/\d/.test(newPassword)
                       ? activeTheme.accentBorder
-                      : "border-stone-600/60"
+                      : `${activeTheme.inactiveBorder}`
                       }`}
                   >
                     <div
@@ -381,13 +380,13 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
                 <div
                   className={`flex items-center gap-2 ${/[^A-Za-z0-9]/.test(newPassword)
                     ? activeTheme.accentText
-                    : "text-stone-300"
+                    : `${activeTheme.mutedText}`
                     }`}
                 >
                   <div
                     className={`h-4 w-4 rounded-full flex items-center justify-center border transition-all duration-200 ${/[^A-Za-z0-9]/.test(newPassword)
                       ? activeTheme.accentBorder
-                      : "border-stone-600/60"
+                      : `${activeTheme.inactiveBorder}`
                       }`}
                   >
                     <div
@@ -409,7 +408,7 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
           <button
             type="submit"
             disabled={loading}
-            className={`rounded-2xl bg-gradient-to-r ${activeTheme.button} px-5 py-3 font-medium text-stone-950 transition`}
+            className={`rounded-2xl bg-gradient-to-r ${activeTheme.button} px-5 py-3 font-medium ${activeTheme.buttonText} transition`}
           >
             {loading ? "Please wait..." : isLogin ? "Log In" : "Sign Up"}
           </button>
@@ -431,8 +430,8 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
 
         {showReset ? (
           <div className={`mt-4 rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.sectionBg} p-4 transition-all duration-300 ease-out opacity-100 translate-y-0`}>
-            <h3 className="text-lg font-medium text-stone-100">Reset password</h3>
-            <p className="mt-1 text-sm text-stone-300">
+            <h3 className="text-lg font-medium ${activeTheme.primaryText}">Reset password</h3>
+            <p className="mt-1 text-sm ${activeTheme.mutedText}">
               Enter your email and we’ll send you a reset link.
             </p>
 
@@ -441,14 +440,14 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
               value={resetEmail}
               onChange={(event) => setResetEmail(event.target.value)}
               placeholder="you@example.com"
-              className="mt-4 w-full rounded-2xl border border-stone-700 bg-stone-950/80 px-4 py-3 text-stone-100 outline-none"
+              className={`mt-4 w-full rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 ${activeTheme.primaryText} outline-none`}
             />
 
             <div className="mt-4 flex gap-3">
               <button
                 type="button"
                 onClick={handleResetPassword}
-                className={`rounded-2xl ${activeTheme.solidButton} px-4 py-2 font-medium text-stone-950`}
+                className={`rounded-2xl ${activeTheme.solidButton} px-4 py-2 font-medium ${activeTheme.buttonText}`}
               >
                 Send reset link
               </button>
@@ -456,7 +455,7 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
               <button
                 type="button"
                 onClick={() => setShowReset(false)}
-                className={`rounded-2xl border ${activeTheme.mutedBorder} px-4 py-2 text-stone-200 ${activeTheme.hoverSurface}`}
+                className={`rounded-2xl border ${activeTheme.mutedBorder} px-4 py-2 ${activeTheme.secondaryText} ${activeTheme.hoverSurface}`}
               >
                 Cancel
               </button>
@@ -464,24 +463,28 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
           </div>
         ) : null}
 
-        <div className="my-6 flex items-center gap-3">
-          <div className="h-px flex-1 bg-stone-400" />
+        <div className="mt-8">
+          <div className="flex items-center gap-4">
+            <div className={`h-px flex-1 ${activeTheme.divider}`} />
 
-          <span className="text-xs text-stone-200">or</span>
+            <span className={`text-xs tracking-wide ${activeTheme.subtleText}`}>
+              or
+            </span>
 
-          <div className="h-px flex-1 bg-stone-400" />
-        </div>
+            <div className={`h-px flex-1 ${activeTheme.divider}`} />
+          </div>
 
-        <div className="text-center text-sm text-stone-400">
-          <span>Need an account? </span>
+          <div className={`mt-6 text-center text-sm ${activeTheme.mutedText}`}>
+            <span>Need an account? </span>
 
-          <button
-            type="button"
-            onClick={() => setIsLogin(false)}
-            className={`${activeTheme.accentText} font-medium hover:underline`}
-          >
-            Sign up
-          </button>
+            <button
+              type="button"
+              onClick={() => setIsLogin(false)}
+              className={`${activeTheme.accentText} font-medium hover:underline`}
+            >
+              Sign up
+            </button>
+          </div>
         </div>
       </div>
     </section>

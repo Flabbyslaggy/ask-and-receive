@@ -22,7 +22,7 @@ export default function AskForm({
           </div>
           <a
             href="#asks"
-            className="rounded-2xl border border-stone-700 px-4 py-2 text-sm hover:bg-stone-900/80 transition"
+            className={`rounded-2xl border ${activeTheme.mutedBorder} px-4 py-2 text-sm transition ${activeTheme.hoverSurface}`}
           >
             Jump to Asks
           </a>
@@ -131,7 +131,7 @@ export default function AskForm({
                   body: "",
                 })
               }
-              className="rounded-2xl border border-stone-700 px-5 py-3 hover:bg-stone-900/80 transition"
+              className={`rounded-2xl border ${activeTheme.mutedBorder} px-5 py-3 transition ${activeTheme.hoverSurface}`}
             >
               Clear
             </button>

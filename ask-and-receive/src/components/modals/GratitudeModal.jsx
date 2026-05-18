@@ -16,7 +16,7 @@ export default function GratitudeModal({
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-3xl font-semibold">Share Gratitude</h2>
-            <p className="mt-3 text-stone-300 leading-7">
+            <p className={`mt-3 ${activeTheme.secondaryText} leading-7`}>
               Share what happened and what it meant.
             </p>
           </div>
@@ -24,7 +24,7 @@ export default function GratitudeModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-stone-700 px-3 py-1 text-sm hover:bg-stone-800 transition"
+            className={`rounded-full border ${activeTheme.mutedBorder} px-3 py-1 text-sm transition ${activeTheme.hoverSurface}`}
           >
             Close
           </button>
@@ -32,7 +32,7 @@ export default function GratitudeModal({
 
         <form onSubmit={onSubmit} className="mt-8 grid gap-4">
           <label className="grid gap-2 text-sm">
-            <span className="text-stone-300">Gratitude</span>
+            <span className={`${activeTheme.subtleText}`}>Gratitude</span>
             <textarea
               rows={5}
               value={gratitudeForm.body}
@@ -43,13 +43,13 @@ export default function GratitudeModal({
                   body: event.target.value,
                 }))
               }
-              className={`rounded-3xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 text-stone-100 outline-none`}
+              className={`rounded-3xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 ${activeTheme.primaryText} outline-none`}
             />
             <div
               className={`text-right text-xs ${
                 500 - gratitudeForm.body.length <= 10
                   ? "text-red-400"
-                  : "text-stone-500"
+                  : `${activeTheme.secondaryText}`
               }`}
             >
               {500 - gratitudeForm.body.length} characters left
@@ -59,7 +59,7 @@ export default function GratitudeModal({
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
-              className={`rounded-2xl bg-gradient-to-r ${activeTheme.button} px-4 py-2 font-medium text-stone-950 transition`}
+              className={`rounded-2xl bg-gradient-to-r ${activeTheme.button} px-4 py-2 font-medium ${activeTheme.buttonText} transition`}
             >
               Share Gratitude
             </button>
@@ -67,7 +67,7 @@ export default function GratitudeModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-2xl border border-stone-700 px-5 py-3 hover:bg-stone-900/80 transition"
+              className={`rounded-2xl border ${activeTheme.mutedBorder} px-5 py-3 transition ${activeTheme.hoverSurface}`}
             >
               Cancel
             </button>

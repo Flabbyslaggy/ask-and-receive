@@ -42,17 +42,17 @@ export default function MyHelpOfferCard({
             <div className="min-w-0">
               <div
                 onClick={handleRequesterClick}
-                className="text-sm text-stone-400 cursor-pointer hover:underline break-words"
+                className={`text-sm ${activeTheme.subtleText} cursor-pointer hover:underline break-words`}
               >
                 {askerName}
               </div>
 
-              <div className="text-med text-white-300 break-words">
+              <div className={`text-med ${activeTheme.primaryText} break-words`}>
                 {askTitle}
               </div>
             </div>
 
-            <div className="shrink-0 text-sm text-stone-300">
+            <div className={`shrink-0 text-sm ${activeTheme.mutedText}`}>
               {offer.status || "pending"}
             </div>
           </div>
@@ -62,7 +62,7 @@ export default function MyHelpOfferCard({
           <div className="mb-4 flex justify-end">
             <button
               onClick={onCollapse}
-              className={`rounded-xl border ${activeTheme.mutedBorder} px-3 py-1 text-sm text-stone-300 transition ${activeTheme.hoverSurface}`}
+              className={`rounded-xl border ${activeTheme.mutedBorder} px-3 py-1 text-sm ${activeTheme.mutedText} transition ${activeTheme.hoverSurface}`}
             >
               Collapse
             </button>
@@ -72,32 +72,32 @@ export default function MyHelpOfferCard({
             {/* LEFT SIDE */}
             <div className="grid gap-6 sm:grid-cols-2">
               <div>
-                <div className="text-sm text-stone-400">Ask</div>
-                <div className="text-xl font-semibold text-white">
+                <div className={`text-sm ${activeTheme.subtleText}`}>Ask</div>
+                <div className={`text-xl font-semibold ${activeTheme.primaryText}`}>
                   {askTitle}
                 </div>
               </div>
 
               <div>
-                <div className="text-sm text-stone-400">Offered on</div>
-                <div className="text-base text-stone-200">
+                <div className={`text-sm ${activeTheme.subtleText}`}>Offered on</div>
+                <div className={`text-base ${activeTheme.secondaryText}`}>
                   {new Date(offer.created_at).toLocaleDateString()}
                 </div>
               </div>
 
               <div>
-                <div className="text-sm text-stone-400">Requested by</div>
+                <div className={`text-sm ${activeTheme.subtleText}`}>Requested by</div>
                 <div
                   onClick={handleRequesterClick}
-                  className="text-sm text-stone-400 cursor-pointer hover:underline"
+                  className={`text-sm ${activeTheme.subtleText} cursor-pointer hover:underline`}
                 >
                   {askerName}
                 </div>
               </div>
 
               <div>
-                <div className="text-sm text-stone-400">Status</div>
-                <div className="text-base text-stone-200">
+                <div className={`text-sm ${activeTheme.subtleText}`}>Status</div>
+                <div className={`text-base ${activeTheme.secondaryText}`}>
                   {offer.status || "pending"}
                 </div>
               </div>
@@ -106,15 +106,15 @@ export default function MyHelpOfferCard({
             {/* RIGHT SIDE */}
             <div className="space-y-6">
               <div>
-                <div className="text-sm text-stone-400">Original Request</div>
-                <div className="text-base text-stone-200">
+                <div className={`text-sm ${activeTheme.subtleText}`}>Original Request</div>
+                <div className={`text-base ${activeTheme.secondaryText}`}>
                   {askBody}
                 </div>
               </div>
 
               <div>
                 <div className="mb-2 flex items-center justify-between">
-                  <div className="text-sm text-stone-400">Your Offer</div>
+                  <div className={`text-sm ${activeTheme.subtleText}`}>Your Offer</div>
 
                   <button
                     onClick={() => {
@@ -123,7 +123,7 @@ export default function MyHelpOfferCard({
                         helper_message: offer.helper_message || "",
                       })
                     }}
-                    className={`rounded-xl border ${activeTheme.mutedBorder} px-3 py-1 text-xs text-stone-300 transition ${activeTheme.hoverSurface}`}
+                    className={`rounded-xl border ${activeTheme.mutedBorder} px-3 py-1 text-xs ${activeTheme.mutedText} transition ${activeTheme.hoverSurface}`}
                   >
                     Edit
                   </button>
@@ -138,7 +138,7 @@ export default function MyHelpOfferCard({
                         onWithdrawOffer(offer.id)
                       }
                     }}
-                    className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-1 text-sm text-red-200 hover:bg-red-500/20 transition"
+                    className={`rounded-xl border ${activeTheme.dangerBorder} ${activeTheme.dangerBg} px-3 py-1 text-sm ${activeTheme.dangerText} ${activeTheme.dangerHover} transition`}
                   >
                     Withdraw
                   </button>
@@ -154,13 +154,13 @@ export default function MyHelpOfferCard({
                           helper_message: e.target.value,
                         })
                       }
-                      className={`mt-2 w-full rounded-xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-3 py-2 text-sm text-stone-200 outline-none`}
+                      className={`mt-2 w-full rounded-xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-3 py-2 text-sm ${activeTheme.secondaryText} outline-none`}
                     />
 
                     <div className="mt-2 flex gap-2">
                       <button
                         onClick={() => onSaveOfferEdit(offer.id)}
-                        className={`rounded-xl bg-gradient-to-r ${activeTheme.button} px-3 py-1 text-sm font-semibold text-stone-950 transition`}
+                        className={`rounded-xl bg-gradient-to-r ${activeTheme.button} px-3 py-1 text-sm font-semibold ${activeTheme.buttonText} transition`}
                       >
                         Save
                       </button>
@@ -170,14 +170,14 @@ export default function MyHelpOfferCard({
                           setEditingOfferId(null)
                           setEditOfferForm({ helper_message: "" })
                         }}
-                        className={`rounded-xl border ${activeTheme.mutedBorder} px-3 py-1 text-sm text-stone-300 transition ${activeTheme.hoverSurface}`}
+                        className={`rounded-xl border ${activeTheme.mutedBorder} px-3 py-1 text-sm ${activeTheme.mutedText} transition ${activeTheme.hoverSurface}`}
                       >
                         Cancel
                       </button>
                     </div>
                   </>
                 ) : (
-                  <div className="text-base text-stone-200">
+                  <div className={`text-base ${activeTheme.secondaryText}`}>
                     {offer.helper_message}
                   </div>
                 )}

@@ -17,23 +17,24 @@ function AskCard({
           {ask.category}
         </span>
 
-        <span className="text-xs text-stone-400">by {ask.asker}</span>
+        <span className={`text-xs ${activeTheme.subtleText}`}>by {ask.asker}</span>
       </div>
 
-      <h3 className="mt-4 text-xl font-medium">{ask.title}</h3>
+      <h3 className={`mt-4 text-xl font-medium ${activeTheme.primaryText}`}>
+        {ask.title}
+      </h3>
 
       <button
         type="button"
         onClick={onToggleExpanded}
-        className="mt-4 text-sm text-stone-400 hover:text-stone-200 transition"
+        className={`mt-4 text-sm transition ${activeTheme.subtleText} hover:opacity-80`}
       >
         {isExpanded ? "Hide details" : "View details"}
       </button>
 
       {isExpanded && (
-        <div className="mt-4 border-t border-stone-800 pt-4">
-          <p className="text-stone-300 leading-7">{ask.body}</p>
-
+        <div className={`mt-4 border-t ${activeTheme.mutedBorder} pt-4`}>
+          <p className={`mt-3 leading-7 ${activeTheme.secondaryText}`}>{ask.body}</p>
           <div className="mt-4">
             {ask.isFulfilled ? (
               <div
@@ -42,18 +43,18 @@ function AskCard({
                 Fulfilled
               </div>
             ) : ask.isOwnAsk ? (
-              <div className="inline-block rounded-xl border border-stone-700 px-4 py-2 text-sm text-stone-400">
+              <div className={`inline-block rounded-xl border ${activeTheme.mutedBorder} px-4 py-2 text-sm ${activeTheme.subtleText}`}>
                 Your Ask
               </div>
             ) : ask.hasMyOffer ? (
-              <div className="inline-block rounded-xl border border-stone-700 px-4 py-2 text-sm text-stone-400">
+              <div className={`inline-block rounded-xl border ${activeTheme.mutedBorder} px-4 py-2 text-sm ${activeTheme.subtleText}`}>
                 Offer Sent
               </div>
             ) : (
               <button
                 type="button"
                 onClick={() => onHelpClick(ask)}
-                className={`rounded-2xl bg-gradient-to-r ${activeTheme.button} px-4 py-2 font-medium text-stone-950 transition`}
+                className={`rounded-2xl bg-gradient-to-r ${activeTheme.button} px-4 py-2 font-medium ${activeTheme.buttonText} transition`}
               >
                 I Can Help
               </button>
@@ -76,7 +77,9 @@ function AskSection({ title, asks, onHelpClick, activeTheme }) {
 
   return (
     <div>
-      <div className="mb-3 text-lg font-semibold text-white">{title}</div>
+      <div className={`mb-3 text-lg font-semibold ${activeTheme.primaryText}`}>
+        {title}
+      </div>
 
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {asks.map((ask) => {
@@ -109,21 +112,24 @@ export default function AskList({ asks, onHelpClick, isLoading }) {
     <section id="asks" className="mx-auto max-w-6xl px-6 py-12">
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="text-3xl font-semibold">Asks</h2>
-          <p className="mt-3 text-stone-300 leading-7 max-w-2xl">
+          <h2 className={`text-3xl font-semibold ${activeTheme.primaryText}`}>
+            Asks
+          </h2>
+
+          <p className={`mt-3 leading-7 max-w-2xl ${activeTheme.secondaryText}`}>
             Browse open asks, asks that already have offers, and fulfilled asks.
           </p>
         </div>
 
-        <div className="rounded-2xl border border-stone-800 bg-stone-900/50 px-4 py-3 text-sm text-stone-300">
+        <div className={`rounded-2xl border ${activeTheme.cardBorder} ${activeTheme.sectionBg} px-4 py-3 text-sm ${activeTheme.mutedText}`}>
           {asks.length} ask{asks.length === 1 ? "" : "s"} posted
         </div>
       </div>
 
       {isLoading ? (
-        <div className="mt-6 text-stone-400">Loading asks...</div>
+        <div className={`mt-6 ${activeTheme.subtleText}`}>Loading asks...</div>
       ) : asks.length === 0 ? (
-        <div className={`mt-6 rounded-3xl border border-dashed ${activeTheme.inputBorder} ${activeTheme.sectionBg} backdrop-blur p-8 text-stone-300`}>
+        <div className={`mt-6 rounded-3xl border border-dashed ${activeTheme.inputBorder} ${activeTheme.sectionBg} backdrop-blur p-8 ${activeTheme.secondaryText}`}>
           No asks yet. Add the first one above, then share the page and invite
           people to contribute.
         </div>

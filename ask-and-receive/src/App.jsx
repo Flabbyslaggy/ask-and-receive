@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react"
 import { supabase } from "./supabaseClient"
 import Auth from "./components/Auth"
-import oceanBg from "./assets/ocean-bg.jpg"
 import Header from "./components/Header"
 import Hero from "./components/Hero"
 import { ThemeProvider } from "./ThemeContext"
@@ -982,9 +981,9 @@ export default function App() {
         className="min-h-screen text-white bg-cover bg-center bg-fixed"
         style={{
           backgroundImage: `
-      linear-gradient(rgba(10,10,10,0.25), rgba(10,10,10,0.45)),
-      url(${oceanBg})
-    `,
+    ${activeTheme.backgroundGradient},
+    url(${activeTheme.backgroundImage})
+  `,
         }}
       >
         <Header
@@ -996,7 +995,7 @@ export default function App() {
           <div className="flex justify-end">
             <button
               onClick={handleLogout}
-              className="rounded-2xl border border-stone-700 px-4 py-2 hover:bg-stone-900/80 transition"
+              className={`rounded-2xl border ${activeTheme.mutedBorder} px-4 py-2 transition ${activeTheme.hoverSurface}`}
             >
               Log Out
             </button>
@@ -1215,6 +1214,7 @@ export default function App() {
                       <option value="purple">Purple</option>
                       <option value="rose">Rose</option>
                       <option value="amber">Amber</option>
+                      <option value="yosemite">Yosemite</option>
                     </select>
                   </div>
 

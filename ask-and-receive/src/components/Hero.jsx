@@ -6,11 +6,11 @@ export default function Hero({ status, onClearSavedData }) {
   return (
     <section className="mx-auto max-w-6xl px-6 pt-16 pb-12">
       <div className="max-w-4xl">
-        <h1 className="text-4xl md:text-4xl font-semibold tracking-tight leading-tight">
+        <h1 className={`text-4xl md:text-4xl font-semibold tracking-tight leading-tight ${activeTheme.primaryText}`}>
           You need something. I have something. Let's get together.
         </h1>
 
-        <p className="mt-4 text-stone-300 max-w-2xl leading-7">
+        <p className={`mt-4 max-w-2xl leading-7 ${activeTheme.secondaryText}`}>
           Honest asks. Real generosity. No drama. Just moments.
         </p>
 

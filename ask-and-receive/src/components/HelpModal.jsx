@@ -21,10 +21,12 @@ export default function HelpModal({
       <div className={`relative z-10 w-full max-w-2xl rounded-3xl border ${activeTheme.cardBorder} ${activeTheme.modalBg} backdrop-blur p-6 md:p-8 shadow-2xl`}>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-semibold">Help an Ask Happen</h2>
-            <p className="mt-3 text-stone-300 leading-7">
+            <h2 className={`text-3xl font-semibold ${activeTheme.primaryText}`}>
+              Help an Ask Happen
+            </h2>
+            <p className={`mt-3 ${activeTheme.mutedText} leading-7`}>
               You’re responding to{" "}
-              <span className="font-medium text-white">{selectedAsk.title}</span>
+              <span className={`font-medium ${activeTheme.primaryText}`}>{selectedAsk.title}</span>
             </p>
           </div>
 
@@ -33,7 +35,7 @@ export default function HelpModal({
               className={`rounded-xl px-3 py-2 text-xs ${helpStatus.includes("Could not") ||
                 helpStatus.includes("must") ||
                 helpStatus.includes("Please")
-                ? "border border-red-400/30 bg-red-400/10 text-red-200"
+                ? `border ${activeTheme.dangerBorder} ${activeTheme.dangerBg} ${activeTheme.dangerText}`
                 : `${activeTheme.accentBorder} ${activeTheme.accentBg} ${activeTheme.accentText}`
                 }`}
             >
@@ -44,7 +46,7 @@ export default function HelpModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-stone-700 px-3 py-1 text-sm hover:bg-stone-800 transition"
+            className={`rounded-full border ${activeTheme.mutedBorder} px-3 py-1 text-sm transition ${activeTheme.hoverSurface}`}
           >
             Close
           </button>
@@ -54,7 +56,7 @@ export default function HelpModal({
           <div className="grid gap-4 md:grid-cols-2">
           </div>
           <label className="grid gap-2 text-sm">
-            <span className="text-stone-300">How do you want to help?</span>
+            <span className={`${activeTheme.mutedText}`}>How do you want to help?</span>
             <textarea
               rows={5}
               value={helpForm.helperMessage}
@@ -66,10 +68,10 @@ export default function HelpModal({
                 }))
               }
               placeholder="Tell us what you can offer."
-              className={`rounded-3xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 text-stone-100 outline-none placeholder:text-stone-500 focus:ring-2 ${activeTheme.ring}`}
+              className={`rounded-3xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 ${activeTheme.primaryText} outline-none placeholder:opacity-60 focus:ring-2 ${activeTheme.ring}`}
             />
             <div
-              className={`text-right text-xs ${500 - helpForm.helperMessage.length <= 10 ? "text-red-400" : "text-stone-400"
+              className={`text-right text-xs ${500 - helpForm.helperMessage.length <= 10 ? `${activeTheme.dangerText}` : `${activeTheme.secondaryText}`
                 }`}
             >
               {500 - helpForm.helperMessage.length} characters left
@@ -79,14 +81,14 @@ export default function HelpModal({
           <div className="flex flex-wrap gap-3 pt-2">
             <button
               type="submit"
-              className={`rounded-2xl bg-gradient-to-r ${activeTheme.button} text-stone-950 px-5 py-3 font-medium transition`}
+              className={`rounded-2xl bg-gradient-to-r ${activeTheme.button} ${activeTheme.buttonText} px-5 py-3 font-medium transition`}
             >
               Submit Help Interest
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-2xl border border-stone-700 px-5 py-3 hover:bg-stone-900/80 transition"
+              className={`rounded-2xl border ${activeTheme.mutedBorder} px-5 py-3 transition ${activeTheme.hoverSurface}`}
             >
               Cancel
             </button>
