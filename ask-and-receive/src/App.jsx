@@ -37,6 +37,7 @@ import {
   getMessagesForOffer,
 } from "./services/messageService"
 import { uploadAvatar } from "./services/profileActions"
+import ProfilePage from "./components/profile/ProfilePage"
 import {
   fetchProfile,
   fetchProfileOffers,

@@ -1,5 +1,6 @@
 import oceanBg from "../assets/ocean-bg.jpg"
 import yosemiteBg from "../assets/yosemite-bg.jpeg"
+import forestBg from "../assets/forestBg.png"
 
 export const themes = {
     emerald: {
@@ -19,7 +20,7 @@ export const themes = {
         modalBg: "bg-stone-900/70",
         inputBg: "bg-stone-900/80",
         inputBorder: "border-stone-700",
-        headerBg: "bg-stone-950/70",
+        headerBg: "bg-stone-950/40",
         headerBorder: "border-stone-800/60",
         hoverSurface: "hover:bg-stone-900/80",
         mutedBorder: "border-stone-700",
@@ -257,5 +258,68 @@ export const themes = {
         successBg: "bg-green-400/10",
         successHover: "hover:bg-green-400/20",
     },
+    atari: {
+  button: "from-[#FF7BAC] to-[#F4BEAE] hover:from-[#ff93ba] hover:to-[#f7cfc3]",
+  solidButton: "bg-[#FF7BAC] hover:bg-[#ff93ba]",
+
+  accentText: "text-[#FF7BAC]",
+  accentBorder: "border-[#FF7BAC]/35",
+  accentBg: "bg-[#FF7BAC]/10",
+
+  inactiveBorder: "border-[#D3B6D3]/45",
+
+  badge: "border-[#FF7BAC]/30 bg-[#FF7BAC]/10 text-[#FFE4EE]",
+
+  ring: "ring-[#FF7BAC]/35",
+
+  logoGradientFrom: "#FF7BAC",
+  logoGradientTo: "#F4BEAE",
+
+  cardBg: "bg-[#F4BEAE]/22",
+  cardBorder: "border-[#F4BEAE]/35",
+
+  sectionBg: "bg-[#D3B6D3]/18",
+
+  modalBg: "bg-[#2f463a]/72",
+
+  inputBg: "bg-[#fff7f2]/16",
+  inputBorder: "border-[#F4BEAE]/45",
+
+  headerBg: "bg-[#F4BEAE]/10",
+  headerBorder: "border-[#F4BEAE]/30",
+
+  hoverSurface: "hover:bg-[#FF7BAC]/12",
+
+  mutedBorder: "border-[#D3B6D3]/35",
+
+  surfaceButton: "border border-[#F4BEAE]/40 hover:bg-[#FF7BAC]/30",
+
+  divider: "bg-[#F4BEAE]/35",
+
+  backgroundImage: forestBg,
+
+  backgroundGradient:
+    "linear-gradient(rgba(244,190,174,0.18), rgba(37,83,63,0.42))",
+
+  primaryText: "text-[#fff7f2]",
+  secondaryText: "text-[#f5e8e6]",
+  mutedText: "text-[#F4BEAE]",
+  subtleText: "text-[#D3B6D3]",
+
+  buttonText: "text-[#5b2d3f]",
+
+  dangerButton: "from-[#6D1F42] to-[#EF6F3C] hover:from-[#7e244d] hover:to-[#f3865b]",
+  solidDangerButton: "bg-[#EF6F3C] hover:bg-[#f3865b]",
+  dangerText: "text-[#FFD3C8]",
+  dangerBorder: "border-[#EF6F3C]/35",
+  dangerBg: "bg-[#EF6F3C]/12",
+  dangerHover: "hover:bg-[#EF6F3C]/22",
+
+  successButton: "bg-[#AACC96] hover:bg-[#b9d9a7]",
+  successText: "text-[#25533F]",
+  successBorder: "border-[#AACC96]/35",
+  successBg: "bg-[#AACC96]/12",
+  successHover: "hover:bg-[#AACC96]/22",
+},
 }
 

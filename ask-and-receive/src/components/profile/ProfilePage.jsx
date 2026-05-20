@@ -91,6 +91,7 @@ export default function ProfilePage({
                             <option value="rose">Rose</option>
                             <option value="amber">Amber</option>
                             <option value="yosemite">Yosemite</option>
+                            <option value="atari">Atari</option>
                         </select>
                     </div>
 
