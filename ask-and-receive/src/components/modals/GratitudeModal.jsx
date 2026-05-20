@@ -15,7 +15,9 @@ export default function GratitudeModal({
       <div className={`relative z-10 w-full max-w-2xl rounded-3xl border ${activeTheme.cardBorder} ${activeTheme.modalBg} p-6 shadow-2xl backdrop-blur md:p-8`}>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-semibold">Share Gratitude</h2>
+            <h2 className={`text-3xl font-semibold ${activeTheme.primaryText}`}>
+              Share Gratitude
+            </h2>
             <p className={`mt-3 ${activeTheme.secondaryText} leading-7`}>
               Share what happened and what it meant.
             </p>

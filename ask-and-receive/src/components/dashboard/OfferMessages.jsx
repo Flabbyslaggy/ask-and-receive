@@ -15,7 +15,7 @@ export default function OfferMessages({
     <div className={`mt-6 rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.sectionBg} p-4`}>
       <div
         onClick={onToggle}
-        className={`text-sm ${activeTheme.subtleText} cursor-pointer hover:text-white transition flex justify-between`}
+        className={`text-sm ${activeTheme.subtleText} cursor-pointer hover:${activeTheme.primaryText} transition flex justify-between`}
       >
         <span>Messages ({messages.length})</span>
         <span>{isExpanded ? "−" : "+"}</span>

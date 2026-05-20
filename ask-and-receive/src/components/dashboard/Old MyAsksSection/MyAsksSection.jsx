@@ -37,8 +37,8 @@ export default function MyAsksSection({
 
   return (
     <section className="mx-auto mt-10 max-w-4xl px-6">
-      <div className="rounded-3xl border border-stone-800 bg-stone-900/60 p-6 backdrop-blur">
-        <h2 className="text-2xl font-semibold text-white">My Asks</h2>
+      <SectionCard activeTheme={activeTheme}>
+        <h2 className="text-2xl font-semibold ${activeTheme.primaryText}">My Asks</h2>
 
         <div className="mt-4 grid gap-4">
           {myAsks.map((ask) => {
@@ -59,27 +59,27 @@ export default function MyAsksSection({
                         current === ask.id ? null : ask.id
                       )
                     }
-                    className="cursor-pointer rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3 hover:bg-stone-900/80 transition flex justify-between items-center"
+                    className={`cursor-pointer rounded-2xl border ${activeTheme.cardBorder} ${activeTheme.cardBg} px-4 py-3 ${activeTheme.hoverSurface} transition flex justify-between items-center`}
                   >
                     <div>
-                      <div className="text-sm text-stone-400">My Ask</div>
-                      <div className="text-base text-white font-medium">
+                      <div className={`text-sm ${activeTheme.subtleText}`}>My Ask</div>
+                      <div className={`text-base ${activeTheme.primaryText} font-medium`}>
                         {ask.title}
                       </div>
                     </div>
 
-                    <div className="text-sm text-stone-300">
+                    <div className={`text-sm ${activeTheme.mutedText}`}>
                       {isFulfilled ? "fulfilled" : "open"}
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-3xl border border-stone-800 bg-stone-900/60 backdrop-blur p-6 shadow-lg">
+                  <SectionCard activeTheme={activeTheme} className="shadow-lg">
                     <div className="mb-4 flex justify-end gap-2">
                       {editingAskId === ask.id ? (
                         <>
                           <button
                             onClick={() => handleSaveAskEdit(ask.id)}
-                            className={`rounded-xl bg-gradient-to-r ${activeTheme.button} px-3 py-1 text-sm font-semibold text-stone-950 transition`}
+                            className={`rounded-xl bg-gradient-to-r ${activeTheme.button} px-3 py-1 text-sm font-semibold ${activeTheme.buttonText} transition`}
                           >
                             Save
                           </button>
@@ -89,7 +89,7 @@ export default function MyAsksSection({
                               setEditingAskId(null)
                               setEditAskForm({ title: "", body: "" })
                             }}
-                            className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                            className={`rounded-xl border ${activeTheme.inactiveBorder} px-3 py-1 text-sm ${activeTheme.mutedText} ${activeTheme.hoverSurface} transition`}
                           >
                             Cancel
                           </button>
@@ -100,7 +100,7 @@ export default function MyAsksSection({
                             setEditingAskId(ask.id)
                             setEditAskForm({ title: ask.title, body: ask.body })
                           }}
-                          className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                          className={`rounded-xl border ${activeTheme.inactiveBorder} px-3 py-1 text-sm ${activeTheme.mutedText} ${activeTheme.hoverSurface} transition`}
                         >
                           Edit
                         </button>
@@ -109,14 +109,14 @@ export default function MyAsksSection({
                       <button
                         type="button"
                         onClick={() => handleDeleteAsk(ask.id)}
-                        className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-1 text-sm text-red-200 hover:bg-red-500/20 transition"
+                        className={`rounded-xl border ${activeTheme.dangerBorder} ${activeTheme.dangerBg} px-3 py-1 text-sm ${activeTheme.dangerText} hover:${activeTheme.dangerHover} transition`}
                       >
                         Delete
                       </button>
 
                       <button
                         onClick={() => setExpandedAskId(null)}
-                        className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                        className={`rounded-xl border ${activeTheme.inactiveBorder} px-3 py-1 text-sm ${activeTheme.mutedText} ${activeTheme.hoverSurface} transition`}
                       >
                         Collapse
                       </button>
@@ -125,7 +125,7 @@ export default function MyAsksSection({
                     <div className="grid gap-6 md:grid-cols-2">
                       <div className="space-y-4">
                         <div>
-                          <div className="text-sm text-stone-400">Ask</div>
+                          <div className={`text-sm ${activeTheme.subtleText}`}>Ask</div>
 
                           {editingAskId === ask.id ? (
                             <input
@@ -138,23 +138,23 @@ export default function MyAsksSection({
                                   title: e.target.value,
                                 }))
                               }
-                              className="mt-1 w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-white outline-none"
+                              className={`rounded-xl border ${activeTheme.inactiveBorder} px-3 py-1 text-sm ${activeTheme.mutedText} ${activeTheme.hoverSurface} transition`}
                             />
                           ) : (
-                            <div className="text-xl font-semibold text-white">
+                            <div className={`text-xl font-semibold ${activeTheme.primaryText}`}>
                               {ask.title}
                             </div>
                           )}
                         </div>
 
                         <div>
-                          <div className="text-sm text-stone-400">Category</div>
-                          <div className="text-base text-stone-200">{ask.category}</div>
+                          <div className={`text-sm ${activeTheme.subtleText}`}>Category</div>
+                          <div className={`text-base ${activeTheme.secondaryText}`}>{ask.category}</div>
                         </div>
 
                         <div>
-                          <div className="text-sm text-stone-400">Asked on</div>
-                          <div className="text-base text-stone-200">
+                          <div className={`text-sm ${activeTheme.subtleText}`}>Asked on</div>
+                          <div className={`text-base ${activeTheme.secondaryText}`}>
                             {new Date(ask.created_at).toLocaleDateString()}
                           </div>
                         </div>
@@ -165,7 +165,7 @@ export default function MyAsksSection({
                               Fulfilled
                             </div>
                           ) : (
-                            <div className="inline-block rounded-2xl border border-stone-700 px-3 py-1 text-sm text-stone-300">
+                            <div className={`rounded-xl border ${activeTheme.inactiveBorder} px-3 py-1 text-sm ${activeTheme.mutedText} ${activeTheme.hoverSurface} transition`}>
                               Open
                             </div>
                           )}
@@ -174,7 +174,7 @@ export default function MyAsksSection({
 
                       <div className="space-y-4">
                         <div>
-                          <div className="text-sm text-stone-400">Details</div>
+                          <div className={`text-sm ${activeTheme.subtleText}`}>Details</div>
 
                           {editingAskId === ask.id ? (
                             <textarea
@@ -186,10 +186,10 @@ export default function MyAsksSection({
                                   body: e.target.value,
                                 }))
                               }
-                              className="mt-1 w-full rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-200 outline-none"
+                              className={`mt-1 w-full rounded-xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-3 py-2 text-sm ${activeTheme.secondaryText} outline-none`}
                             />
                           ) : (
-                            <div className="text-base text-stone-200">{ask.body}</div>
+                            <div className={`text-base ${activeTheme.secondaryText}`}>{ask.body}</div>
                           )}
                         </div>
                       </div>
@@ -197,7 +197,7 @@ export default function MyAsksSection({
 
                     {relatedOffers.length > 0 && (
                       <div className="mt-6">
-                        <div className="text-sm text-stone-400">Offers on this ask</div>
+                        <div className={`text-sm ${activeTheme.subtleText}`}>Offers on this ask</div>
 
                         <div className="mt-3 space-y-3">
                           {relatedOffers.map((offer) => (
@@ -239,11 +239,11 @@ export default function MyAsksSection({
                     )}
 
                     {relatedStory && (
-                      <div className="mt-6 rounded-2xl border border-stone-700 bg-stone-950/30 p-4">
+                      <div className={`mt-6 rounded-2xl border ${activeTheme.inactiveBorder} ${activeTheme.sectionBg} p-4`}>
                         <div className="mb-3 flex items-start justify-between gap-3">
                           <div>
-                            <div className="text-sm text-stone-400">Gratitude</div>
-                            <div className="text-base font-medium text-white">
+                            <div className={`text-sm ${activeTheme.subtleText}`}>Gratitude</div>
+                            <div className={`text-base font-medium ${activeTheme.primaryText}`}>
                               {relatedStory.title}
                             </div>
                           </div>
@@ -258,7 +258,7 @@ export default function MyAsksSection({
                                   body: relatedStory.body,
                                 })
                               }}
-                              className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                             className={`rounded-xl border ${activeTheme.inactiveBorder} px-3 py-1 text-sm ${activeTheme.mutedText} transition ${activeTheme.hoverSurface}`}
                             >
                               Edit
                             </button>
@@ -266,7 +266,7 @@ export default function MyAsksSection({
                             <button
                               type="button"
                               onClick={() => handleDeleteStory(relatedStory.id)}
-                              className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-1 text-sm text-red-200 hover:bg-red-500/20 transition"
+                              className={`rounded-xl border ${activeTheme.dangerBorder} ${activeTheme.dangerBg} px-3 py-1 text-sm ${activeTheme.dangerText} ${activeTheme.dangerHover} transition`}
                             >
                               Delete
                             </button>
@@ -285,7 +285,7 @@ export default function MyAsksSection({
                                   title: e.target.value,
                                 }))
                               }
-                              className="rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-white outline-none"
+                              className={`rounded-xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-3 py-2 text-sm ${activeTheme.primaryText} outline-none`}
                             />
 
                             <textarea
@@ -297,14 +297,14 @@ export default function MyAsksSection({
                                   body: e.target.value,
                                 }))
                               }
-                              className="rounded-xl border border-stone-700 bg-stone-900/80 px-3 py-2 text-sm text-stone-200 outline-none"
+                              className={`rounded-xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-3 py-2 text-sm ${activeTheme.primaryText} outline-none`}
                             />
 
                             <div className="flex gap-2">
                               <button
                                 type="button"
                                 onClick={() => handleSaveStoryEdit(relatedStory.id)}
-                                className={`rounded-xl bg-gradient-to-r ${activeTheme.button} px-3 py-1 text-sm font-semibold text-stone-950 transition`}
+                                className={`rounded-xl bg-gradient-to-r ${activeTheme.button} px-3 py-1 text-sm font-semibold ${activeTheme.buttonText} transition`}
                               >
                                 Save
                               </button>
@@ -315,26 +315,26 @@ export default function MyAsksSection({
                                   setEditingStoryId(null)
                                   setEditStoryForm({ title: "", body: "" })
                                 }}
-                                className="rounded-xl border border-stone-700 px-3 py-1 text-sm text-stone-300 hover:bg-stone-900/80 transition"
+                                className={`rounded-xl border ${activeTheme.inactiveBorder} px-3 py-1 text-sm ${activeTheme.mutedText} transition ${activeTheme.hoverSurface}`}
                               >
                                 Cancel
                               </button>
                             </div>
                           </div>
                         ) : (
-                          <div className="text-sm text-stone-200">
+                          <div className={`text-sm ${activeTheme.subtleText}`}>
                             {relatedStory.body}
                           </div>
                         )}
                       </div>
                     )}
-                  </div>
+                  </SectionCard>
                 )}
               </div>
             )
           })}
         </div>
-      </div>
+      </SectionCard>
     </section>
   )
 }

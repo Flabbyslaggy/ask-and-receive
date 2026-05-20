@@ -1,28 +1,24 @@
 import { useEffect, useState } from "react"
 import { supabase } from "./supabaseClient"
 import Auth from "./components/Auth"
+import HomePage from "./components/home/HomePage"
 import Header from "./components/Header"
-import Hero from "./components/Hero"
 import { ThemeProvider } from "./ThemeContext"
 import { themes } from "./theme/themes"
-import StoriesSection from "./components/StoriesSection"
 import {
   fetchStories,
   createStory,
   updateStory,
   deleteStory,
 } from "./services/storyService"
-import AskForm from "./components/AskForm"
-import AskList from "./components/AskList"
 import HelpModal from "./components/HelpModal"
-import MyAsksSection from "./components/dashboard/MyAsksSection"
 import {
   fetchAsks,
   createAsk,
   updateAsk,
   deleteAskCascade,
 } from "./services/askService"
-import MyHelpOffersSection from "./components/dashboard/MyHelpOffersSection"
+import DashboardPage from "./components/dashboard/DashboardPage"
 import {
   fetchMyHelpOffers,
   fetchAllOffers,
@@ -40,6 +36,7 @@ import {
   sendMessage,
   getMessagesForOffer,
 } from "./services/messageService"
+import { uploadAvatar } from "./services/profileActions"
 import {
   fetchProfile,
   fetchProfileOffers,
@@ -47,9 +44,7 @@ import {
   updateProfile,
   syncProfileDisplayName,
 } from "./services/profileService"
-import GratitudeModal from "./components/modals/GratitudeModal"
-import ProfileModal from "./components/modals/ProfileModal"
-import ReportModal from "./components/modals/ReportModal"
+import AppModals from "./components/modals/AppModals"
 
 const ASK_STORAGE_KEY = "ask-and-receive-asks"
 
@@ -947,6 +942,65 @@ export default function App() {
     await supabase.auth.signOut()
   }
 
+  async function handleAvatarUpload(file) {
+    const { publicUrl, error } = await uploadAvatar({
+      file,
+      userId: session.user.id,
+      supabase,
+    })
+
+    if (error) {
+      console.error("Avatar upload error:", error)
+      setProfileStatus(`Could not upload avatar: ${error.message}`)
+      return
+    }
+
+    if (!publicUrl) return
+
+    setProfile((current) => ({
+      ...current,
+      avatar_url: publicUrl,
+    }))
+
+    setProfileStatus("Avatar uploaded. Click Save Profile to keep it.")
+  }
+
+  async function handleSaveProfile() {
+    const trimmedNickname = (profile?.nickname || "").trim()
+    const selectedTheme = profile?.theme || "emerald"
+    const avatarUrl = (profile?.avatar_url || "").trim()
+
+    if (!trimmedNickname) {
+      setProfileStatus("Nickname cannot be empty.")
+      return
+    }
+
+    const { error } = await updateProfile({
+      userId: session.user.id,
+      nickname: trimmedNickname,
+      theme: selectedTheme,
+      avatarUrl,
+    })
+
+    if (error) {
+      setProfileStatus("Could not update profile.")
+      return
+    }
+
+    const { error: syncError } = await syncProfileDisplayName({
+      userId: session.user.id,
+      nickname: trimmedNickname,
+    })
+
+    if (syncError) {
+      setProfileStatus("Profile saved, but display name sync failed.")
+      return
+    }
+
+    localStorage.setItem("ask-and-receive-theme", selectedTheme)
+    setProfileStatus("Profile updated.")
+  }
+
   function handleClearSavedData() {
     setAsks([])
     localStorage.removeItem(ASK_STORAGE_KEY)
@@ -969,7 +1023,7 @@ export default function App() {
 
   if (isAppLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-white">
+      <div className={`min-h-screen flex items-center justify-center ${activeTheme.primaryText}`}>
         Loading Ask & Receive...
       </div>
     )
@@ -978,7 +1032,7 @@ export default function App() {
   return (
     <ThemeProvider activeTheme={activeTheme}>
       <div
-        className="min-h-screen text-white bg-cover bg-center bg-fixed"
+        className={`min-h-screen ${activeTheme.primaryText} bg-cover bg-center bg-fixed`}
         style={{
           backgroundImage: `
     ${activeTheme.backgroundGradient},
@@ -1001,324 +1055,118 @@ export default function App() {
             </button>
           </div>
         </div>
+
         {activeView === "home" && (
-          <>
-            <Hero
-              status={status}
-              onClearSavedData={handleClearSavedData}
-            />
-
-            <StoriesSection
-              stories={stories}
-              handleProfileClick={handleProfileClick}
-            />
-
-            <AskForm
-              askForm={askForm}
-              setAskForm={setAskForm}
-              categories={categories}
-              handleAskSubmit={handleAskSubmit}
-              askStatus={askStatus}
-            />
-
-            <AskList
-              isLoading={isAppLoading}
-              asks={asks.map((ask) => ({
-                ...ask,
-                isOwnAsk: ask.user_id === session.user.id,
-                hasMyOffer: myHelpOffers.some(
-                  (offer) => offer.ask_id === ask.id
-                ),
-                hasAnyOffer: allOffers.some(
-                  (offer) => offer.ask_id === ask.id
-                ),
-                isFulfilled: allOffers.some(
-                  (offer) =>
-                    offer.ask_id === ask.id &&
-                    (offer.status === "fulfilled")
-                ),
-              }))}
-              onHelpClick={handleHelpClick}
-            />
-          </>
-        )}
-        {activeView === "dashboard" && (
-          <>
-            <MyAsksSection
-              myAsks={myAsks}
-              offersForMyAsks={offersForMyAsks}
-              stories={stories}
-              expandedAskId={expandedAskId}
-              setExpandedAskId={setExpandedAskId}
-              editingAskId={editingAskId}
-              setEditingAskId={setEditingAskId}
-              editAskForm={editAskForm}
-              setEditAskForm={setEditAskForm}
-              handleSaveAskEdit={handleSaveAskEdit}
-              handleDeleteAsk={handleDeleteAsk}
-              activeTheme={activeTheme}
-              handleProfileClick={handleProfileClick}
-              setGratitudeAskId={setGratitudeAskId}
-              setIsGratitudeOpen={setIsGratitudeOpen}
-              handleAcceptOffer={handleAcceptOffer}
-              handleDeclineOffer={handleDeclineOffer}
-              handleFulfillOffer={handleFulfillOffer}
-              getMessagesForOffer={(offerId) =>
-                getMessagesForOffer(messages, offerId)
-              }
-              expandedMessagesOfferId={expandedMessagesOfferId}
-              setExpandedMessagesOfferId={setExpandedMessagesOfferId}
-              currentUserId={session.user.id}
-              messageInputs={messageInputs}
-              setMessageInputs={setMessageInputs}
-              handleSendMessage={handleSendMessage}
-              editingStoryId={editingStoryId}
-              setEditingStoryId={setEditingStoryId}
-              editStoryForm={editStoryForm}
-              setEditStoryForm={setEditStoryForm}
-              handleDeleteStory={handleDeleteStory}
-              handleSaveStoryEdit={handleSaveStoryEdit}
-            />
-
-            <MyHelpOffersSection
-              myHelpOffers={myHelpOffers}
-              asks={asks}
-              expandedHelpOfferId={expandedHelpOfferId}
-              setExpandedHelpOfferId={setExpandedHelpOfferId}
-              handleProfileClick={handleProfileClick}
-              editingOfferId={editingOfferId}
-              setEditingOfferId={setEditingOfferId}
-              editOfferForm={editOfferForm}
-              setEditOfferForm={setEditOfferForm}
-              handleSaveOfferEdit={handleSaveOfferEdit}
-              handleWithdrawOffer={handleWithdrawOffer}
-              activeTheme={activeTheme}
-              getMessagesForOffer={(offerId) =>
-                getMessagesForOffer(messages, offerId)
-              }
-              expandedMessagesOfferId={expandedMessagesOfferId}
-              setExpandedMessagesOfferId={setExpandedMessagesOfferId}
-              currentUserId={session.user.id}
-              messageInputs={messageInputs}
-              setMessageInputs={setMessageInputs}
-              handleSendMessage={handleSendMessage}
-            />
-          </>
-        )
-        }
-
-        {
-          activeView === "profile" && (
-            <section className="mx-auto mt-10 max-w-3xl px-6">
-              <div className={`rounded-3xl border ${activeTheme.cardBorder} ${activeTheme.cardBg} p-6 backdrop-blur`}>
-                <h2 className="text-2xl font-semibold text-white">Profile</h2>
-
-                <div className="mt-4">
-                  <div className="text-sm text-stone-400">Current nickname</div>
-                  <div className="mb-4 text-lg text-white">
-                    {profile?.nickname || "Anonymous"}
-                  </div>
-
-                  <input
-                    type="text"
-                    value={profile?.nickname || ""}
-                    onChange={(e) =>
-                      setProfile((current) => ({
-                        ...current,
-                        nickname: e.target.value,
-                      }))
-                    }
-                    maxLength={30}
-                    placeholder="Enter new nickname"
-                    className={`w-full rounded-xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-2 text-stone-100 outline-none`}
-                  />
-
-                  <div className="mt-4">
-                    <div className="text-sm text-stone-400">Avatar image URL</div>
-
-                    <input
-                      type="text"
-                      value={profile?.avatar_url || ""}
-                      onChange={(e) =>
-                        setProfile((current) => ({
-                          ...current,
-                          avatar_url: e.target.value,
-                        }))
-                      }
-                      placeholder="Paste an image URL..."
-                      className={`mt-2 w-full rounded-xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-2 text-stone-100 outline-none`}
-                    />
-
-                    <label className={`mt-3 inline-flex cursor-pointer items-center rounded-xl bg-gradient-to-r ${activeTheme.button} px-4 py-2 text-sm font-medium text-stone-950 transition`}>
-                      Upload avatar from device
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0]
-                          if (!file) return
-
-                          const fileExt = file.name.split(".").pop()
-                          const fileName = `${session.user.id}-${Date.now()}.${fileExt}`
-                          const filePath = `${session.user.id}/${fileName}`
-
-                          const { error: uploadError } = await supabase.storage
-                            .from("avatars")
-                            .upload(filePath, file)
-
-                          if (uploadError) {
-                            console.error("Avatar upload error:", uploadError)
-                            setProfileStatus(`Could not upload avatar: ${uploadError.message}`)
-                            return
-                          }
-
-                          const { data } = supabase.storage
-                            .from("avatars")
-                            .getPublicUrl(filePath)
-
-                          setProfile((current) => ({
-                            ...current,
-                            avatar_url: data.publicUrl,
-                          }))
-
-                          setProfileStatus("Avatar uploaded. Click Save Profile to keep it.")
-                        }}
-                        className="hidden"
-                      />
-                    </label>
-
-                    {profile?.avatar_url ? (
-                      <img
-                        src={profile.avatar_url}
-                        alt="Profile avatar preview"
-                        className="mt-4 h-20 w-20 rounded-full border border-stone-700 object-cover"
-                      />
-                    ) : null}
-                  </div>
-
-                  <div className="mt-6">
-                    <div className="text-sm text-stone-400">Theme</div>
-
-                    <select
-                      value={profile?.theme || "emerald"}
-                      onChange={(e) =>
-                        setProfile((current) => ({
-                          ...current,
-                          theme: e.target.value,
-                        }))
-                      }
-                      className={`mt-2 w-full rounded-xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-2 text-stone-100 outline-none`}
-                    >
-                      <option value="emerald">Emerald</option>
-                      <option value="ocean">Ocean</option>
-                      <option value="purple">Purple</option>
-                      <option value="rose">Rose</option>
-                      <option value="amber">Amber</option>
-                      <option value="yosemite">Yosemite</option>
-                    </select>
-                  </div>
-
-                  <button
-                    onClick={async () => {
-                      const trimmedNickname = (profile?.nickname || "").trim()
-                      const selectedTheme = profile?.theme || "emerald"
-                      const avatarUrl = (profile?.avatar_url || "").trim()
-
-                      if (!trimmedNickname) {
-                        setProfileStatus("Nickname cannot be empty.")
-                        return
-                      }
-
-                      const { error } = await updateProfile({
-                        userId: session.user.id,
-                        nickname: trimmedNickname,
-                        theme: selectedTheme,
-                        avatarUrl,
-                      })
-
-                      if (error) {
-                        setProfileStatus("Could not update profile.")
-                        return
-                      }
-
-                      const { error: syncError } = await syncProfileDisplayName({
-                        userId: session.user.id,
-                        nickname: trimmedNickname,
-                      })
-
-                      if (syncError) {
-                        setProfileStatus("Profile saved, but display name sync failed.")
-                        return
-                      }
-
-                      localStorage.setItem("ask-and-receive-theme", selectedTheme)
-                      setProfileStatus("Profile updated.")
-                    }}
-                    className={`mt-6 rounded-xl bg-gradient-to-r ${activeTheme.button} px-4 py-2 text-stone-950 transition`}
-                  >
-                    Save Profile
-                  </button>
-
-                  {profileStatus ? (
-                    <div className="mt-3">
-                      <div
-                        className={`inline-block rounded-lg border px-3 py-1 text-xs ${activeTheme.accentBorder} ${activeTheme.accentBg} ${activeTheme.accentText}`}
-                      >
-                        {profileStatus}
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-            </section>
-          )
-        }
-
-        {isGratitudeOpen && (
-          <GratitudeModal
-            gratitudeForm={gratitudeForm}
-            setGratitudeForm={setGratitudeForm}
-            onSubmit={handleGratitudeSubmit}
-            onClose={() => {
-              setIsGratitudeOpen(false)
-              setGratitudeAskId(null)
-            }}
-            activeTheme={activeTheme}
-          />
-        )}
-
-        {selectedProfile && (
-          <ProfileModal
-            selectedProfile={selectedProfile}
-            selectedProfileOffers={selectedProfileOffers}
+          <HomePage
+            status={status}
+            handleClearSavedData={handleClearSavedData}
+            stories={stories}
+            handleProfileClick={handleProfileClick}
+            askForm={askForm}
+            setAskForm={setAskForm}
+            categories={categories}
+            handleAskSubmit={handleAskSubmit}
+            askStatus={askStatus}
+            isAppLoading={isAppLoading}
             asks={asks}
-            onClose={() => setSelectedProfile(null)}
-            onReportClick={() => {
-              setIsReportOpen(true)
-              setReportReason("")
-              setReportStatus("")
-            }}
+            session={session}
+            myHelpOffers={myHelpOffers}
+            allOffers={allOffers}
+            handleHelpClick={handleHelpClick}
           />
         )}
 
-        {isReportOpen && (
-          <ReportModal
-            reportReason={reportReason}
-            setReportReason={setReportReason}
-            reportStatus={reportStatus}
-            onSubmit={handleReportSubmit}
-            onClose={() => setIsReportOpen(false)}
+        {activeView === "dashboard" && (
+          <DashboardPage
+            myAsks={myAsks}
+            offersForMyAsks={offersForMyAsks}
+            stories={stories}
+            expandedAskId={expandedAskId}
+            setExpandedAskId={setExpandedAskId}
+            editingAskId={editingAskId}
+            setEditingAskId={setEditingAskId}
+            editAskForm={editAskForm}
+            setEditAskForm={setEditAskForm}
+            handleSaveAskEdit={handleSaveAskEdit}
+            handleDeleteAsk={handleDeleteAsk}
+            activeTheme={activeTheme}
+            handleProfileClick={handleProfileClick}
+            setGratitudeAskId={setGratitudeAskId}
+            setIsGratitudeOpen={setIsGratitudeOpen}
+            handleAcceptOffer={handleAcceptOffer}
+            handleDeclineOffer={handleDeclineOffer}
+            handleFulfillOffer={handleFulfillOffer}
+            getMessagesForOffer={(offerId) =>
+              getMessagesForOffer(messages, offerId)
+            }
+            expandedMessagesOfferId={expandedMessagesOfferId}
+            setExpandedMessagesOfferId={setExpandedMessagesOfferId}
+            currentUserId={session.user.id}
+            messageInputs={messageInputs}
+            setMessageInputs={setMessageInputs}
+            handleSendMessage={handleSendMessage}
+            editingStoryId={editingStoryId}
+            setEditingStoryId={setEditingStoryId}
+            editStoryForm={editStoryForm}
+            setEditStoryForm={setEditStoryForm}
+            handleDeleteStory={handleDeleteStory}
+            handleSaveStoryEdit={handleSaveStoryEdit}
+
+            myHelpOffers={myHelpOffers}
+            asks={asks}
+            expandedHelpOfferId={expandedHelpOfferId}
+            setExpandedHelpOfferId={setExpandedHelpOfferId}
+            editingOfferId={editingOfferId}
+            setEditingOfferId={setEditingOfferId}
+            editOfferForm={editOfferForm}
+            setEditOfferForm={setEditOfferForm}
+            handleSaveOfferEdit={handleSaveOfferEdit}
+            handleWithdrawOffer={handleWithdrawOffer}
           />
         )}
 
-        <HelpModal
-          isOpen={isHelpOpen}
+        {activeView === "profile" && (
+          <ProfilePage
+            profile={profile}
+            setProfile={setProfile}
+            profileStatus={profileStatus}
+            setProfileStatus={setProfileStatus}
+            activeTheme={activeTheme}
+            handleAvatarUpload={handleAvatarUpload}
+            handleSaveProfile={handleSaveProfile}
+          />
+        )}
+
+        <AppModals
+          isGratitudeOpen={isGratitudeOpen}
+          gratitudeForm={gratitudeForm}
+          setGratitudeForm={setGratitudeForm}
+          handleGratitudeSubmit={handleGratitudeSubmit}
+          setIsGratitudeOpen={setIsGratitudeOpen}
+          setGratitudeAskId={setGratitudeAskId}
+          activeTheme={activeTheme}
+
+          selectedProfile={selectedProfile}
+          selectedProfileOffers={selectedProfileOffers}
+          asks={asks}
+          setSelectedProfile={setSelectedProfile}
+          setIsReportOpen={setIsReportOpen}
+          setReportReason={setReportReason}
+          setReportStatus={setReportStatus}
+
+          isReportOpen={isReportOpen}
+          reportReason={reportReason}
+          setReportReasonState={setReportReason}
+          reportStatus={reportStatus}
+          handleReportSubmit={handleReportSubmit}
+
+          isHelpOpen={isHelpOpen}
           selectedAsk={selectedAsk}
           helpForm={helpForm}
           setHelpForm={setHelpForm}
           handleHelpSubmit={handleHelpSubmit}
           helpStatus={helpStatus}
-          onClose={() => setIsHelpOpen(false)}
+          setIsHelpOpen={setIsHelpOpen}
         />
       </div>
     </ThemeProvider>

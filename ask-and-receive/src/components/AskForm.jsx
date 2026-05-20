@@ -14,8 +14,10 @@ export default function AskForm({
       <div className={`rounded-3xl border ${activeTheme.cardBorder} ${activeTheme.cardBg} backdrop-blur p-6 md:p-8`}>
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <h2 className="text-3xl font-semibold">Post an Ask</h2>
-            <p className="mt-3 text-stone-300 leading-7 max-w-2xl">
+            <h2 className={`text-3xl font-semibold ${activeTheme.primaryText}`}>
+              Post an Ask
+            </h2>
+            <p className={`mt-3 ${activeTheme.secondaryText} leading-7 max-w-2xl`}>
               This is the part you can share with friends. Have them add real
               asks so you can start shaping the site with live content.
             </p>
@@ -32,7 +34,7 @@ export default function AskForm({
           <div className="grid gap-4 md:grid-cols-2">
 
             <label className="grid gap-2 text-sm">
-              <span className="text-stone-300">Category</span>
+              <span className={`${activeTheme.mutedText}`}>Category</span>
               <select
                 value={askForm.category}
                 onChange={(event) =>
@@ -41,7 +43,7 @@ export default function AskForm({
                     category: event.target.value,
                   }))
                 }
-                className={`rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 text-stone-100 outline-none focus:ring-2 ${activeTheme.ring}`}
+                className={`rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 ${activeTheme.primaryText} outline-none focus:ring-2 ${activeTheme.ring}`}
               >
                 {categories.map((category) => (
                   <option key={category} value={category}>
@@ -53,7 +55,7 @@ export default function AskForm({
           </div>
 
           <label className="grid gap-2 text-sm">
-            <span className="text-stone-300">Ask title</span>
+            <span className={`${activeTheme.mutedText}`}>Ask title</span>
             <input
               type="text"
               value={askForm.title}
@@ -65,12 +67,12 @@ export default function AskForm({
                 }))
               }
               placeholder="Example: Ride on a Boat at Sunrise"
-              className={`rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 text-stone-100 outline-none focus:ring-2 ${activeTheme.ring}`}
+              className={`rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 ${activeTheme.primaryText} outline-none focus:ring-2 ${activeTheme.ring}`}
             />
             <div
               className={`text-right text-xs ${80 - askForm.title.length <= 10
                 ? "text-red-400"
-                : "text-stone-400"
+                : `${activeTheme.secondaryText}`
                 }`}
             >
               {80 - askForm.title.length} characters left
@@ -78,7 +80,7 @@ export default function AskForm({
           </label>
 
           <label className="grid gap-2 text-sm">
-            <span className="text-stone-300">What do you want, and why?</span>
+            <span className={`${activeTheme.mutedText}`}>What do you want, and why?</span>
             <textarea
               rows={5}
               value={askForm.body}
@@ -90,10 +92,10 @@ export default function AskForm({
                 }))
               }
               placeholder="Say it plainly. No sob story needed."
-              className={`rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 text-stone-100 outline-none focus:ring-2 ${activeTheme.ring}`}
+              className={`rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.inputBg} px-4 py-3 ${activeTheme.primaryText} outline-none focus:ring-2 ${activeTheme.ring}`}
             />
             <div
-              className={`text-right text-xs ${500 - askForm.body.length <= 10 ? "text-red-400" : "text-stone-400"
+              className={`text-right text-xs ${500 - askForm.body.length <= 10 ? "text-red-400" : `${activeTheme.secondaryText}`
                 }`}
             >
               {500 - askForm.body.length} characters left
@@ -117,7 +119,7 @@ export default function AskForm({
 
             <button
               type="submit"
-              className={`rounded-2xl ${activeTheme.solidButton} text-stone-950 px-5 py-3 font-medium transition`}
+              className={`rounded-2xl ${activeTheme.solidButton} ${activeTheme.buttonText} px-5 py-3 font-medium transition`}
             >
               Add This Ask
             </button>

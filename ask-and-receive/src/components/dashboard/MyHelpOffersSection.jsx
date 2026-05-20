@@ -26,8 +26,9 @@ export default function MyHelpOffersSection({
   return (
     <section className="mx-auto mt-10 max-w-4xl px-6">
       <div className={`rounded-3xl border ${activeTheme.cardBorder} ${activeTheme.cardBg} p-6 backdrop-blur`}>
-        <h2 className="text-2xl font-semibold text-white">My Help Offers</h2>
-
+        <h2 className={`text-2xl font-semibold ${activeTheme.primaryText}`}>
+          My Help Offers
+        </h2>
         <div className="mt-4 grid gap-4">
           {myHelpOffers.map((offer) => (
             <MyHelpOfferCard

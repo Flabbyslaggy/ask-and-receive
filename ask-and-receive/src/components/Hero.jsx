@@ -17,7 +17,7 @@ export default function Hero({ status, onClearSavedData }) {
         <div className="mt-6 flex flex-wrap gap-3">
           <a
             href="#post-ask"
-            className={`rounded-2xl bg-gradient-to-r ${activeTheme.solidButton} text-stone-950 px-5 py-3 font-medium transition`}
+            className={`rounded-2xl bg-gradient-to-r ${activeTheme.solidButton} ${activeTheme.buttonText} px-5 py-3 font-medium transition`}
           >
             Add an Ask
           </a>
