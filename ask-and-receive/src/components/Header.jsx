@@ -46,7 +46,7 @@ export default function Header({ activeView, setActiveView, profile }) {
           <button
             onClick={() => setActiveView("profile")}
             className={`rounded-full border px-4 py-2 transition ${activeView === "profile"
-                ? `${activeTheme.accentBorder} ${activeTheme.accentBg} ${activeTheme.accentText}`
+                ? `${activeTheme.accentBorder} ${activeTheme.accentBg} ${activeTheme.primaryText}`
                 : `${activeTheme.mutedBorder} ${activeTheme.secondaryText} ${activeTheme.hoverSurface}`
               }`}
           >
