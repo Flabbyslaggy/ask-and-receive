@@ -394,6 +394,9 @@ export default function App() {
       }
 
       setProfile(data)
+      if (data?.theme) {
+        localStorage.setItem("ask-and-receive-theme", data.theme)
+      }
       setIsProfileLoading(false)
     }
 
