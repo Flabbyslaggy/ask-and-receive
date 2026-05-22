@@ -1033,7 +1033,7 @@ export default function App() {
   return (
     <ThemeProvider activeTheme={activeTheme}>
       <div
-        className={`min-h-screen ${activeTheme.primaryText} bg-cover bg-center bg-fixed`}
+        className={`min-h-screen ${activeTheme.primaryText} bg-cover bg-center`}
         style={{
           backgroundImage: `
     ${activeTheme.backgroundGradient},
