@@ -47,7 +47,7 @@ export default function ProfileModal({
 
           <button
             onClick={onClose}
-            className={`rounded-full border ${activeTheme.mutedBorder} px-3 py-1 text-sm transition ${activeTheme.hoverSurface} ${activeTheme.secondaryText}`}
+            className={`absolute right-4 top-4 rounded-full border ${activeTheme.mutedBorder} px-3 py-1 text-sm transition ${activeTheme.hoverSurface} ${activeTheme.secondaryText}`}
           >
             Close
           </button>

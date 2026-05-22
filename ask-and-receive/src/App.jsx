@@ -815,6 +815,14 @@ export default function App() {
       (o) => o.ask_id === gratitudeAskId && o.status === "fulfilled"
     )
 
+    console.log("GRATITUDE DEBUG", {
+      gratitudeAskId,
+      fulfilledOffers: offersForMyAsks.filter(
+        (o) => o.ask_id === gratitudeAskId && o.status === "fulfilled"
+      ),
+      selectedHelper: helper,
+    })
+
     const { data, error } = await createStory({
       askId: gratitudeAskId,
       userId: session.user.id,

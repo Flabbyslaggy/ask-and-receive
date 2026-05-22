@@ -408,7 +408,7 @@ export default function Auth({ forceRecoveryMode = false, onRecoveryComplete }) 
           <button
             type="submit"
             disabled={loading}
-            className={`rounded-2xl bg-gradient-to-r ${activeTheme.button} px-5 py-3 font-medium ${activeTheme.buttonText} transition`}
+            className={`flex items-center justify-center rounded-2xl bg-gradient-to-r ${activeTheme.button} px-5 py-3 font-semibold ${activeTheme.buttonText} transition focus:outline-none focus:ring-0`}
           >
             {loading ? "Please wait..." : isLogin ? "Log In" : "Sign Up"}
           </button>
