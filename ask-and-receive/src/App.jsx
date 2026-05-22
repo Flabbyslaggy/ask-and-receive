@@ -1039,16 +1039,16 @@ export default function App() {
   return (
     <ThemeProvider activeTheme={activeTheme}>
       <div
-        className={`min-h-screen ${activeTheme.primaryText} bg-top bg-cover md:bg-center md:bg-fixed`}
+        className={`min-h-screen ${activeTheme.primaryText} bg-no-repeat bg-top bg-[length:100%_auto] md:bg-cover md:bg-center md:bg-fixed`}
         style={{
-          backgroundImage: `
-            ${activeTheme.backgroundGradient},
-            url(${window.innerWidth < 768 &&
-              activeTheme.mobileBackgroundImage
-              ? activeTheme.mobileBackgroundImage
-              : activeTheme.backgroundImage
-            })
-          `,
+          backgroundColor: "#2b2a28",
+          backgroundImage:
+            window.innerWidth < 768
+              ? activeTheme.mobileGradient || activeTheme.backgroundGradient
+              : `
+          ${activeTheme.backgroundGradient},
+          url(${activeTheme.backgroundImage})
+        `,
         }}
       >
         <Header

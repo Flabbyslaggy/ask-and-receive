@@ -105,7 +105,7 @@ export default function MyAskCard({
             </button>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-4">
               <div>
                 <div className={`text-sm ${activeTheme.subtleText}`}>Ask</div>

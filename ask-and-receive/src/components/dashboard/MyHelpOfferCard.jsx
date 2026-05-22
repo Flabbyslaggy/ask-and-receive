@@ -36,7 +36,7 @@ export default function MyHelpOfferCard({
       {!isExpanded ? (
         <div
           onClick={onToggle}
-          className={`cursor-pointer rounded-2xl border ${activeTheme.cardBorder} ${activeTheme.cardBg} px-4 py-3 transition ${activeTheme.hoverSurface}`}
+          className={`flex w-full min-w-0 cursor-pointer items-center justify-between gap-3 rounded-2xl border ${activeTheme.cardBorder} ${activeTheme.cardBg} px-4 py-3 transition ${activeTheme.hoverSurface}`}
         >
           <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
             <div className="min-w-0">
@@ -70,7 +70,7 @@ export default function MyHelpOfferCard({
 
           <div className="grid gap-6 md:grid-cols-2">
             {/* LEFT SIDE */}
-            <div className="grid gap-6 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <div className={`text-sm ${activeTheme.subtleText}`}>Ask</div>
                 <div className={`text-xl font-semibold ${activeTheme.primaryText}`}>
