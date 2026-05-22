@@ -26,7 +26,7 @@ export default function Header({ activeView, setActiveView, profile }) {
           <button
             onClick={() => setActiveView("home")}
             className={`rounded-full border px-4 py-2 transition ${activeView === "home"
-                ? `${activeTheme.accentBorder} ${activeTheme.accentBg} ${activeTheme.accentText}`
+                ? `${activeTheme.accentBorder} ${activeTheme.accentBg} ${activeTheme.primaryText}`
                 : `${activeTheme.mutedBorder} ${activeTheme.secondaryText} ${activeTheme.hoverSurface}`
               }`}
           >
@@ -36,7 +36,7 @@ export default function Header({ activeView, setActiveView, profile }) {
           <button
             onClick={() => setActiveView("dashboard")}
             className={`rounded-full border px-4 py-2 transition ${activeView === "dashboard"
-                ? `${activeTheme.accentBorder} ${activeTheme.accentBg} ${activeTheme.accentText}`
+                ? `${activeTheme.accentBorder} ${activeTheme.accentBg} ${activeTheme.primaryText}`
                 : `${activeTheme.mutedBorder} ${activeTheme.secondaryText} ${activeTheme.hoverSurface}`
               }`}
           >

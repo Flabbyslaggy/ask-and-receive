@@ -265,7 +265,7 @@ export const themes = {
         solidButton: "bg-[#FF7BAC] hover:bg-[#ff93ba]",
         accentText: "text-[#FF7BAC]",
         accentBorder: "border-[#FF7BAC]/35",
-        accentBg: "bg-[#FF7BAC]/10",
+        accentBg: "bg-[#FF7BAC]/40",
         inactiveBorder: "border-[#D3B6D3]/45",
         badge: "border-[#FF7BAC]/30 bg-[#FF7BAC]/10 text-[#FFE4EE]",
         ring: "ring-[#FF7BAC]/35",

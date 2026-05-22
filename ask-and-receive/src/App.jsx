@@ -65,6 +65,7 @@ const sampleStories = [
 export default function App() {
   const [session, setSession] = useState(null)
   const [isAppLoading, setIsAppLoading] = useState(true)
+  const [isProfileLoading, setIsProfileLoading] = useState(true)
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false)
   const [asks, setAsks] = useState([])
   const [status, setStatus] = useState("")
@@ -377,6 +378,7 @@ export default function App() {
     async function fetchProfile() {
       if (!session) {
         setProfile(null)
+        setIsProfileLoading(false)
         return
       }
 
@@ -392,6 +394,7 @@ export default function App() {
       }
 
       setProfile(data)
+      setIsProfileLoading(false)
     }
 
     fetchProfile()
@@ -1022,7 +1025,7 @@ export default function App() {
     )
   }
 
-  if (isAppLoading) {
+  if (isAppLoading || isProfileLoading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${activeTheme.primaryText}`}>
         Loading Ask & Receive...
