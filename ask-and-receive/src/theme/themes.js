@@ -27,7 +27,7 @@ export const themes = {
         surfaceButton: "border border-stone-700 hover:bg-stone-900/80",
         divider: "bg-stone-400/40",
         backgroundImage: oceanBg,
-        backgroundGradient: "linear-gradient(rgba(10,10,10,0.25), rgba(10,10,10,0.45))",
+        backgroundGradient: "linear-gradient(rgba(244,190,174,0.18), rgba(37,83,63,0.42))",
         primaryText: "text-stone-100",
         secondaryText: "text-stone-200",
         mutedText: "text-stone-300",
