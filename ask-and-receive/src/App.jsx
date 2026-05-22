@@ -1036,9 +1036,13 @@ export default function App() {
         className={`min-h-screen ${activeTheme.primaryText} bg-top bg-cover md:bg-center md:bg-fixed`}
         style={{
           backgroundImage: `
-    ${activeTheme.backgroundGradient},
-    url(${activeTheme.backgroundImage})
-  `,
+            ${activeTheme.backgroundGradient},
+            url(${window.innerWidth < 768 &&
+              activeTheme.mobileBackgroundImage
+              ? activeTheme.mobileBackgroundImage
+              : activeTheme.backgroundImage
+            })
+          `,
         }}
       >
         <Header
