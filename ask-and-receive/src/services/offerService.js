@@ -1,76 +1,76 @@
 import { supabase } from "../supabaseClient"
 
 export async function fetchMyHelpOffers(userId) {
-    const { data, error } = await supabase
-        .from("help_offers")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
+  const { data, error } = await supabase
+    .from("help_offers")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
 
-    if (error) {
-        console.error("Error fetching help offers:", error)
-        return []
-    }
+  if (error) {
+    console.error("Error fetching help offers:", error)
+    return []
+  }
 
-    return data
+  return data
 }
 
 export async function fetchAllOffers() {
-    const { data, error } = await supabase
-        .from("help_offers")
-        .select("*")
+  const { data, error } = await supabase
+    .from("help_offers")
+    .select("*")
 
-    if (error) {
-        console.error("Error fetching all offers:", error)
-        return []
-    }
+  if (error) {
+    console.error("Error fetching all offers:", error)
+    return []
+  }
 
-    return data
+  return data
 }
 
 export async function fetchOffersForAskIds(askIds) {
-    if (!askIds || askIds.length === 0) {
-        return []
-    }
+  if (!askIds || askIds.length === 0) {
+    return []
+  }
 
-    const { data, error } = await supabase
-        .from("help_offers")
-        .select("*")
-        .in("ask_id", askIds)
-        .order("created_at", { ascending: false })
+  const { data, error } = await supabase
+    .from("help_offers")
+    .select("*")
+    .in("ask_id", askIds)
+    .order("created_at", { ascending: false })
 
-    if (error) {
-        console.error("Error fetching offers for my asks:", error)
-        return []
-    }
+  if (error) {
+    console.error("Error fetching offers for my asks:", error)
+    return []
+  }
 
-    return data
+  return data
 }
 
 export async function updateOfferMessage({
-    offerId,
-    userId,
-    helperMessage,
+  offerId,
+  userId,
+  helperMessage,
 }) {
-    const { error } = await supabase
-        .from("help_offers")
-        .update({
-            helper_message: helperMessage,
-        })
-        .eq("id", offerId)
-        .eq("user_id", userId)
+  const { error } = await supabase
+    .from("help_offers")
+    .update({
+      helper_message: helperMessage,
+    })
+    .eq("id", offerId)
+    .eq("user_id", userId)
 
-    return { error }
+  return { error }
 }
 
 export async function withdrawOffer({ offerId, userId }) {
-    const { error } = await supabase
-        .from("help_offers")
-        .delete()
-        .eq("id", offerId)
-        .eq("user_id", userId)
+  const { error } = await supabase
+    .from("help_offers")
+    .delete()
+    .eq("id", offerId)
+    .eq("user_id", userId)
 
-    return { error }
+  return { error }
 }
 
 export async function acceptOffer({ offerId, askId }) {
@@ -81,6 +81,18 @@ export async function acceptOffer({ offerId, askId }) {
 
   if (acceptError) {
     return { error: acceptError }
+  }
+
+  const { error: askError } = await supabase
+    .from("asks")
+    .update({
+      status: "accepted",
+      accepted_offer_id: offerId,
+    })
+    .eq("id", askId)
+
+  if (askError) {
+    return { error: askError }
   }
 
   const { error: declineError } = await supabase
@@ -114,6 +126,19 @@ export async function fulfillOffer({ offerId, askId }) {
 
   if (fulfillError) {
     return { error: fulfillError }
+  }
+
+  const { error: askError } = await supabase
+    .from("asks")
+    .update({
+      status: "fulfilled",
+      fulfilled_offer_id: offerId,
+      fulfilled_at: new Date().toISOString(),
+    })
+    .eq("id", askId)
+
+  if (askError) {
+    return { error: askError }
   }
 
   const { error: declineError } = await supabase

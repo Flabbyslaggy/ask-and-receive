@@ -48,9 +48,7 @@ export default function MyAsksSection({
               (offer) => offer.ask_id === ask.id
             )
             const relatedStory = stories.find((story) => story.ask_id === ask.id)
-            const isFulfilled = offersForMyAsks.some(
-              (offer) => offer.ask_id === ask.id && offer.status === "fulfilled"
-            )
+            const isFulfilled = ask.status === "fulfilled"
 
             return (
               <MyAskCard

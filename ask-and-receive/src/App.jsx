@@ -707,6 +707,38 @@ export default function App() {
       return
     }
 
+    setMyAsks((current) =>
+      current.map((ask) =>
+        ask.id === askId
+          ? {
+            ...ask,
+            status: "accepted",
+            accepted_offer_id: offerId,
+          }
+          : ask
+      )
+    )
+
+    setAsks((current) =>
+      current.map((ask) =>
+        ask.id === askId
+          ? {
+            ...ask,
+            status: "accepted",
+            accepted_offer_id: offerId,
+          }
+          : ask
+      )
+    )
+
+    setAllOffers((current) =>
+      current.map((offer) =>
+        offer.id === offerId
+          ? { ...offer, status: "accepted" }
+          : offer
+      )
+    )
+
     setOffersForMyAsks((current) =>
       current.map((offer) => {
         if (offer.id === offerId) {

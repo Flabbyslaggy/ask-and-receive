@@ -19,6 +19,12 @@ export async function fetchAsks() {
     category: ask.category,
     body: ask.body,
     created_at: ask.created_at,
+
+    // new authoritative ask status fields
+    status: ask.status || "open",
+    accepted_offer_id: ask.accepted_offer_id,
+    fulfilled_offer_id: ask.fulfilled_offer_id,
+    fulfilled_at: ask.fulfilled_at,
   }))
 }
 

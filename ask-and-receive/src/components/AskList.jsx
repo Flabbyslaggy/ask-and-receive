@@ -104,11 +104,13 @@ function AskSection({ title, asks, onHelpClick, activeTheme }) {
 export default function AskList({ asks, onHelpClick, isLoading }) {
   const activeTheme = useTheme()
 
-  const openAsks = asks.filter((ask) => !ask.isFulfilled && !ask.hasAnyOffer)
-  const pendingAsks = asks.filter((ask) => !ask.isFulfilled && ask.hasAnyOffer)
-  const fulfilledAsks = asks.filter((ask) => ask.isFulfilled)
-
+  const openAsks = asks.filter((ask) => ask.status === "open")
+  const pendingAsks = asks.filter(
+    (ask) => ask.status === "accepted" || ask.status === "pending"
+  )
+  const fulfilledAsks = asks.filter((ask) => ask.status === "fulfilled")
   return (
+    
     <section id="asks" className="mx-auto max-w-6xl px-6 py-12">
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>

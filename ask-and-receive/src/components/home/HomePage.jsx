@@ -51,11 +51,7 @@ export default function HomePage({
           hasAnyOffer: allOffers.some(
             (offer) => offer.ask_id === ask.id
           ),
-          isFulfilled: allOffers.some(
-            (offer) =>
-              offer.ask_id === ask.id &&
-              offer.status === "fulfilled"
-          ),
+          isFulfilled: ask.status === "fulfilled",
         }))}
         onHelpClick={handleHelpClick}
       />
