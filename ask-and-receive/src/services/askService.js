@@ -1,5 +1,21 @@
 import { supabase } from "../supabaseClient"
 
+export function formatAsk(ask) {
+  return {
+    id: ask.id,
+    user_id: ask.user_id,
+    asker: ask.asker_name,
+    title: ask.title,
+    category: ask.category,
+    body: ask.body,
+    created_at: ask.created_at,
+    status: ask.status || "open",
+    accepted_offer_id: ask.accepted_offer_id,
+    fulfilled_offer_id: ask.fulfilled_offer_id,
+    fulfilled_at: ask.fulfilled_at,
+  }
+}
+
 export async function fetchAsks() {
   const { data, error } = await supabase
     .from("asks")
@@ -11,37 +27,23 @@ export async function fetchAsks() {
     return []
   }
 
-  return data.map((ask) => ({
-    id: ask.id,
-    user_id: ask.user_id,
-    asker: ask.asker_name,
-    title: ask.title,
-    category: ask.category,
-    body: ask.body,
-    created_at: ask.created_at,
-
-    // new authoritative ask status fields
-    status: ask.status || "open",
-    accepted_offer_id: ask.accepted_offer_id,
-    fulfilled_offer_id: ask.fulfilled_offer_id,
-    fulfilled_at: ask.fulfilled_at,
-  }))
+  return data.map(formatAsk)
 }
 
 export async function createAsk({ userId, title, body, category, askerName }) {
   const { data, error } = await supabase
-  .from("asks")
-  .insert([
-    {
-      user_id: userId,
-      title,
-      body,
-      category,
-      asker_name: askerName,
-    },
-  ])
-  .select()
-  .single()
+    .from("asks")
+    .insert([
+      {
+        user_id: userId,
+        title,
+        body,
+        category,
+        asker_name: askerName,
+      },
+    ])
+    .select()
+    .single()
 
   return { data, error }
 }

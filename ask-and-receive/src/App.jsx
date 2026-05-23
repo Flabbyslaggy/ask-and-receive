@@ -17,6 +17,7 @@ import {
   createAsk,
   updateAsk,
   deleteAskCascade,
+  formatAsk,
 } from "./services/askService"
 import DashboardPage from "./components/dashboard/DashboardPage"
 import {
@@ -46,6 +47,8 @@ import {
   syncProfileDisplayName,
 } from "./services/profileService"
 import AppModals from "./components/modals/AppModals"
+import { useProfile } from "./hooks/useProfile"
+import { useSelectedProfileOffers } from "./hooks/useSelectedProfileOffers"
 
 const ASK_STORAGE_KEY = "ask-and-receive-asks"
 
@@ -65,7 +68,6 @@ const sampleStories = [
 export default function App() {
   const [session, setSession] = useState(null)
   const [isAppLoading, setIsAppLoading] = useState(true)
-  const [isProfileLoading, setIsProfileLoading] = useState(true)
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false)
   const [asks, setAsks] = useState([])
   const [status, setStatus] = useState("")
@@ -99,13 +101,21 @@ export default function App() {
   const [stories, setStories] = useState([])
   const [isGratitudeOpen, setIsGratitudeOpen] = useState(false)
   const [gratitudeAskId, setGratitudeAskId] = useState(null)
-  const [profile, setProfile] = useState(null)
   const [selectedProfile, setSelectedProfile] = useState(null)
+  const {
+    profile,
+    setProfile,
+    isProfileLoading,
+    setIsProfileLoading,
+  } = useProfile(session)
   const [isReportOpen, setIsReportOpen] = useState(false)
   const [reportReason, setReportReason] = useState("")
   const [reportStatus, setReportStatus] = useState("")
   const [profileStatus, setProfileStatus] = useState("")
-  const [selectedProfileOffers, setSelectedProfileOffers] = useState([])
+  const {
+    selectedProfileOffers,
+    setSelectedProfileOffers,
+  } = useSelectedProfileOffers(selectedProfile)
   const savedTheme = localStorage.getItem("ask-and-receive-theme")
   const activeTheme =
     themes[profile?.theme || savedTheme || "emerald"] || themes.emerald
@@ -250,15 +260,7 @@ export default function App() {
             .order("created_at", { ascending: false })
 
           if (!error && data) {
-            const formatted = data.map((ask) => ({
-              id: ask.id,
-              user_id: ask.user_id,
-              asker: ask.asker_name,
-              title: ask.title,
-              category: ask.category,
-              body: ask.body,
-              created_at: ask.created_at,
-            }))
+            const formatted = data.map(formatAsk)
 
             setAsks(formatted)
           }
@@ -375,58 +377,7 @@ export default function App() {
       }
     )
   }
-
-  useEffect(() => {
-    async function fetchProfile() {
-      if (!session) {
-        setProfile(null)
-        setIsProfileLoading(false)
-        return
-      }
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", session.user.id)
-        .single()
-
-      if (error) {
-        console.error("Error fetching profile:", error)
-        return
-      }
-
-      setProfile(data)
-      if (data?.theme) {
-        localStorage.setItem("ask-and-receive-theme", data.theme)
-      }
-      setIsProfileLoading(false)
-    }
-
-    fetchProfile()
-  }, [session])
-
-  useEffect(() => {
-    async function fetchSelectedProfileOffers() {
-      if (!selectedProfile) {
-        setSelectedProfileOffers([])
-        return
-      }
-
-      const { data, error } = await fetchProfileOffers(
-        selectedProfile.id
-      )
-
-      if (error) {
-        console.error("Error fetching profile offers:", error)
-        return
-      }
-
-      setSelectedProfileOffers(data)
-    }
-
-    fetchSelectedProfileOffers()
-  }, [selectedProfile])
-
+  
   useEffect(() => {
     if (!session) {
       setMyAsks([])
@@ -872,8 +823,10 @@ export default function App() {
       return
     }
 
+    const gratitudeAsk = asks.find((ask) => ask.id === gratitudeAskId)
+
     const helper = offersForMyAsks.find(
-      (o) => o.ask_id === gratitudeAskId && o.status === "fulfilled"
+      (offer) => offer.id === gratitudeAsk?.fulfilled_offer_id
     )
 
     console.log("GRATITUDE DEBUG", {
@@ -887,9 +840,7 @@ export default function App() {
     const { data, error } = await createStory({
       askId: gratitudeAskId,
       userId: session.user.id,
-      title:
-        asks.find((ask) => ask.id === gratitudeAskId)?.title ||
-        "Gratitude",
+      title: gratitudeAsk?.title || "Gratitude",
       body: trimmedBody,
       helperName: helper?.helper_name || "Someone",
       helperUserId: helper?.user_id || null,
