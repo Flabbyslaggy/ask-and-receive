@@ -185,5 +185,15 @@ export async function createHelpOffer({
       },
     ])
 
-  return { error }
+  if (error) {
+    return { error }
+  }
+
+  const { error: askError } = await supabase
+    .from("asks")
+    .update({ status: "pending" })
+    .eq("id", askId)
+    .eq("status", "open")
+
+  return { error: askError }
 }

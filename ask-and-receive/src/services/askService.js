@@ -29,7 +29,9 @@ export async function fetchAsks() {
 }
 
 export async function createAsk({ userId, title, body, category, askerName }) {
-  const { error } = await supabase.from("asks").insert([
+  const { data, error } = await supabase
+  .from("asks")
+  .insert([
     {
       user_id: userId,
       title,
@@ -38,8 +40,10 @@ export async function createAsk({ userId, title, body, category, askerName }) {
       asker_name: askerName,
     },
   ])
+  .select()
+  .single()
 
-  return { error }
+  return { data, error }
 }
 
 export async function updateAsk({ askId, userId, title, body }) {

@@ -477,7 +477,7 @@ export default function App() {
       return
     }
 
-    const { error } = await createAsk({
+    const { data, error } = await createAsk({
       userId: session.user.id,
       title: trimmedTitle,
       body: trimmedBody,
@@ -488,6 +488,25 @@ export default function App() {
     if (error) {
       setAskStatus(`Could not save ask: ${error.message}`)
       return
+    }
+
+    if (data) {
+      const newAsk = {
+        id: data.id,
+        user_id: data.user_id,
+        asker: data.asker_name,
+        title: data.title,
+        category: data.category,
+        body: data.body,
+        created_at: data.created_at,
+        status: data.status || "open",
+        accepted_offer_id: data.accepted_offer_id,
+        fulfilled_offer_id: data.fulfilled_offer_id,
+        fulfilled_at: data.fulfilled_at,
+      }
+
+      setAsks((current) => [newAsk, ...current])
+      setMyAsks((current) => [newAsk, ...current])
     }
 
     setAskForm({
@@ -688,6 +707,14 @@ export default function App() {
       setHelpStatus("Could not send help offer.")
       return
     }
+
+    setAsks((current) =>
+      current.map((ask) =>
+        ask.id === selectedAsk.id
+          ? { ...ask, status: "pending" }
+          : ask
+      )
+    )
 
     setHelpForm({ helperMessage: "" })
     setHelpStatus("Offer sent!")
