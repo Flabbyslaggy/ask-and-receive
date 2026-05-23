@@ -172,6 +172,8 @@ export default function App() {
 
   useEffect(() => {
     async function loadAsks() {
+      if (!session) return
+
       const formatted = await fetchAsks()
 
       setAsks(formatted)
@@ -179,7 +181,7 @@ export default function App() {
     }
 
     loadAsks()
-  }, [])
+  }, [session])
 
   useEffect(() => {
     async function loadMyHelpOffers() {
