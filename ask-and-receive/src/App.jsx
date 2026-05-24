@@ -1,17 +1,14 @@
 import { useEffect, useState } from "react"
 import { supabase } from "./supabaseClient"
 import Auth from "./components/Auth"
-import HomePage from "./components/home/HomePage"
 import Header from "./components/Header"
+import HomePage from "./components/home/HomePage"
+import DashboardPage from "./components/dashboard/DashboardPage"
+import ProfilePage from "./components/profile/ProfilePage"
+import HelpModal from "./components/HelpModal"
+import AppModals from "./components/modals/AppModals"
 import { ThemeProvider } from "./ThemeContext"
 import { themes } from "./theme/themes"
-import {
-  fetchStories,
-  createStory,
-  updateStory,
-  deleteStory,
-} from "./services/storyService"
-import HelpModal from "./components/HelpModal"
 import {
   fetchAsks,
   createAsk,
@@ -19,9 +16,7 @@ import {
   deleteAskCascade,
   formatAsk,
 } from "./services/askService"
-import DashboardPage from "./components/dashboard/DashboardPage"
 import {
-  fetchMyHelpOffers,
   fetchAllOffers,
   fetchOffersForAskIds,
   updateOfferMessage,
@@ -33,22 +28,30 @@ import {
   createHelpOffer,
 } from "./services/offerService"
 import {
+  fetchStories,
+  createStory,
+  updateStory,
+  deleteStory,
+} from "./services/storyService"
+import {
   fetchMessages,
   sendMessage,
   getMessagesForOffer,
 } from "./services/messageService"
-import { uploadAvatar } from "./services/profileActions"
-import ProfilePage from "./components/profile/ProfilePage"
 import {
-  fetchProfile,
-  fetchProfileOffers,
   fetchProfileById,
   updateProfile,
   syncProfileDisplayName,
 } from "./services/profileService"
-import AppModals from "./components/modals/AppModals"
+import { uploadAvatar } from "./services/profileActions"
 import { useProfile } from "./hooks/useProfile"
 import { useSelectedProfileOffers } from "./hooks/useSelectedProfileOffers"
+import { useMyAsks } from "./hooks/useMyAsks"
+import { useMessages } from "./hooks/useMessages"
+import { useStories } from "./hooks/useStories"
+import { useAllOffers } from "./hooks/useAllOffers"
+import { useMyHelpOffers } from "./hooks/useMyHelpOffers"
+import { useOffersForMyAsks } from "./hooks/useOfferForMyAsks"
 
 const ASK_STORAGE_KEY = "ask-and-receive-asks"
 
@@ -71,14 +74,26 @@ export default function App() {
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false)
   const [asks, setAsks] = useState([])
   const [status, setStatus] = useState("")
-  const [myHelpOffers, setMyHelpOffers] = useState([])
+  const {
+  myHelpOffers,
+  setMyHelpOffers,
+} = useMyHelpOffers(session)
   const [expandedHelpOfferId, setExpandedHelpOfferId] = useState(null)
   const [expandedAskId, setExpandedAskId] = useState(null)
   const [expandedMessagesOfferId, setExpandedMessagesOfferId] = useState(null)
   const [helpStatus, setHelpStatus] = useState("")
-  const [offersForMyAsks, setOffersForMyAsks] = useState([])
-  const [allOffers, setAllOffers] = useState([])
-  const [myAsks, setMyAsks] = useState([])
+  const {
+    offersForMyAsks,
+    setOffersForMyAsks
+  } = useOffersForMyAsks(session, asks)
+  const {
+    allOffers,
+    setAllOffers,
+  } = useAllOffers()
+  const {
+    myAsks,
+    setMyAsks,
+  } = useMyAsks(session, asks)
   const [editingAskId, setEditingAskId] = useState(null)
   const [editAskForm, setEditAskForm] = useState({
     title: "",
@@ -93,12 +108,18 @@ export default function App() {
     title: "",
     body: "",
   })
-  const [messages, setMessages] = useState([])
+  const {
+    messages,
+    setMessages,
+  } = useMessages(session)
   const [messageInputs, setMessageInputs] = useState({})
   const [activeView, setActiveView] = useState(() => {
     return localStorage.getItem("ask-receive-active-view") || "home"
   })
-  const [stories, setStories] = useState([])
+  const {
+    stories,
+    setStories,
+  } = useStories()
   const [isGratitudeOpen, setIsGratitudeOpen] = useState(false)
   const [gratitudeAskId, setGratitudeAskId] = useState(null)
   const [selectedProfile, setSelectedProfile] = useState(null)
@@ -192,56 +213,7 @@ export default function App() {
 
     loadAsks()
   }, [session])
-
-  useEffect(() => {
-    async function loadMyHelpOffers() {
-      if (!session) {
-        setIsAppLoading(false)
-        return
-      }
-
-      const data = await fetchMyHelpOffers(session.user.id)
-      setMyHelpOffers(data)
-    }
-
-    loadMyHelpOffers()
-  }, [session])
-
-  useEffect(() => {
-    async function loadOffersForMyAsks() {
-      if (!session || asks.length === 0) return
-
-      const myAskIds = asks
-        .filter((ask) => ask.user_id === session.user.id)
-        .map((ask) => ask.id)
-
-      const data = await fetchOffersForAskIds(myAskIds)
-      setOffersForMyAsks(data)
-    }
-
-    loadOffersForMyAsks()
-  }, [session, asks])
-
-  useEffect(() => {
-    async function loadAllOffers() {
-      const data = await fetchAllOffers()
-      setAllOffers(data)
-    }
-
-    loadAllOffers()
-  }, [])
-
-  useEffect(() => {
-    async function loadMessages() {
-      if (!session) return
-
-      const data = await fetchMessages()
-      setMessages(data)
-    }
-
-    loadMessages()
-  }, [session])
-
+   
   useEffect(() => {
     const channel = supabase
       .channel("asks-realtime")
@@ -319,15 +291,6 @@ export default function App() {
   }, [session, asks])
 
   useEffect(() => {
-    async function loadStories() {
-      const data = await fetchStories()
-      setStories(data)
-    }
-
-    loadStories()
-  }, [])
-
-  useEffect(() => {
     if (!session) return
 
     const channel = supabase
@@ -377,16 +340,6 @@ export default function App() {
       }
     )
   }
-  
-  useEffect(() => {
-    if (!session) {
-      setMyAsks([])
-      return
-    }
-
-    const mine = asks.filter((ask) => ask.user_id === session.user.id)
-    setMyAsks(mine)
-  }, [session, asks])
 
   const [helpForm, setHelpForm] = useState({
     helperMessage: "",
