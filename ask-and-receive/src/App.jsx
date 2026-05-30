@@ -8,9 +8,8 @@ import ProfilePage from "./components/profile/ProfilePage"
 import HelpModal from "./components/HelpModal"
 import AppModals from "./components/modals/AppModals"
 import { ThemeProvider } from "./ThemeContext"
-import { themes } from "./theme/themes"
+import { useActiveTheme } from "./hooks/useActiveTheme"
 import {
-  fetchAsks,
   createAsk,
   updateAsk,
   deleteAskCascade,
@@ -38,12 +37,6 @@ import {
   sendMessage,
   getMessagesForOffer,
 } from "./services/messageService"
-import {
-  fetchProfileById,
-  updateProfile,
-  syncProfileDisplayName,
-} from "./services/profileService"
-import { uploadAvatar } from "./services/profileActions"
 import { useProfile } from "./hooks/useProfile"
 import { useSelectedProfileOffers } from "./hooks/useSelectedProfileOffers"
 import { useMyAsks } from "./hooks/useMyAsks"
@@ -52,6 +45,17 @@ import { useStories } from "./hooks/useStories"
 import { useAllOffers } from "./hooks/useAllOffers"
 import { useMyHelpOffers } from "./hooks/useMyHelpOffers"
 import { useOffersForMyAsks } from "./hooks/useOfferForMyAsks"
+import { useRealtimeAsks } from "./hooks/useRealtimeAsks"
+import { useRealtimeOffers } from "./hooks/useRealtimeOffers"
+import { useAuthSession } from "./hooks/useAuthSession"
+import { useRealtimeMessages } from "./hooks/useRealtimeMessages"
+import { useActiveView } from "./hooks/useActiveView"
+import { useAskActions } from "./hooks/useAskActions"
+import { useOfferActions } from "./hooks/useOfferActions"
+import { useStoryActions } from "./hooks/useStoryActions"
+import { useAskLoader } from "./hooks/useAskLoader"
+import { useProfileHelpers } from "./hooks/useProfileHelpers"
+import { useProfileActions } from "./hooks/useProfileActions"
 
 const ASK_STORAGE_KEY = "ask-and-receive-asks"
 
@@ -75,9 +79,9 @@ export default function App() {
   const [asks, setAsks] = useState([])
   const [status, setStatus] = useState("")
   const {
-  myHelpOffers,
-  setMyHelpOffers,
-} = useMyHelpOffers(session)
+    myHelpOffers,
+    setMyHelpOffers,
+  } = useMyHelpOffers(session)
   const [expandedHelpOfferId, setExpandedHelpOfferId] = useState(null)
   const [expandedAskId, setExpandedAskId] = useState(null)
   const [expandedMessagesOfferId, setExpandedMessagesOfferId] = useState(null)
@@ -86,6 +90,7 @@ export default function App() {
     offersForMyAsks,
     setOffersForMyAsks
   } = useOffersForMyAsks(session, asks)
+
   const {
     allOffers,
     setAllOffers,
@@ -103,6 +108,25 @@ export default function App() {
   const [editOfferForm, setEditOfferForm] = useState({
     helper_message: "",
   })
+  const {
+    handleSaveOfferEdit,
+    handleWithdrawOffer,
+    handleAcceptOffer,
+    handleFulfillOffer,
+    handleDeclineOffer,
+  } = useOfferActions({
+    session,
+    editOfferForm,
+    setEditingOfferId,
+    setEditOfferForm,
+    setMyHelpOffers,
+    setOffersForMyAsks,
+    setAllOffers,
+    setMyAsks,
+    setAsks,
+    setStatus,
+    offersForMyAsks,
+  })
   const [editingStoryId, setEditingStoryId] = useState(null)
   const [editStoryForm, setEditStoryForm] = useState({
     title: "",
@@ -113,9 +137,10 @@ export default function App() {
     setMessages,
   } = useMessages(session)
   const [messageInputs, setMessageInputs] = useState({})
-  const [activeView, setActiveView] = useState(() => {
-    return localStorage.getItem("ask-receive-active-view") || "home"
-  })
+  const {
+    activeView,
+    setActiveView,
+  } = useActiveView()
   const {
     stories,
     setStories,
@@ -123,6 +148,11 @@ export default function App() {
   const [isGratitudeOpen, setIsGratitudeOpen] = useState(false)
   const [gratitudeAskId, setGratitudeAskId] = useState(null)
   const [selectedProfile, setSelectedProfile] = useState(null)
+  const {
+    handleProfileClick,
+  } = useProfileHelpers({
+    setSelectedProfile,
+  })
   const {
     profile,
     setProfile,
@@ -134,12 +164,19 @@ export default function App() {
   const [reportStatus, setReportStatus] = useState("")
   const [profileStatus, setProfileStatus] = useState("")
   const {
+    handleAvatarUpload,
+    handleSaveProfile,
+  } = useProfileActions({
+    session,
+    profile,
+    setProfile,
+    setProfileStatus,
+  })
+  const {
     selectedProfileOffers,
     setSelectedProfileOffers,
   } = useSelectedProfileOffers(selectedProfile)
-  const savedTheme = localStorage.getItem("ask-and-receive-theme")
-  const activeTheme =
-    themes[profile?.theme || savedTheme || "emerald"] || themes.emerald
+  const activeTheme = useActiveTheme(profile)
   const [askStatus, setAskStatus] = useState("")
   const [askForm, setAskForm] = useState({
     title: "",
@@ -150,196 +187,70 @@ export default function App() {
     body: "",
   })
 
-  useEffect(() => {
-    async function handleSession(session) {
-      setSession(session)
+  const {
+    handleGratitudeSubmit,
+    handleSaveStoryEdit,
+    handleDeleteStory,
+  } = useStoryActions({
+    session,
+    asks,
+    offersForMyAsks,
+    gratitudeAskId,
+    gratitudeForm,
+    setGratitudeForm,
+    setIsGratitudeOpen,
+    setGratitudeAskId,
+    setStories,
+    editStoryForm,
+    setEditingStoryId,
+    setEditStoryForm,
+    setStatus,
+  })
 
-      if (!session) {
-        setIsAppLoading(false)
-        return
-      }
+  const {
+    handleAskSubmit,
+    handleSaveAskEdit,
+    handleDeleteAsk,
+  } = useAskActions({
+    session,
+    profile,
+    askForm,
+    setAskForm,
+    editAskForm,
+    setEditAskForm,
+    setEditingAskId,
+    setAsks,
+    setMyAsks,
+    setOffersForMyAsks,
+    setAllOffers,
+    setStories,
+    setExpandedAskId,
+    setStatus,
+    askStatus,
+    setAskStatus,
+  })
 
-      const userId = session.user.id
+  useRealtimeAsks(setAsks)
 
-      // check if profile exists
-      const { data } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("id", userId)
-        .single()
+  useRealtimeOffers({
+    session,
+    asks,
+    setAllOffers,
+    setMyHelpOffers,
+    setOffersForMyAsks
+  })
 
-      if (!data) {
-        // create profile if missing
-        await supabase.from("profiles").insert([
-          {
-            id: userId,
-            nickname: "Anonymous",
-          },
-        ])
-      }
-      setIsAppLoading(false)
-    }
+  useAuthSession({
+    setSession,
+    setIsAppLoading,
+    setIsPasswordRecovery,
+  })
 
-    supabase.auth.getSession().then(({ data }) => {
-      handleSession(data.session)
-    })
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY") {
-        setIsPasswordRecovery(true)
-      }
-
-      handleSession(session)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
-
-  useEffect(() => {
-    localStorage.setItem("ask-receive-active-view", activeView)
-  }, [activeView])
-
-  useEffect(() => {
-    async function loadAsks() {
-      if (!session) return
-
-      const formatted = await fetchAsks()
-
-      setAsks(formatted)
-      setIsAppLoading(false)
-    }
-
-    loadAsks()
-  }, [session])
-   
-  useEffect(() => {
-    const channel = supabase
-      .channel("asks-realtime")
-
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "asks",
-        },
-        async () => {
-          const { data, error } = await supabase
-            .from("asks")
-            .select("*")
-            .order("created_at", { ascending: false })
-
-          if (!error && data) {
-            const formatted = data.map(formatAsk)
-
-            setAsks(formatted)
-          }
-        }
-      )
-
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!session) return
-
-    const channel = supabase
-      .channel("help-offers-realtime")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "help_offers",
-        },
-        async () => {
-          const { data, error } = await supabase
-            .from("help_offers")
-            .select("*")
-
-          if (error) {
-            console.error("Error refreshing help offers:", error)
-            return
-          }
-
-          setAllOffers(data)
-
-          setMyHelpOffers(
-            data.filter((offer) => offer.user_id === session.user.id)
-          )
-
-          const myAskIds = asks
-            .filter((ask) => ask.user_id === session.user.id)
-            .map((ask) => ask.id)
-
-          setOffersForMyAsks(
-            data.filter((offer) => myAskIds.includes(offer.ask_id))
-          )
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [session, asks])
-
-  useEffect(() => {
-    if (!session) return
-
-    const channel = supabase
-      .channel("messages-realtime")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-        },
-        (payload) => {
-          setMessages((current) => {
-            const alreadyExists = current.some((msg) => msg.id === payload.new.id)
-            if (alreadyExists) return current
-            return [...current, payload.new]
-          })
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [session])
-
-  async function getProfileById(userId) {
-    const { data, error } = await fetchProfileById(userId)
-
-    if (error) {
-      console.error("Error fetching profile:", error)
-      return null
-    }
-
-    return data
-  }
-
-  async function handleProfileClick(userId, fallbackName = "Anonymous") {
-    if (!userId) return
-
-    const clickedProfile = await getProfileById(userId)
-
-    setSelectedProfile(
-      clickedProfile || {
-        id: userId,
-        nickname: fallbackName,
-      }
-    )
-  }
+  useAskLoader({
+    session,
+    setAsks,
+    setIsAppLoading,
+  })
 
   const [helpForm, setHelpForm] = useState({
     helperMessage: "",
@@ -355,214 +266,6 @@ export default function App() {
     "Skill or Time",
     "Experience",
   ]
-
-  async function handleAskSubmit(event) {
-    event.preventDefault()
-    console.log("SUBMIT CLICKED")
-
-    const trimmedTitle = askForm.title.trim()
-    const trimmedBody = askForm.body.trim()
-
-    if (!trimmedTitle || !trimmedBody) {
-      setAskStatus("Please add a title and tell people what you want.")
-      return
-    }
-
-    if (trimmedTitle.length > 80) {
-      setAskStatus("Ask title must be 80 characters or fewer.")
-      return
-    }
-
-    if (trimmedBody.length > 500) {
-      setAskStatus("Ask description must be 500 characters or fewer.")
-      return
-    }
-
-    if (!session?.user?.id) {
-      setAskStatus("You must be logged in to post an ask.")
-      return
-    }
-
-    const { data, error } = await createAsk({
-      userId: session.user.id,
-      title: trimmedTitle,
-      body: trimmedBody,
-      category: askForm.category,
-      askerName: profile?.nickname || "Anonymous",
-    })
-
-    if (error) {
-      setAskStatus(`Could not save ask: ${error.message}`)
-      return
-    }
-
-    if (data) {
-      const newAsk = {
-        id: data.id,
-        user_id: data.user_id,
-        asker: data.asker_name,
-        title: data.title,
-        category: data.category,
-        body: data.body,
-        created_at: data.created_at,
-        status: data.status || "open",
-        accepted_offer_id: data.accepted_offer_id,
-        fulfilled_offer_id: data.fulfilled_offer_id,
-        fulfilled_at: data.fulfilled_at,
-      }
-
-      setAsks((current) => [newAsk, ...current])
-      setMyAsks((current) => [newAsk, ...current])
-    }
-
-    setAskForm({
-      title: "",
-      category: "Simple Joy",
-      body: "",
-    })
-
-    setAskStatus("Your ask was added.")
-  }
-
-  async function handleSaveAskEdit(askId) {
-    if (!editAskForm.title.trim() || !editAskForm.body.trim()) {
-      setStatus("Please add a title and details.")
-      return
-    }
-
-    const { error } = await updateAsk({
-      askId,
-      userId: session.user.id,
-      title: editAskForm.title.trim(),
-      body: editAskForm.body.trim(),
-    })
-
-    if (error) {
-      console.error(error)
-      setStatus("Could not save your changes.")
-      return
-    }
-
-    setAsks((current) =>
-      current.map((ask) =>
-        ask.id === askId
-          ? {
-            ...ask,
-            title: editAskForm.title.trim(),
-            body: editAskForm.body.trim(),
-          }
-          : ask
-      )
-    )
-
-    setEditingAskId(null)
-    setEditAskForm({
-      title: "",
-      body: "",
-    })
-
-    setStatus("Your ask was updated.")
-  }
-
-  async function handleDeleteAsk(askId) {
-    const confirmed = window.confirm(
-      "Are you sure you want to permanently delete this ask and all related offers, messages, and gratitude?"
-    )
-
-    if (!confirmed) return
-
-    const { error } = await deleteAskCascade(askId)
-
-    if (error) {
-      console.error("Error deleting ask:", error)
-      setStatus(`Could not delete ask: ${error.message}`)
-      return
-    }
-
-    setAsks((current) =>
-      current.filter((ask) => ask.id !== askId)
-    )
-
-    setMyAsks((current) =>
-      current.filter((ask) => ask.id !== askId)
-    )
-
-    setOffersForMyAsks((current) =>
-      current.filter((offer) => offer.ask_id !== askId)
-    )
-
-    setAllOffers((current) =>
-      current.filter((offer) => offer.ask_id !== askId)
-    )
-
-    setStories((current) =>
-      current.filter((story) => story.ask_id !== askId)
-    )
-
-    setExpandedAskId(null)
-
-    setStatus("Ask deleted.")
-  }
-
-  async function handleSaveOfferEdit(offerId) {
-    const trimmedMessage = editOfferForm.helper_message.trim()
-
-    if (!trimmedMessage) {
-      setStatus("Please add offer details.")
-      return
-    }
-
-    const { error } = await updateOfferMessage({
-      offerId,
-      userId: session.user.id,
-      helperMessage: trimmedMessage,
-    })
-
-    if (error) {
-      console.error(error)
-      setStatus("Could not save your changes.")
-      return
-    }
-
-    setMyHelpOffers((current) =>
-      current.map((offer) =>
-        offer.id === offerId
-          ? { ...offer, helper_message: trimmedMessage }
-          : offer
-      )
-    )
-
-    setEditingOfferId(null)
-    setEditOfferForm({ helper_message: "" })
-    setStatus("Your offer was updated.")
-  }
-
-  async function handleWithdrawOffer(offerId) {
-    const { error } = await withdrawOffer({
-      offerId,
-      userId: session.user.id,
-    })
-
-    if (error) {
-      console.error("Error withdrawing offer:", error)
-      setStatus("Could not withdraw offer.")
-      return
-    }
-
-    setMyHelpOffers((current) =>
-      current.filter((offer) => offer.id !== offerId)
-    )
-
-    setOffersForMyAsks((current) =>
-      current.filter((offer) => offer.id !== offerId)
-    )
-
-    setAllOffers((current) =>
-      current.filter((offer) => offer.id !== offerId)
-    )
-
-    setStatus("Offer withdrawn.")
-  }
 
   function handleHelpClick(ask) {
     setSelectedAsk(ask)
@@ -629,117 +332,6 @@ export default function App() {
     setSelectedAsk(null)
   }
 
-  async function handleAcceptOffer(offerId, askId) {
-    const { error } = await acceptOffer({
-      offerId,
-      askId,
-    })
-
-    if (error) {
-      console.error("Error accepting offer:", error)
-      return
-    }
-
-    setMyAsks((current) =>
-      current.map((ask) =>
-        ask.id === askId
-          ? {
-            ...ask,
-            status: "accepted",
-            accepted_offer_id: offerId,
-          }
-          : ask
-      )
-    )
-
-    setAsks((current) =>
-      current.map((ask) =>
-        ask.id === askId
-          ? {
-            ...ask,
-            status: "accepted",
-            accepted_offer_id: offerId,
-          }
-          : ask
-      )
-    )
-
-    setAllOffers((current) =>
-      current.map((offer) =>
-        offer.id === offerId
-          ? { ...offer, status: "accepted" }
-          : offer
-      )
-    )
-
-    setOffersForMyAsks((current) =>
-      current.map((offer) => {
-        if (offer.id === offerId) {
-          return { ...offer, status: "accepted" }
-        }
-
-        if (offer.ask_id === askId && offer.status === "pending") {
-          return { ...offer, status: "declined" }
-        }
-
-        return offer
-      })
-    )
-  }
-
-  async function handleDeclineOffer(offerId) {
-    console.log("DECLINE CLICKED", offerId)
-
-    const { error } = await declineOffer(offerId)
-
-    if (error) {
-      console.error("Error declining offer:", error)
-      return
-    }
-
-    console.log("DECLINE SUCCESS", offerId)
-
-    setOffersForMyAsks((current) =>
-      current.map((offer) =>
-        offer.id === offerId
-          ? { ...offer, status: "declined" }
-          : offer
-      )
-    )
-  }
-
-  async function handleFulfillOffer(offerId) {
-    const askId = offersForMyAsks.find(
-      (o) => o.id === offerId
-    )?.ask_id
-
-    const { error } = await fulfillOffer({
-      offerId,
-      askId,
-    })
-
-    if (error) {
-      console.error("Error fulfilling offer:", error)
-      return
-    }
-
-    setOffersForMyAsks((current) =>
-      current.map((offer) =>
-        offer.id === offerId
-          ? { ...offer, status: "fulfilled" }
-          : offer
-      )
-    )
-
-    setAllOffers((current) =>
-      current.map((offer) =>
-        offer.id === offerId
-          ? { ...offer, status: "fulfilled" }
-          : offer
-      )
-    )
-  }
-
   async function handleSendMessage(offerId) {
     const messageText = (messageInputs[offerId] || "").trim()
 
@@ -765,55 +357,6 @@ export default function App() {
       ...current,
       [offerId]: "",
     }))
-  }
-
-  async function handleGratitudeSubmit(event) {
-    event.preventDefault()
-
-    const trimmedBody = gratitudeForm.body.trim()
-
-    if (!trimmedBody) {
-      return
-    }
-
-    const gratitudeAsk = asks.find((ask) => ask.id === gratitudeAskId)
-
-    const helper = offersForMyAsks.find(
-      (offer) => offer.id === gratitudeAsk?.fulfilled_offer_id
-    )
-
-    console.log("GRATITUDE DEBUG", {
-      gratitudeAskId,
-      fulfilledOffers: offersForMyAsks.filter(
-        (o) => o.ask_id === gratitudeAskId && o.status === "fulfilled"
-      ),
-      selectedHelper: helper,
-    })
-
-    const { data, error } = await createStory({
-      askId: gratitudeAskId,
-      userId: session.user.id,
-      title: gratitudeAsk?.title || "Gratitude",
-      body: trimmedBody,
-      helperName: helper?.helper_name || "Someone",
-      helperUserId: helper?.user_id || null,
-    })
-
-    if (error) {
-      console.error("Error saving gratitude:", error)
-      return
-    }
-
-    setStories((current) => [
-      data,
-      ...current,
-    ])
-
-    setGratitudeForm({
-      body: "",
-    })
-    setIsGratitudeOpen(false)
-    setGratitudeAskId(null)
   }
 
   async function handleReportSubmit() {
@@ -844,143 +387,10 @@ export default function App() {
     setReportReason("")
   }
 
-  async function handleSaveStoryEdit(storyId) {
-    const trimmedTitle = editStoryForm.title.trim()
-    const trimmedBody = editStoryForm.body.trim()
-
-    if (!trimmedTitle || !trimmedBody) {
-      setStatus("Please add a title and gratitude message.")
-      return
-    }
-
-    const { error } = await updateStory({
-      storyId,
-      userId: session.user.id,
-      title: trimmedTitle,
-      body: trimmedBody,
-    })
-
-    if (error) {
-      console.error("Error updating gratitude:", error)
-      setStatus("Could not update gratitude.")
-      return
-    }
-
-    setStories((current) =>
-      current.map((story) =>
-        story.id === storyId
-          ? {
-            ...story,
-            title: trimmedTitle,
-            body: trimmedBody,
-          }
-          : story
-      )
-    )
-
-    setEditingStoryId(null)
-    setEditStoryForm({
-      title: "",
-      body: "",
-    })
-
-    setStatus("Gratitude updated.")
-  }
-
-  async function handleDeleteStory(storyId) {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this gratitude?"
-    )
-
-    if (!confirmed) return
-
-    const { error } = await deleteStory({
-      storyId,
-      userId: session.user.id,
-    })
-
-    if (error) {
-      console.error("Error deleting gratitude:", error)
-      setStatus("Could not delete gratitude.")
-      return
-    }
-
-    setStories((current) =>
-      current.filter((story) => story.id !== storyId)
-    )
-
-    setEditingStoryId(null)
-    setEditStoryForm({
-      title: "",
-      body: "",
-    })
-
-    setStatus("Gratitude deleted.")
-  }
-
   async function handleLogout() {
     await supabase.auth.signOut()
   }
-
-  async function handleAvatarUpload(file) {
-    const { publicUrl, error } = await uploadAvatar({
-      file,
-      userId: session.user.id,
-      supabase,
-    })
-
-    if (error) {
-      console.error("Avatar upload error:", error)
-      setProfileStatus(`Could not upload avatar: ${error.message}`)
-      return
-    }
-
-    if (!publicUrl) return
-
-    setProfile((current) => ({
-      ...current,
-      avatar_url: publicUrl,
-    }))
-
-    setProfileStatus("Avatar uploaded. Click Save Profile to keep it.")
-  }
-
-  async function handleSaveProfile() {
-    const trimmedNickname = (profile?.nickname || "").trim()
-    const selectedTheme = profile?.theme || "emerald"
-    const avatarUrl = (profile?.avatar_url || "").trim()
-
-    if (!trimmedNickname) {
-      setProfileStatus("Nickname cannot be empty.")
-      return
-    }
-
-    const { error } = await updateProfile({
-      userId: session.user.id,
-      nickname: trimmedNickname,
-      theme: selectedTheme,
-      avatarUrl,
-    })
-
-    if (error) {
-      setProfileStatus("Could not update profile.")
-      return
-    }
-
-    const { error: syncError } = await syncProfileDisplayName({
-      userId: session.user.id,
-      nickname: trimmedNickname,
-    })
-
-    if (syncError) {
-      setProfileStatus("Profile saved, but display name sync failed.")
-      return
-    }
-
-    localStorage.setItem("ask-and-receive-theme", selectedTheme)
-    setProfileStatus("Profile updated.")
-  }
-
+  
   function handleClearSavedData() {
     setAsks([])
     localStorage.removeItem(ASK_STORAGE_KEY)
