@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { fetchOffersForAskIds } from "../services/offerService"
+import { fetchOffersForAskIds } from "../../services/offerService"
 
 export function useOffersForMyAsks(session, asks) {
   const [offersForMyAsks, setOffersForMyAsks] = useState([])

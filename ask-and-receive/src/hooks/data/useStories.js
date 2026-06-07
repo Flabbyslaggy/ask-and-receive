@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { fetchStories } from "../services/storyService"
+import { fetchStories } from "../../services/storyService"
 
 export function useStories() {
   const [stories, setStories] = useState([])

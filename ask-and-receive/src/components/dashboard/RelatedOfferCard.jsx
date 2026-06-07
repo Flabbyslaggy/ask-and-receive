@@ -10,8 +10,11 @@ export default function RelatedOfferCard({
   onFulfillOffer,
   activeTheme,
   messages,
+  unreadCount,
   isMessagesExpanded,
   onToggleMessages,
+  onMarkMessagesAsRead,
+  handleMarkMessagesAsRead,
   currentUserId,
   messageValue,
   onMessageChange,
@@ -25,9 +28,14 @@ export default function RelatedOfferCard({
             <div className={`text-sm ${activeTheme.subtleText}`}>Helper</div>
             <div
               onClick={() => onProfileClick(offer.user_id, offer.helper_name)}
-              className={`text-sm ${activeTheme.mutedText} cursor-pointer hover:underline`}
+              className={`flex items-center gap-2 text-sm ${activeTheme.mutedText} cursor-pointer hover:underline`}
             >
-              {offer.helper_name || "Someone offered help"}
+              <span>{offer.helper_name || "Someone offered help"}</span>
+              {unreadCount > 0 && (
+                <span className="ml-2 rounded-full bg-red-600 px-2 py-0.5 text-xs font-bold text-white">
+                  {unreadCount}
+                </span>
+              )}
             </div>
           </div>
 
@@ -89,6 +97,7 @@ export default function RelatedOfferCard({
 
           <OfferMessages
             offerId={offer.id}
+            unreadCount={unreadCount}
             isExpanded={isMessagesExpanded}
             onToggle={onToggleMessages}
             messages={messages}
@@ -97,6 +106,7 @@ export default function RelatedOfferCard({
             messageValue={messageValue}
             onMessageChange={onMessageChange}
             onSendMessage={onSendMessage}
+            onMarkMessagesAsRead={onMarkMessagesAsRead}
           />
         </div>
       </div>

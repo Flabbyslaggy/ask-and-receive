@@ -1,4 +1,4 @@
-import { useTheme } from "../../ThemeContext"
+import { useTheme } from "../../providers/ThemeContext"
 
 export default function ReportModal({
   reportReason,

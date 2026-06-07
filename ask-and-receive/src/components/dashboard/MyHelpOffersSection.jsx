@@ -14,12 +14,14 @@ export default function MyHelpOffersSection({
   handleWithdrawOffer,
   activeTheme,
   getMessagesForOffer,
+  getUnreadMessagesForOffer,
   expandedMessagesOfferId,
   setExpandedMessagesOfferId,
   currentUserId,
   messageInputs,
   setMessageInputs,
   handleSendMessage,
+  handleMarkMessagesAsRead,
 }) {
   if (myHelpOffers.length === 0) return null
 
@@ -41,7 +43,10 @@ export default function MyHelpOffersSection({
                   current === offer.id ? null : offer.id
                 )
               }
-              onCollapse={() => setExpandedHelpOfferId(null)}
+              onCollapse={() => {
+                setExpandedHelpOfferId(null)
+                setExpandedMessagesOfferId(null)
+              }}
               onProfileClick={handleProfileClick}
               editingOfferId={editingOfferId}
               setEditingOfferId={setEditingOfferId}
@@ -51,6 +56,8 @@ export default function MyHelpOffersSection({
               onWithdrawOffer={handleWithdrawOffer}
               activeTheme={activeTheme}
               messages={getMessagesForOffer(offer.id)}
+              unreadCount={getUnreadMessagesForOffer(offer.id).length}
+              handleMarkMessagesAsRead={handleMarkMessagesAsRead}
               isMessagesExpanded={expandedMessagesOfferId === offer.id}
               onToggleMessages={() =>
                 setExpandedMessagesOfferId((current) =>

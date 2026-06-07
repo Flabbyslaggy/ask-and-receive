@@ -2,7 +2,7 @@ import {
     createAsk,
     updateAsk,
     deleteAskCascade,
-} from "../services/askService"
+} from "../../services/askService"
 
 const ASK_STORAGE_KEY = "ask-and-receive-asks"
 
@@ -68,7 +68,7 @@ export function useAskActions({
             const newAsk = {
                 id: data.id,
                 user_id: data.user_id,
-                asker: data.asker_name,
+                asker_name: data.asker_name,
                 title: data.title,
                 category: data.category,
                 body: data.body,

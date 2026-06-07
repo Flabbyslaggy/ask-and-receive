@@ -1,9 +1,10 @@
-import { uploadAvatar } from "../services/profileActions"
+import { supabase } from "../../supabaseClient"
 
 import {
-    updateProfile,
-    syncProfileDisplayName,
-} from "../services/profileService"
+  uploadAvatar,
+  updateProfile,
+  syncProfileDisplayName,
+} from "../../services/profileService"
 
 export function useProfileActions({
     session,

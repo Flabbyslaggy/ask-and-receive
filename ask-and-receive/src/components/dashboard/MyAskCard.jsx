@@ -21,12 +21,14 @@ export default function MyAskCard({
   handleDeclineOffer,
   handleFulfillOffer,
   getMessagesForOffer,
+  getUnreadMessagesForOffer,
   expandedMessagesOfferId,
   setExpandedMessagesOfferId,
   currentUserId,
   messageInputs,
   setMessageInputs,
   handleSendMessage,
+  handleMarkMessagesAsRead,
   editingStoryId,
   setEditingStoryId,
   editStoryForm,
@@ -47,8 +49,8 @@ export default function MyAskCard({
           <div className="min-w-0">
             <div className={`text-sm ${activeTheme.primaryText}`}>My Ask</div>
             <div className={`break-words text-base font-medium ${activeTheme.primaryText}`}>
-  {ask.title}
-</div>
+              {ask.title}
+            </div>
           </div>
 
           <div className={`text-sm ${activeTheme.mutedText}`}>
@@ -202,6 +204,7 @@ export default function MyAskCard({
                     onFulfillOffer={handleFulfillOffer}
                     activeTheme={activeTheme}
                     messages={getMessagesForOffer(offer.id)}
+                    unreadCount={getUnreadMessagesForOffer(offer.id).length}
                     isMessagesExpanded={expandedMessagesOfferId === offer.id}
                     onToggleMessages={() =>
                       setExpandedMessagesOfferId((current) =>
@@ -217,6 +220,7 @@ export default function MyAskCard({
                       }))
                     }
                     onSendMessage={handleSendMessage}
+                    onMarkMessagesAsRead={handleMarkMessagesAsRead}
                   />
                 ))}
               </div>

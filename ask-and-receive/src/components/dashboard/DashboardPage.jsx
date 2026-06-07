@@ -21,12 +21,14 @@ export default function DashboardPage({
   handleDeclineOffer,
   handleFulfillOffer,
   getMessagesForOffer,
+  getUnreadMessagesForOffer,
   expandedMessagesOfferId,
   setExpandedMessagesOfferId,
   currentUserId,
   messageInputs,
   setMessageInputs,
   handleSendMessage,
+  handleMarkMessagesAsRead,
   editingStoryId,
   setEditingStoryId,
   editStoryForm,
@@ -67,12 +69,14 @@ export default function DashboardPage({
         handleDeclineOffer={handleDeclineOffer}
         handleFulfillOffer={handleFulfillOffer}
         getMessagesForOffer={getMessagesForOffer}
+        getUnreadMessagesForOffer={getUnreadMessagesForOffer}
         expandedMessagesOfferId={expandedMessagesOfferId}
         setExpandedMessagesOfferId={setExpandedMessagesOfferId}
         currentUserId={currentUserId}
         messageInputs={messageInputs}
         setMessageInputs={setMessageInputs}
         handleSendMessage={handleSendMessage}
+        handleMarkMessagesAsRead={handleMarkMessagesAsRead}
         editingStoryId={editingStoryId}
         setEditingStoryId={setEditingStoryId}
         editStoryForm={editStoryForm}
@@ -95,12 +99,14 @@ export default function DashboardPage({
         handleWithdrawOffer={handleWithdrawOffer}
         activeTheme={activeTheme}
         getMessagesForOffer={getMessagesForOffer}
+        getUnreadMessagesForOffer={getUnreadMessagesForOffer}
         expandedMessagesOfferId={expandedMessagesOfferId}
         setExpandedMessagesOfferId={setExpandedMessagesOfferId}
         currentUserId={currentUserId}
         messageInputs={messageInputs}
         setMessageInputs={setMessageInputs}
         handleSendMessage={handleSendMessage}
+        handleMarkMessagesAsRead={handleMarkMessagesAsRead}
       />
     </>
   )

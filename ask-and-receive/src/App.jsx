@@ -1,76 +1,45 @@
-import { useEffect, useState } from "react"
-import { supabase } from "./supabaseClient"
+import { useState } from "react"
 import Auth from "./components/Auth"
 import Header from "./components/Header"
 import HomePage from "./components/home/HomePage"
 import DashboardPage from "./components/dashboard/DashboardPage"
 import ProfilePage from "./components/profile/ProfilePage"
-import HelpModal from "./components/HelpModal"
 import AppModals from "./components/modals/AppModals"
-import { ThemeProvider } from "./ThemeContext"
-import { useActiveTheme } from "./hooks/useActiveTheme"
+import { ThemeProvider } from "./providers/ThemeContext"
+import { categories } from "./constants/categories"
 import {
-  createAsk,
-  updateAsk,
-  deleteAskCascade,
-  formatAsk,
-} from "./services/askService"
-import {
-  fetchAllOffers,
-  fetchOffersForAskIds,
-  updateOfferMessage,
-  withdrawOffer,
-  acceptOffer,
-  declineOffer,
-  fulfillOffer,
-  findExistingOffer,
-  createHelpOffer,
-} from "./services/offerService"
-import {
-  fetchStories,
-  createStory,
-  updateStory,
-  deleteStory,
-} from "./services/storyService"
-import {
-  fetchMessages,
-  sendMessage,
   getMessagesForOffer,
+  getUnreadMessagesForOffer,
 } from "./services/messageService"
-import { useProfile } from "./hooks/useProfile"
-import { useSelectedProfileOffers } from "./hooks/useSelectedProfileOffers"
-import { useMyAsks } from "./hooks/useMyAsks"
-import { useMessages } from "./hooks/useMessages"
-import { useStories } from "./hooks/useStories"
-import { useAllOffers } from "./hooks/useAllOffers"
-import { useMyHelpOffers } from "./hooks/useMyHelpOffers"
-import { useOffersForMyAsks } from "./hooks/useOfferForMyAsks"
-import { useRealtimeAsks } from "./hooks/useRealtimeAsks"
-import { useRealtimeOffers } from "./hooks/useRealtimeOffers"
-import { useAuthSession } from "./hooks/useAuthSession"
-import { useRealtimeMessages } from "./hooks/useRealtimeMessages"
-import { useActiveView } from "./hooks/useActiveView"
-import { useAskActions } from "./hooks/useAskActions"
-import { useOfferActions } from "./hooks/useOfferActions"
-import { useStoryActions } from "./hooks/useStoryActions"
-import { useAskLoader } from "./hooks/useAskLoader"
-import { useProfileHelpers } from "./hooks/useProfileHelpers"
-import { useProfileActions } from "./hooks/useProfileActions"
+import { useActiveTheme } from "./hooks/helpers/useActiveTheme"
+import { useProfile } from "./hooks/data/useProfile"
+import { useSelectedProfileOffers } from "./hooks/data/useSelectedProfileOffers"
+import { useMyAsks } from "./hooks/data/useMyAsks"
+import { useMessages } from "./hooks/data/useMessages"
+import { useStories } from "./hooks/data/useStories"
+import { useAllOffers } from "./hooks/data/useAllOffers"
+import { useMyHelpOffers } from "./hooks/data/useMyHelpOffers"
+import { useOffersForMyAsks } from "./hooks/data/useOfferForMyAsks"
+import { useRealtimeAsks } from "./hooks/realtime/useRealtimeAsks"
+import { useRealtimeOffers } from "./hooks/realtime/useRealtimeOffers"
+import { useAuthSession } from "./hooks/helpers/useAuthSession"
+import { useRealtimeMessages } from "./hooks/realtime/useRealtimeMessages"
+import { useActiveView } from "./hooks/helpers/useActiveView"
+import { useAskActions } from "./hooks/actions/useAskActions"
+import { useOfferActions } from "./hooks/actions/useOfferActions"
+import { useStoryActions } from "./hooks/actions/useStoryActions"
+import { useAskLoader } from "./hooks/data/useAskLoader"
+import { useProfileHelpers } from "./hooks/helpers/useProfileHelpers"
+import { useProfileActions } from "./hooks/actions/useProfileActions"
+import { useHelpActions } from "./hooks/actions/useHelpActions"
+import { useMessageActions } from "./hooks/actions/useMessageActions"
+import { useReportActions } from "./hooks/actions/useReportActions"
+import { useAuthActions } from "./hooks/actions/useAuthActions"
+import { useLocalDataActions } from "./hooks/actions/useLocalDataActions"
+import { useModalState } from "./hooks/state/useModalState"
+import { useFormState } from "./hooks/state/useFormState"
 
 const ASK_STORAGE_KEY = "ask-and-receive-asks"
-
-const sampleStories = [
-  {
-    id: 1,
-    title: "A guitar for a kid who kept asking",
-    body: "Someone finally said yes. A used guitar changed hands, and a shy kid started learning songs that same week.",
-  },
-  {
-    id: 2,
-    title: "A sunrise boat ride",
-    body: "An ask that sounded small turned into a memory someone still talks about years later.",
-  },
-]
 
 export default function App() {
   const [session, setSession] = useState(null)
@@ -78,6 +47,43 @@ export default function App() {
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false)
   const [asks, setAsks] = useState([])
   const [status, setStatus] = useState("")
+  const {
+    isHelpOpen,
+    setIsHelpOpen,
+    selectedAsk,
+    setSelectedAsk,
+
+    isGratitudeOpen,
+    setIsGratitudeOpen,
+    gratitudeAskId,
+    setGratitudeAskId,
+
+    selectedProfile,
+    setSelectedProfile,
+
+    isReportOpen,
+    setIsReportOpen,
+    reportReason,
+    setReportReason,
+    reportStatus,
+    setReportStatus,
+  } = useModalState()
+  const {
+    askForm,
+    setAskForm,
+    editAskForm,
+    setEditAskForm,
+    helpForm,
+    setHelpForm,
+    gratitudeForm,
+    setGratitudeForm,
+    editStoryForm,
+    setEditStoryForm,
+    editOfferForm,
+    setEditOfferForm,
+    messageInputs,
+    setMessageInputs,
+  } = useFormState()
   const {
     myHelpOffers,
     setMyHelpOffers,
@@ -100,14 +106,9 @@ export default function App() {
     setMyAsks,
   } = useMyAsks(session, asks)
   const [editingAskId, setEditingAskId] = useState(null)
-  const [editAskForm, setEditAskForm] = useState({
-    title: "",
-    body: ""
-  })
+
   const [editingOfferId, setEditingOfferId] = useState(null)
-  const [editOfferForm, setEditOfferForm] = useState({
-    helper_message: "",
-  })
+
   const {
     handleSaveOfferEdit,
     handleWithdrawOffer,
@@ -128,15 +129,21 @@ export default function App() {
     offersForMyAsks,
   })
   const [editingStoryId, setEditingStoryId] = useState(null)
-  const [editStoryForm, setEditStoryForm] = useState({
-    title: "",
-    body: "",
-  })
+
   const {
     messages,
     setMessages,
   } = useMessages(session)
-  const [messageInputs, setMessageInputs] = useState({})
+
+  const {
+    handleSendMessage,
+    handleMarkMessagesAsRead,
+  } = useMessageActions({
+    session,
+    messageInputs,
+    setMessageInputs,
+    setMessages,
+  })
   const {
     activeView,
     setActiveView,
@@ -145,9 +152,6 @@ export default function App() {
     stories,
     setStories,
   } = useStories()
-  const [isGratitudeOpen, setIsGratitudeOpen] = useState(false)
-  const [gratitudeAskId, setGratitudeAskId] = useState(null)
-  const [selectedProfile, setSelectedProfile] = useState(null)
   const {
     handleProfileClick,
   } = useProfileHelpers({
@@ -159,9 +163,15 @@ export default function App() {
     isProfileLoading,
     setIsProfileLoading,
   } = useProfile(session)
-  const [isReportOpen, setIsReportOpen] = useState(false)
-  const [reportReason, setReportReason] = useState("")
-  const [reportStatus, setReportStatus] = useState("")
+  const {
+    handleReportSubmit,
+  } = useReportActions({
+    session,
+    selectedProfile,
+    reportReason,
+    setReportReason,
+    setReportStatus,
+  })
   const [profileStatus, setProfileStatus] = useState("")
   const {
     handleAvatarUpload,
@@ -177,15 +187,17 @@ export default function App() {
     setSelectedProfileOffers,
   } = useSelectedProfileOffers(selectedProfile)
   const activeTheme = useActiveTheme(profile)
+  const {
+    handleLogout,
+  } = useAuthActions()
+  const {
+    handleClearSavedData,
+  } = useLocalDataActions({
+    setAsks,
+    setStatus,
+    askStorageKey: ASK_STORAGE_KEY,
+  })
   const [askStatus, setAskStatus] = useState("")
-  const [askForm, setAskForm] = useState({
-    title: "",
-    category: "Simple Joy",
-    body: "",
-  })
-  const [gratitudeForm, setGratitudeForm] = useState({
-    body: "",
-  })
 
   const {
     handleGratitudeSubmit,
@@ -240,6 +252,11 @@ export default function App() {
     setOffersForMyAsks
   })
 
+  useRealtimeMessages({
+    session,
+    setMessages,
+  })
+
   useAuthSession({
     setSession,
     setIsAppLoading,
@@ -252,150 +269,21 @@ export default function App() {
     setIsAppLoading,
   })
 
-  const [helpForm, setHelpForm] = useState({
-    helperMessage: "",
+  const {
+    handleHelpClick,
+    handleHelpSubmit,
+  } = useHelpActions({
+    session,
+    profile,
+    helpForm,
+    selectedAsk,
+    setSelectedAsk,
+    setIsHelpOpen,
+    setHelpForm,
+    setHelpStatus,
+    setAsks,
   })
 
-  const [selectedAsk, setSelectedAsk] = useState(null)
-  const [isHelpOpen, setIsHelpOpen] = useState(false)
-
-  const categories = [
-    "Simple Joy",
-    "Encouragement",
-    "Practical Need",
-    "Skill or Time",
-    "Experience",
-  ]
-
-  function handleHelpClick(ask) {
-    setSelectedAsk(ask)
-    setIsHelpOpen(true)
-  }
-
-  async function handleHelpSubmit(event) {
-    event.preventDefault()
-
-    const trimmedMessage = (helpForm.helperMessage || "").trim()
-
-    if (!trimmedMessage) {
-      setHelpStatus("Please say how you want to help.")
-      return
-    }
-
-    if (trimmedMessage.length > 500) {
-      setHelpStatus("Help message must be 500 characters or fewer.")
-      return
-    }
-
-    const {
-      data: existingOffer,
-      error: existingOfferError,
-    } = await findExistingOffer({
-      askId: selectedAsk.id,
-      userId: session.user.id,
-    })
-
-    if (existingOfferError) {
-      setHelpStatus("Could not check your existing offers.")
-      return
-    }
-
-    if (existingOffer) {
-      setHelpStatus("You have already offered to help with this ask.")
-      return
-    }
-
-    const { error } = await createHelpOffer({
-      askId: selectedAsk.id,
-      userId: session.user.id,
-      helperName: profile?.nickname || "Anonymous",
-      helperMessage: trimmedMessage,
-    })
-
-    if (error) {
-      setHelpStatus("Could not send help offer.")
-      return
-    }
-
-    setAsks((current) =>
-      current.map((ask) =>
-        ask.id === selectedAsk.id
-          ? { ...ask, status: "pending" }
-          : ask
-      )
-    )
-
-    setHelpForm({ helperMessage: "" })
-    setHelpStatus("Offer sent!")
-
-    setIsHelpOpen(false)
-    setSelectedAsk(null)
-  }
-
-  async function handleSendMessage(offerId) {
-    const messageText = (messageInputs[offerId] || "").trim()
-
-    if (!messageText) return
-
-    if (messageText.length > 300) {
-      alert("Message must be 300 characters or fewer.")
-      return
-    }
-
-    const { error } = await sendMessage({
-      offerId,
-      senderUserId: session.user.id,
-      messageText,
-    })
-
-    if (error) {
-      console.error("Error sending message:", error)
-      return
-    }
-
-    setMessageInputs((current) => ({
-      ...current,
-      [offerId]: "",
-    }))
-  }
-
-  async function handleReportSubmit() {
-    const trimmedReason = reportReason.trim()
-
-    if (!trimmedReason) {
-      setReportStatus("Please enter a reason.")
-      return
-    }
-
-    const { error } = await supabase
-      .from("user_reports")
-      .insert([
-        {
-          reported_user_id: selectedProfile.id,
-          reporter_user_id: session.user.id,
-          reason: trimmedReason,
-        },
-      ])
-
-    if (error) {
-      console.error(error)
-      setReportStatus("Could not submit report.")
-      return
-    }
-
-    setReportStatus("Report submitted.")
-    setReportReason("")
-  }
-
-  async function handleLogout() {
-    await supabase.auth.signOut()
-  }
-  
-  function handleClearSavedData() {
-    setAsks([])
-    localStorage.removeItem(ASK_STORAGE_KEY)
-    setStatus("Saved asks cleared.")
-  }
   const isRecoveryMode =
     window.location.hash.includes("type=recovery") ||
     window.location.search.includes("type=recovery")
@@ -493,12 +381,20 @@ export default function App() {
             getMessagesForOffer={(offerId) =>
               getMessagesForOffer(messages, offerId)
             }
+            getUnreadMessagesForOffer={(offerId) =>
+              getUnreadMessagesForOffer(
+                messages,
+                offerId,
+                session.user.id
+              )
+            }
             expandedMessagesOfferId={expandedMessagesOfferId}
             setExpandedMessagesOfferId={setExpandedMessagesOfferId}
             currentUserId={session.user.id}
             messageInputs={messageInputs}
             setMessageInputs={setMessageInputs}
             handleSendMessage={handleSendMessage}
+            handleMarkMessagesAsRead={handleMarkMessagesAsRead}
             editingStoryId={editingStoryId}
             setEditingStoryId={setEditingStoryId}
             editStoryForm={editStoryForm}

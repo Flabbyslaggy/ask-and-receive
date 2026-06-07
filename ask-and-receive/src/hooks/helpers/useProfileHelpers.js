@@ -1,4 +1,4 @@
-import { fetchProfileById } from "../services/profileService"
+import { fetchProfileById } from "../../services/profileService"
 
 export function useProfileHelpers({
     setSelectedProfile,

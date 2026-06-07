@@ -2,28 +2,44 @@ export default function OfferMessages({
   offerId,
   isExpanded,
   onToggle,
+  onMarkMessagesAsRead,
   messages,
   currentUserId,
   activeTheme,
   messageValue,
   onMessageChange,
   onSendMessage,
+  unreadCount,
 }) {
   const charactersLeft = 300 - (messageValue || "").length
 
   return (
     <div className={`mt-6 rounded-2xl border ${activeTheme.inputBorder} ${activeTheme.sectionBg} p-4`}>
       <div
-        onClick={onToggle}
+        onClick={() => {
+          onToggle()
+
+          if (!isExpanded && unreadCount > 0) {
+            onMarkMessagesAsRead?.(offerId)
+          }
+        }}
         className={`text-sm ${activeTheme.subtleText} cursor-pointer hover:${activeTheme.primaryText} transition flex justify-between`}
       >
-        <span>Messages ({messages.length})</span>
+        <div className="flex items-center">
+          <span>Messages ({messages.length})</span>
+
+          {unreadCount > 0 && (
+            <span className="ml-2 rounded-full bg-red-600 px-2 py-0.5 text-xs font-bold text-white">
+              {unreadCount}
+            </span>
+          )}
+        </div>
         <span>{isExpanded ? "−" : "+"}</span>
       </div>
 
       {isExpanded && (
         <>
-          <div className="mt-3 space-y-2 max-h-80 overflow-y-auto">
+          <div className="mt-3 space-y-2 max-h-80 overflow-y-auto pr-6">
             {messages.map((msg) => (
               <div
                 key={msg.id}

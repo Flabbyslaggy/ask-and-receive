@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { fetchMessages } from "../services/messageService"
+import { fetchMessages } from "../../services/messageService"
 
 export function useMessages(session) {
   const [messages, setMessages] = useState([])

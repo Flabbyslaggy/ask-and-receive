@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { fetchAsks } from "../services/askService"
+import { fetchAsks } from "../../services/askService"
 
 export function useAskLoader({
     session,

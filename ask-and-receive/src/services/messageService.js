@@ -19,17 +19,55 @@ export async function sendMessage({
     senderUserId,
     messageText,
 }) {
-    const { error } = await supabase.from("messages").insert([
+    const { data, error } = await supabase.from("messages").insert([
         {
             offer_id: offerId,
             sender_user_id: senderUserId,
             message_text: messageText,
+            is_read: false,
         },
     ])
+        .select()
+        .single()
 
-    return { error }
+    if (error) {
+        console.error("Error sending message:", error)
+        return { error }
+    }
+
+    return { data, error }
 }
 
 export function getMessagesForOffer(messages, offerId) {
     return messages.filter((msg) => msg.offer_id === offerId)
+}
+
+export async function markMessagesAsRead({
+  offerId,
+  currentUserId,
+}) {
+   
+  const { data, error } = await supabase
+    .from("messages")
+    .update({ is_read: true })
+    .eq("offer_id", offerId)
+    .neq("sender_user_id", currentUserId)
+    .eq("is_read", false)
+    .select()
+
+  if (error) {
+    console.error("Error marking messages as read:", error)
+    return { data: [], error }
+  }
+
+  return { data, error }
+}
+
+export function getUnreadMessagesForOffer(messages, offerId, currentUserId) {
+  return messages.filter(
+    (message) =>
+      message.offer_id === offerId &&
+      message.sender_user_id !== currentUserId &&
+      message.is_read === false
+  )
 }

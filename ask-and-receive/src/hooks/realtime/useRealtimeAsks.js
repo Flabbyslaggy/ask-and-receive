@@ -1,6 +1,6 @@
 import { useEffect } from "react"
-import { supabase } from "../supabaseClient"
-import { formatAsk } from "../services/askService"
+import { supabase } from "../../supabaseClient"
+import { formatAsk } from "../../services/askService"
 
 export function useRealtimeAsks(setAsks) {
     useEffect(() => {

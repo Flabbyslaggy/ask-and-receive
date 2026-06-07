@@ -15,6 +15,8 @@ export default function MyHelpOfferCard({
   onWithdrawOffer,
   activeTheme,
   messages,
+  handleMarkMessagesAsRead,
+  unreadCount,
   isMessagesExpanded,
   onToggleMessages,
   currentUserId,
@@ -185,6 +187,7 @@ export default function MyHelpOfferCard({
 
               <OfferMessages
                 offerId={offer.id}
+                unreadCount={unreadCount}
                 isExpanded={isMessagesExpanded}
                 onToggle={onToggleMessages}
                 messages={messages}
@@ -193,6 +196,7 @@ export default function MyHelpOfferCard({
                 messageValue={messageValue}
                 onMessageChange={onMessageChange}
                 onSendMessage={onSendMessage}
+                onMarkMessagesAsRead={handleMarkMessagesAsRead}
               />
             </div>
           </div>

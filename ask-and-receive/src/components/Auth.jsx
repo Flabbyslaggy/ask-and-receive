@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../supabaseClient"
-import { useTheme } from "../ThemeContext"
+import { useTheme } from "../providers/ThemeContext"
 import {
   EyeIcon,
   EyeSlashIcon,

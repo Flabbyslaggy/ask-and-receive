@@ -2,7 +2,7 @@ import {
     createStory,
     updateStory,
     deleteStory,
-} from "../services/storyService"
+} from "../../services/storyService"
 
 export function useStoryActions({
     session,

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useTheme } from "../ThemeContext"
+import { useTheme } from "../providers/ThemeContext"
 
 export default function StoriesSection({ stories, handleProfileClick }) {
   const activeTheme = useTheme()

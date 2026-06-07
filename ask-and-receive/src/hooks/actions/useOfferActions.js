@@ -4,7 +4,7 @@ import {
     acceptOffer,
     declineOffer,
     fulfillOffer,
-} from "../services/offerService"
+} from "../../services/offerService"
 
 export function useOfferActions({
     session,

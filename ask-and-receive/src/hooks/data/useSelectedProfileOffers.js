@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { fetchProfileOffers } from "../services/profileService"
+import { fetchProfileOffers } from "../../services/profileService"
 
 export function useSelectedProfileOffers(selectedProfile) {
   const [selectedProfileOffers, setSelectedProfileOffers] = useState([])

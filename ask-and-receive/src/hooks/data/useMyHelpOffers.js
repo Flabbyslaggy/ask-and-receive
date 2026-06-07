@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { fetchMyHelpOffers } from "../services/offerService"
+import { fetchMyHelpOffers } from "../../services/offerService"
 
 export function useMyHelpOffers(session) {
   const [myHelpOffers, setMyHelpOffers] = useState([])
