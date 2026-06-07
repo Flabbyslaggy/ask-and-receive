@@ -50,7 +50,6 @@ export async function updateProfile({
 export async function uploadAvatar({
     file,
     userId,
-    supabase,
 }) {
     if (!file) {
         return {
@@ -59,7 +58,7 @@ export async function uploadAvatar({
         }
     }
 
-    const fileExt = file.name.split(".").pop()
+    const fileExt = file.name?.split(".").pop()?.toLowerCase() || "jpg"
     const fileName = `${userId}-${Date.now()}.${fileExt}`
     const filePath = `${userId}/${fileName}`
 

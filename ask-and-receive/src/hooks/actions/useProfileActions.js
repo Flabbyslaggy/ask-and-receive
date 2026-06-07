@@ -1,5 +1,3 @@
-import { supabase } from "../../supabaseClient"
-
 import {
   uploadAvatar,
   updateProfile,
@@ -17,7 +15,6 @@ export function useProfileActions({
         const { publicUrl, error } = await uploadAvatar({
             file,
             userId: session.user.id,
-            supabase,
         })
 
         if (error) {
