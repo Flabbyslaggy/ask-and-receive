@@ -19,6 +19,7 @@ export default function MyAsksSection({
   handleAcceptOffer,
   handleDeclineOffer,
   handleFulfillOffer,
+  handleMarkOffersAsSeen,
   getMessagesForOffer,
   getUnreadMessagesForOffer,
   expandedMessagesOfferId,
@@ -74,6 +75,7 @@ export default function MyAsksSection({
                 handleAcceptOffer={handleAcceptOffer}
                 handleDeclineOffer={handleDeclineOffer}
                 handleFulfillOffer={handleFulfillOffer}
+                handleMarkOffersAsSeen={handleMarkOffersAsSeen}
                 getMessagesForOffer={getMessagesForOffer}
                 getUnreadMessagesForOffer={getUnreadMessagesForOffer}
                 expandedMessagesOfferId={expandedMessagesOfferId}

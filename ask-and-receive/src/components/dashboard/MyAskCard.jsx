@@ -20,6 +20,7 @@ export default function MyAskCard({
   handleAcceptOffer,
   handleDeclineOffer,
   handleFulfillOffer,
+  handleMarkOffersAsSeen,
   getMessagesForOffer,
   getUnreadMessagesForOffer,
   expandedMessagesOfferId,
@@ -37,13 +38,26 @@ export default function MyAskCard({
   handleSaveStoryEdit,
   stories,
 }) {
+
+  const unseenOfferCount = relatedOffers.filter(
+    (offer) => offer.asker_has_seen === false
+  ).length
+
   return (
     <div className="w-full min-w-0">
       {expandedAskId !== ask.id ? (
         <div
-          onClick={() =>
-            setExpandedAskId((current) => (current === ask.id ? null : ask.id))
-          }
+          onClick={() => {
+            const unseenOfferIds = relatedOffers
+              .filter((offer) => offer.asker_has_seen === false)
+              .map((offer) => offer.id)
+
+            setExpandedAskId(ask.id)
+
+            if (unseenOfferIds.length > 0) {
+              handleMarkOffersAsSeen(unseenOfferIds)
+            }
+          }}
           className={`flex w-full min-w-0 cursor-pointer items-center justify-between gap-3 rounded-2xl border ${activeTheme.cardBorder} ${activeTheme.cardBg} px-4 py-3 transition ${activeTheme.hoverSurface}`}
         >
           <div className="min-w-0">
@@ -53,8 +67,16 @@ export default function MyAskCard({
             </div>
           </div>
 
-          <div className={`text-sm ${activeTheme.mutedText}`}>
-            {isFulfilled ? "fulfilled" : "open"}
+          <div className="flex shrink-0 items-center gap-2">
+            {unseenOfferCount > 0 && (
+              <span className="rounded-full bg-red-600 px-2 py-0.5 text-xs font-bold text-white">
+                {unseenOfferCount > 9 ? "9+" : unseenOfferCount}
+              </span>
+            )}
+
+            <span className={`text-sm ${activeTheme.mutedText}`}>
+              {isFulfilled ? "fulfilled" : "open"}
+            </span>
           </div>
         </div>
       ) : (

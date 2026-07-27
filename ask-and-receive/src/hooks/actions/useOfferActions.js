@@ -4,6 +4,7 @@ import {
     acceptOffer,
     declineOffer,
     fulfillOffer,
+    markOffersAsSeen,
 } from "../../services/offerService"
 
 export function useOfferActions({
@@ -195,11 +196,29 @@ export function useOfferActions({
         )
     }
 
+    async function handleMarkOffersAsSeen(offerIds) {
+        const { error } = await markOffersAsSeen(offerIds)
+
+        if (error) {
+            console.error("Error marking offers as seen:", error)
+            return
+        }
+
+        setOffersForMyAsks((current) =>
+            current.map((offer) =>
+                offerIds.includes(offer.id)
+                    ? { ...offer, asker_has_seen: true }
+                    : offer
+            )
+        )
+    }
+
     return {
         handleSaveOfferEdit,
         handleWithdrawOffer,
         handleAcceptOffer,
         handleFulfillOffer,
         handleDeclineOffer,
+        handleMarkOffersAsSeen,
     }
 }

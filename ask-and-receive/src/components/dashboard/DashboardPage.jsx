@@ -20,6 +20,7 @@ export default function DashboardPage({
   handleAcceptOffer,
   handleDeclineOffer,
   handleFulfillOffer,
+  handleMarkOffersAsSeen,
   getMessagesForOffer,
   getUnreadMessagesForOffer,
   expandedMessagesOfferId,
@@ -35,7 +36,6 @@ export default function DashboardPage({
   setEditStoryForm,
   handleDeleteStory,
   handleSaveStoryEdit,
-
   myHelpOffers,
   asks,
   expandedHelpOfferId,
@@ -68,6 +68,7 @@ export default function DashboardPage({
         handleAcceptOffer={handleAcceptOffer}
         handleDeclineOffer={handleDeclineOffer}
         handleFulfillOffer={handleFulfillOffer}
+        handleMarkOffersAsSeen={handleMarkOffersAsSeen}
         getMessagesForOffer={getMessagesForOffer}
         getUnreadMessagesForOffer={getUnreadMessagesForOffer}
         expandedMessagesOfferId={expandedMessagesOfferId}

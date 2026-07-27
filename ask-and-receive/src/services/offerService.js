@@ -197,3 +197,15 @@ export async function createHelpOffer({
 
   return { error: askError }
 }
+export async function markOffersAsSeen(offerIds) {
+  if (!offerIds || offerIds.length === 0) {
+    return { error: null }
+  }
+
+  const { error } = await supabase
+    .from("help_offers")
+    .update({ asker_has_seen: true })
+    .in("id", offerIds)
+
+  return { error }
+}

@@ -115,6 +115,7 @@ export default function App() {
     handleAcceptOffer,
     handleFulfillOffer,
     handleDeclineOffer,
+    handleMarkOffersAsSeen,
   } = useOfferActions({
     session,
     editOfferForm,
@@ -378,6 +379,7 @@ export default function App() {
             handleAcceptOffer={handleAcceptOffer}
             handleDeclineOffer={handleDeclineOffer}
             handleFulfillOffer={handleFulfillOffer}
+            handleMarkOffersAsSeen={handleMarkOffersAsSeen}
             getMessagesForOffer={(offerId) =>
               getMessagesForOffer(messages, offerId)
             }

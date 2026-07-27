@@ -54,8 +54,16 @@ export default function MyHelpOfferCard({
               </div>
             </div>
 
-            <div className={`shrink-0 text-sm ${activeTheme.mutedText}`}>
-              {offer.status || "pending"}
+            <div className="flex shrink-0 items-center gap-2">
+              {unreadCount > 0 && (
+                <span className="rounded-full bg-red-600 px-2 py-0.5 text-xs font-bold text-white">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+
+              <span className={`text-sm ${activeTheme.mutedText}`}>
+                {offer.status || "pending"}
+              </span>
             </div>
           </div>
         </div>
