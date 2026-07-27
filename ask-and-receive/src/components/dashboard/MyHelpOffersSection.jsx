@@ -12,6 +12,7 @@ export default function MyHelpOffersSection({
   setEditOfferForm,
   handleSaveOfferEdit,
   handleWithdrawOffer,
+  handleMarkHelperUpdatesAsSeen,
   activeTheme,
   getMessagesForOffer,
   getUnreadMessagesForOffer,
@@ -38,11 +39,18 @@ export default function MyHelpOffersSection({
               offer={offer}
               ask={asks.find((a) => a.id === offer.ask_id)}
               isExpanded={expandedHelpOfferId === offer.id}
-              onToggle={() =>
-                setExpandedHelpOfferId((current) =>
-                  current === offer.id ? null : offer.id
-                )
-              }
+              onToggle={() => {
+                const isOpening = expandedHelpOfferId !== offer.id
+
+                setExpandedHelpOfferId(isOpening ? offer.id : null)
+
+                if (
+                  isOpening &&
+                  offer.helper_has_seen_update === false
+                ) {
+                  handleMarkHelperUpdatesAsSeen([offer.id])
+                }
+              }}
               onCollapse={() => {
                 setExpandedHelpOfferId(null)
                 setExpandedMessagesOfferId(null)
@@ -56,7 +64,10 @@ export default function MyHelpOffersSection({
               onWithdrawOffer={handleWithdrawOffer}
               activeTheme={activeTheme}
               messages={getMessagesForOffer(offer.id)}
-              unreadCount={getUnreadMessagesForOffer(offer.id).length}
+              unreadCount={
+                getUnreadMessagesForOffer(offer.id).length +
+                (offer.helper_has_seen_update === false ? 1 : 0)
+              }
               handleMarkMessagesAsRead={handleMarkMessagesAsRead}
               isMessagesExpanded={expandedMessagesOfferId === offer.id}
               onToggleMessages={() =>

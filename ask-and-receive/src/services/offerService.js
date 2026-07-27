@@ -76,7 +76,10 @@ export async function withdrawOffer({ offerId, userId }) {
 export async function acceptOffer({ offerId, askId }) {
   const { error: acceptError } = await supabase
     .from("help_offers")
-    .update({ status: "accepted" })
+    .update({
+      status: "accepted",
+      helper_has_seen_update: false,
+    })
     .eq("id", offerId)
 
   if (acceptError) {
@@ -97,7 +100,10 @@ export async function acceptOffer({ offerId, askId }) {
 
   const { error: declineError } = await supabase
     .from("help_offers")
-    .update({ status: "declined" })
+    .update({
+      status: "declined",
+      helper_has_seen_update: false,
+    })
     .eq("ask_id", askId)
     .neq("id", offerId)
     .eq("status", "pending")
@@ -205,6 +211,18 @@ export async function markOffersAsSeen(offerIds) {
   const { error } = await supabase
     .from("help_offers")
     .update({ asker_has_seen: true })
+    .in("id", offerIds)
+
+  return { error }
+}
+export async function markHelperUpdatesAsSeen(offerIds) {
+  if (!offerIds || offerIds.length === 0) {
+    return { error: null }
+  }
+
+  const { error } = await supabase
+    .from("help_offers")
+    .update({ helper_has_seen_update: true })
     .in("id", offerIds)
 
   return { error }

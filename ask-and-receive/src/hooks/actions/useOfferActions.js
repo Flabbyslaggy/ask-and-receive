@@ -5,6 +5,7 @@ import {
     declineOffer,
     fulfillOffer,
     markOffersAsSeen,
+    markHelperUpdatesAsSeen,
 } from "../../services/offerService"
 
 export function useOfferActions({
@@ -213,6 +214,27 @@ export function useOfferActions({
         )
     }
 
+    const handleMarkHelperUpdatesAsSeen = async (offerIds) => {
+        if (!offerIds || offerIds.length === 0) {
+            return
+        }
+
+        const { error } = await markHelperUpdatesAsSeen(offerIds)
+
+        if (error) {
+            console.error("Error marking helper updates as seen:", error)
+            return
+        }
+
+        setMyHelpOffers((currentOffers) =>
+            currentOffers.map((offer) =>
+                offerIds.includes(offer.id)
+                    ? { ...offer, helper_has_seen_update: true }
+                    : offer
+            )
+        )
+    }
+
     return {
         handleSaveOfferEdit,
         handleWithdrawOffer,
@@ -220,5 +242,6 @@ export function useOfferActions({
         handleFulfillOffer,
         handleDeclineOffer,
         handleMarkOffersAsSeen,
+        handleMarkHelperUpdatesAsSeen,
     }
 }
